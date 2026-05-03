@@ -57,9 +57,9 @@ O payload inclui `exp` (Unix). Tokens **expirados** são rejeitados pelo middlew
 
 Health / exemplo de index.
 
-| Query | Obrigatório | Descrição |
-|-------|-------------|-----------|
-| `user` | Não | Nome a incluir na mensagem (por omissão `Hyperf`) |
+| Query  | Obrigatório | Descrição                                         |
+| ------ | ----------- | ------------------------------------------------- |
+| `user` | Não         | Nome a incluir na mensagem (por omissão `Hyperf`) |
 
 **Resposta 200**
 
@@ -80,10 +80,10 @@ Registo de utilizador.
 
 **Corpo JSON**
 
-| Campo | Tipo | Regras |
-|-------|------|--------|
-| `name` | string | obrigatório, 2–100 caracteres |
-| `email` | string | obrigatório, email, máx. 255 |
+| Campo      | Tipo   | Regras                                                                                                 |
+| ---------- | ------ | ------------------------------------------------------------------------------------------------------ |
+| `name`     | string | obrigatório, 2–100 caracteres                                                                          |
+| `email`    | string | obrigatório, email, máx. 255                                                                           |
 | `password` | string | obrigatório, 8–128, `password_confirmation` igual, pelo menos uma minúscula, uma maiúscula e um dígito |
 
 **Resposta 200**
@@ -107,10 +107,10 @@ Registo de utilizador.
 
 **Corpo JSON**
 
-| Campo | Tipo | Regras |
-|-------|------|--------|
-| `email` | string | obrigatório, email, máx. 255 |
-| `password` | string | obrigatório, 1–255 |
+| Campo      | Tipo   | Regras                       |
+| ---------- | ------ | ---------------------------- |
+| `email`    | string | obrigatório, email, máx. 255 |
+| `password` | string | obrigatório, 1–255           |
 
 **Resposta 200**
 
@@ -151,8 +151,8 @@ Pedido de reset (envio de código por email conforme configuração de mail).
 
 **Corpo JSON**
 
-| Campo | Tipo | Regras |
-|-------|------|--------|
+| Campo   | Tipo   | Regras                       |
+| ------- | ------ | ---------------------------- |
 | `email` | string | obrigatório, email, máx. 255 |
 
 **Resposta 200** — Mensagem genérica (não indica se o email existe).
@@ -169,9 +169,9 @@ Pedido de reset (envio de código por email conforme configuração de mail).
 
 **Corpo JSON**
 
-| Campo | Tipo | Regras |
-|-------|------|--------|
-| `code` | string | obrigatório, exactamente 6 dígitos |
+| Campo      | Tipo   | Regras                                                        |
+| ---------- | ------ | ------------------------------------------------------------- |
+| `code`     | string | obrigatório, exactamente 6 dígitos                            |
 | `password` | string | mesmas regras fortes que no registo + `password_confirmation` |
 
 **Resposta 200**
@@ -215,10 +215,10 @@ Pedido de reset (envio de código por email conforme configuração de mail).
 
 **Corpo JSON**
 
-| Campo | Tipo | Regras |
-|-------|------|--------|
-| `current_password` | string | obrigatório, máx. 255 |
-| `password` | string | nova password, mesmas regras fortes + `password_confirmation` |
+| Campo              | Tipo   | Regras                                                        |
+| ------------------ | ------ | ------------------------------------------------------------- |
+| `current_password` | string | obrigatório, máx. 255                                         |
+| `password`         | string | nova password, mesmas regras fortes + `password_confirmation` |
 
 **Resposta 200**
 
@@ -255,14 +255,14 @@ Pedido de reset (envio de código por email conforme configuração de mail).
 
 Todas as rotas abaixo exigem `Authorization: Bearer` e permissões específicas (middleware `RequirePermissionsMiddleware`). Resposta **403** se o token for válido mas o utilizador não tiver **todas** as permissões exigidas pela rota.
 
-| Método | Caminho | Permissões |
-|--------|---------|--------------|
-| `GET` | `/api/v1/admin/roles` | `roles.view` |
-| `POST` | `/api/v1/admin/roles` | `roles.create` — corpo: `name`, `slug` (`^[a-z0-9_-]{1,64}$`) |
-| `DELETE` | `/api/v1/admin/roles/{id}` | `roles.delete` — não elimina papéis com `is_system=true` |
-| `PUT` | `/api/v1/admin/roles/{id}/permissions` | `roles.assign_permissions` — corpo: `{ "permission_slugs": ["..."] }` |
-| `GET` | `/api/v1/admin/permissions` | `permissions.view` |
-| `PUT` | `/api/v1/admin/users/{id}/roles` | `users.assign_roles` — corpo: `{ "role_slugs": ["admin","user"] }` |
+| Método   | Caminho                                | Permissões                                                            |
+| -------- | -------------------------------------- | --------------------------------------------------------------------- |
+| `GET`    | `/api/v1/admin/roles`                  | `roles.view`                                                          |
+| `POST`   | `/api/v1/admin/roles`                  | `roles.create` — corpo: `name`, `slug` (`^[a-z0-9_-]{1,64}$`)         |
+| `DELETE` | `/api/v1/admin/roles/{id}`             | `roles.delete` — não elimina papéis com `is_system=true`              |
+| `PUT`    | `/api/v1/admin/roles/{id}/permissions` | `roles.assign_permissions` — corpo: `{ "permission_slugs": ["..."] }` |
+| `GET`    | `/api/v1/admin/permissions`            | `permissions.view`                                                    |
+| `PUT`    | `/api/v1/admin/users/{id}/roles`       | `users.assign_roles` — corpo: `{ "role_slugs": ["admin","user"] }`    |
 
 **Papéis iniciais** (após migração): `admin`, `manager`, `user`. Novos registos recebem o papel `user`. Para dar acesso de administração a um utilizador, atribua o papel `admin` (ou `manager`) via `PUT /admin/users/{id}/roles` com um token que já tenha `users.assign_roles`.
 
