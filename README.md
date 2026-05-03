@@ -135,6 +135,8 @@ O ficheiro **[.env.example](.env.example)** é a referência completa. Resumo:
 |----------|-----------|
 | `APP_ENV` | Ambiente (`dev`, `testing`, …) |
 | `APP_DEBUG` | Se `true`, erros 500 em JSON podem incluir trace (desligar em produção) |
+| `APP_LOCALE` | Idioma da API (`pt_BR` por omissão; ficheiros em `storage/languages/{locale}/`). Nos testes PHPUnit usa-se `en`. |
+| `APP_FALLBACK_LOCALE` | Idioma de recurso se faltar chave no locale principal (`en` por omissão) |
 | `APP_USER_REPOSITORY` | `memory` ou `db` |
 | `APP_AUTH_SECRET` | Segredo HMAC para tokens Bearer (obrigatório trocar em produção) |
 | `APP_AUTH_TOKEN_TTL` | TTL do access token em segundos |

@@ -6,6 +6,8 @@ namespace App\Http\Request\Auth;
 
 use Hyperf\Validation\Request\FormRequest;
 
+use function Hyperf\Translation\trans;
+
 class ChangePasswordRequest extends FormRequest
 {
     public function authorize(): bool
@@ -31,7 +33,7 @@ class ChangePasswordRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'password.regex' => 'The password must contain at least one uppercase letter, one lowercase letter, and one number.',
+            'password.regex' => trans('validation.password_strength'),
         ];
     }
 

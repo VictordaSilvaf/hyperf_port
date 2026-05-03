@@ -22,6 +22,8 @@ use Hyperf\Validation\ValidationException;
 use Swow\Psr7\Message\ResponsePlusInterface;
 use Throwable;
 
+use function Hyperf\Translation\trans;
+
 class AppExceptionHandler extends ExceptionHandler
 {
     public function __construct(
@@ -40,7 +42,7 @@ class AppExceptionHandler extends ExceptionHandler
         $debug = (bool) $this->config->get('debug', false);
 
         $payload = [
-            'message' => $debug ? $throwable->getMessage() : 'Internal Server Error.',
+            'message' => $debug ? $throwable->getMessage() : trans('http.internal_server_error'),
         ];
 
         if ($debug) {

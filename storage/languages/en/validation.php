@@ -173,6 +173,8 @@ return [
         'array' => 'The :attribute must have between :min and :max items when :other is :value.',
     ],
 
+    'password_strength' => 'The password must contain at least one uppercase letter, one lowercase letter, and one number.',
+
     /*
     |--------------------------------------------------------------------------
     | Custom Validation Language Lines

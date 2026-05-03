@@ -93,6 +93,13 @@ Violações típicas a evitar: `Domain` que importa `Hyperf\Db`; `Application` q
 
 ---
 
+## Traduções (i18n)
+
+- Ficheiros por locale em `storage/languages/{locale}/` (ex.: `validation.php`, `http.php`).
+- Locale por omissão: `APP_LOCALE=pt_BR` em `.env`; recurso: `APP_FALLBACK_LOCALE=en` (ver `config/autoload/translation.php`).
+- Mensagens de validação usam o grupo `validation`; respostas HTTP genéricas usam `http.*` com `trans('http.chave')`.
+- A suíte PHPUnit força `APP_LOCALE=en` em `phpunit.xml.dist` para mensagens estáveis nos testes.
+
 ## Documentação da API
 
 A referência de rotas, corpos e códigos HTTP está em [docs/API.md](API.md). Ao mudar rotas ou contratos, actualize **API.md** e, se a estrutura ou regras de camadas mudarem, **PROJECT.md** na mesma entrega.

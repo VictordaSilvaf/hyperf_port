@@ -11,6 +11,8 @@ use App\Infrastructure\Auth\AuthContext;
 use Hyperf\Di\Annotation\Inject;
 use Psr\Http\Message\ResponseInterface as PsrResponseInterface;
 
+use function Hyperf\Translation\trans;
+
 class UserController extends AbstractController
 {
     #[Inject]
@@ -20,13 +22,13 @@ class UserController extends AbstractController
     {
         $userId = AuthContext::userId();
         if ($userId === null) {
-            return $this->response->json(['message' => 'Unauthorized'])->withStatus(401);
+            return $this->response->json(['message' => trans('http.unauthorized')])->withStatus(401);
         }
 
         try {
             $result = $this->getUser->handle(new GetUserQuery($userId));
         } catch (UserNotFoundException) {
-            return $this->response->json(['message' => 'User not found'])->withStatus(404);
+            return $this->response->json(['message' => trans('http.user_not_found')])->withStatus(404);
         }
 
         return [
@@ -41,7 +43,7 @@ class UserController extends AbstractController
         try {
             $result = $this->getUser->handle(new GetUserQuery($id));
         } catch (UserNotFoundException) {
-            return $this->response->json(['message' => 'User not found'])->withStatus(404);
+            return $this->response->json(['message' => trans('http.user_not_found')])->withStatus(404);
         }
 
         return [

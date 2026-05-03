@@ -11,6 +11,8 @@ use Hyperf\Validation\ValidationException;
 use Swow\Psr7\Message\ResponsePlusInterface;
 use Throwable;
 
+use function Hyperf\Translation\trans;
+
 final class JsonValidationExceptionHandler extends ExceptionHandler
 {
     public function handle(Throwable $throwable, ResponsePlusInterface $response)
@@ -18,7 +20,7 @@ final class JsonValidationExceptionHandler extends ExceptionHandler
         $this->stopPropagation();
         /** @var ValidationException $throwable */
         $payload = Json::encode([
-            'message' => 'Validation failed',
+            'message' => trans('http.validation_failed'),
             'errors' => $throwable->errors(),
         ]);
 

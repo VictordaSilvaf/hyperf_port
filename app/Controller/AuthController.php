@@ -27,6 +27,8 @@ use App\Infrastructure\Auth\AuthContext;
 use Hyperf\Di\Annotation\Inject;
 use Psr\Http\Message\ResponseInterface as PsrResponseInterface;
 
+use function Hyperf\Translation\trans;
+
 class AuthController extends AbstractController
 {
     #[Inject]
@@ -59,9 +61,9 @@ class AuthController extends AbstractController
                 (string) $data['email'],
                 (string) $data['password'],
             ));
-        } catch (EmailAlreadyRegisteredException $e) {
+        } catch (EmailAlreadyRegisteredException) {
             return $this->response->json([
-                'message' => $e->getMessage(),
+                'message' => trans('http.email_already_registered'),
             ])->withStatus(409);
         }
 
@@ -69,7 +71,7 @@ class AuthController extends AbstractController
             'id' => $userId,
             'access_token' => $this->accessTokens->issue($userId),
             'token_type' => 'Bearer',
-            'message' => 'Registration successful.',
+            'message' => trans('http.registration_successful'),
         ];
     }
 
@@ -83,7 +85,7 @@ class AuthController extends AbstractController
             ));
         } catch (InvalidCredentialsException) {
             return $this->response->json([
-                'message' => 'Invalid email or password.',
+                'message' => trans('http.invalid_email_or_password'),
             ])->withStatus(401);
         }
 
@@ -96,7 +98,7 @@ class AuthController extends AbstractController
     public function logout(): array
     {
         return [
-            'message' => 'Token discarded on the client. This endpoint is a no-op for stateless APIs.',
+            'message' => trans('http.logout_stateless'),
         ];
     }
 
@@ -104,13 +106,13 @@ class AuthController extends AbstractController
     {
         $userId = AuthContext::userId();
         if ($userId === null) {
-            return $this->response->json(['message' => 'Unauthorized'])->withStatus(401);
+            return $this->response->json(['message' => trans('http.unauthorized')])->withStatus(401);
         }
 
         try {
             $token = $this->refreshAccessToken->handle($userId);
         } catch (InvalidCredentialsException) {
-            return $this->response->json(['message' => 'Unauthorized'])->withStatus(401);
+            return $this->response->json(['message' => trans('http.unauthorized')])->withStatus(401);
         }
 
         return [
@@ -125,7 +127,7 @@ class AuthController extends AbstractController
         $this->requestPasswordReset->handle(new RequestPasswordResetCommand((string) $data['email']));
 
         return [
-            'message' => 'If an account exists for that email, password reset instructions have been sent.',
+            'message' => trans('http.forgot_password_generic'),
         ];
     }
 
@@ -139,12 +141,12 @@ class AuthController extends AbstractController
             ));
         } catch (InvalidCredentialsException) {
             return $this->response->json([
-                'message' => 'Invalid or expired verification code.',
+                'message' => trans('http.reset_invalid_code'),
             ])->withStatus(422);
         }
 
         return [
-            'message' => 'Password has been reset. You can sign in with your new password.',
+            'message' => trans('http.reset_success'),
         ];
     }
 
@@ -152,7 +154,7 @@ class AuthController extends AbstractController
     {
         $userId = AuthContext::userId();
         if ($userId === null) {
-            return $this->response->json(['message' => 'Unauthorized'])->withStatus(401);
+            return $this->response->json(['message' => trans('http.unauthorized')])->withStatus(401);
         }
 
         $data = $request->validated();
@@ -164,12 +166,12 @@ class AuthController extends AbstractController
             ));
         } catch (InvalidCredentialsException) {
             return $this->response->json([
-                'message' => 'Current password is incorrect.',
+                'message' => trans('http.current_password_incorrect'),
             ])->withStatus(401);
         }
 
         return [
-            'message' => 'Password updated.',
+            'message' => trans('http.password_updated'),
         ];
     }
 }

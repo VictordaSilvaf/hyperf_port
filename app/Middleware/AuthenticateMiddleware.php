@@ -12,6 +12,8 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
+use function Hyperf\Translation\trans;
+
 class AuthenticateMiddleware implements MiddlewareInterface
 {
     public function __construct(
@@ -39,6 +41,6 @@ class AuthenticateMiddleware implements MiddlewareInterface
 
     private function unauthorized(): PsrResponseInterface
     {
-        return $this->response->json(['message' => 'Unauthorized'])->withStatus(401);
+        return $this->response->json(['message' => trans('http.unauthorized')])->withStatus(401);
     }
 }

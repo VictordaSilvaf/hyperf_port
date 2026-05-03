@@ -38,6 +38,8 @@ O token é emitido no registo e no login. Implementação: `app/Infrastructure/A
 
 Variáveis de ambiente relevantes (sem expor valores em documentação):
 
+- `APP_LOCALE` — idioma das mensagens da API e da validação (`pt_BR` ou `en`; ficheiros em `storage/languages/`).
+- `APP_FALLBACK_LOCALE` — idioma de recurso quando falta tradução.
 - `APP_AUTH_SECRET` — segredo HMAC para assinar o token.
 - `APP_AUTH_TOKEN_TTL` — TTL do token em segundos (por omissão `604800`).
 
