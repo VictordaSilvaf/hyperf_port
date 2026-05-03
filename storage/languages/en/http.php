@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 return [
+    'forbidden' => 'Forbidden',
     'validation_failed' => 'Validation failed',
     'unauthorized' => 'Unauthorized',
     'internal_server_error' => 'Internal Server Error.',
@@ -16,4 +17,8 @@ return [
     'current_password_incorrect' => 'Current password is incorrect.',
     'password_updated' => 'Password updated.',
     'user_not_found' => 'User not found',
+    'rbac_role_created' => 'Role created.',
+    'rbac_role_deleted' => 'Role deleted.',
+    'rbac_role_permissions_updated' => 'Role permissions updated.',
+    'rbac_user_roles_updated' => 'User roles updated.',
 ];

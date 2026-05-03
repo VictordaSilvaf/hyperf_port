@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Application\Acl\EffectivePermissionsProviderInterface;
 use App\Application\User\GetUser\GetUserHandler;
 use App\Application\User\GetUser\GetUserQuery;
 use App\Domain\User\Exception\UserNotFoundException;
@@ -17,6 +18,9 @@ class UserController extends AbstractController
 {
     #[Inject]
     protected GetUserHandler $getUser;
+
+    #[Inject]
+    protected EffectivePermissionsProviderInterface $effectivePermissions;
 
     public function me(): array|PsrResponseInterface
     {
@@ -35,6 +39,8 @@ class UserController extends AbstractController
             'id' => $result->id,
             'name' => $result->name,
             'email' => $result->email,
+            'roles' => $this->effectivePermissions->roleSlugsForUser($userId),
+            'permissions' => $this->effectivePermissions->permissionSlugsForUser($userId),
         ];
     }
 

@@ -1,8 +1,8 @@
 # Referência da API HTTP
 
-Todas as rotas documentadas abaixo estão registadas em `config/routes.php` dentro do grupo com prefixo **`/api`**.
+Todas as rotas documentadas abaixo estão registadas em `config/routes.php` dentro do grupo com prefixo **`/api/v1`**.
 
-**Base path:** `/api`  
+**Base path:** `/api/v1`  
 **Formato:** JSON (`Content-Type: application/json` nos pedidos com corpo).
 
 ---
@@ -47,13 +47,13 @@ O payload inclui `exp` (Unix). Tokens **expirados** são rejeitados pelo middlew
 
 ### Refresh do access token
 
-`POST /api/auth/refresh` só funciona enquanto o token enviado no `Authorization` **ainda é válido** (assinatura correcta e `exp` no futuro). Para prolongar sessões no cliente, chame refresh **antes** da expiração. Se o token já expirou, é necessário voltar a fazer login.
+`POST /api/v1/auth/refresh` só funciona enquanto o token enviado no `Authorization` **ainda é válido** (assinatura correcta e `exp` no futuro). Para prolongar sessões no cliente, chame refresh **antes** da expiração. Se o token já expirou, é necessário voltar a fazer login.
 
 ---
 
 ## Rotas
 
-### `GET` / `POST` / `HEAD` — `/api/`
+### `GET` / `POST` / `HEAD` — `/api/v1/`
 
 Health / exemplo de index.
 
@@ -74,7 +74,7 @@ Controlador: `app/Controller/IndexController.php`.
 
 ---
 
-### `POST` — `/api/auth/register`
+### `POST` — `/api/v1/auth/register`
 
 Registo de utilizador.
 
@@ -93,7 +93,9 @@ Registo de utilizador.
   "id": "<uuid>",
   "access_token": "<token>",
   "token_type": "Bearer",
-  "message": "Registration successful."
+  "message": "Registration successful.",
+  "roles": ["user"],
+  "permissions": []
 }
 ```
 
@@ -101,7 +103,7 @@ Registo de utilizador.
 
 ---
 
-### `POST` — `/api/auth/login`
+### `POST` — `/api/v1/auth/login`
 
 **Corpo JSON**
 
@@ -115,7 +117,9 @@ Registo de utilizador.
 ```json
 {
   "access_token": "<token>",
-  "token_type": "Bearer"
+  "token_type": "Bearer",
+  "roles": ["user"],
+  "permissions": []
 }
 ```
 
@@ -127,7 +131,7 @@ Registo de utilizador.
 
 ---
 
-### `POST` — `/api/auth/logout`
+### `POST` — `/api/v1/auth/logout`
 
 API stateless: o token deixa de ser usado no cliente. O endpoint devolve uma mensagem informativa.
 
@@ -141,7 +145,7 @@ API stateless: o token deixa de ser usado no cliente. O endpoint devolve uma men
 
 ---
 
-### `POST` — `/api/auth/forgot-password`
+### `POST` — `/api/v1/auth/forgot-password`
 
 Pedido de reset (envio de código por email conforme configuração de mail).
 
@@ -161,7 +165,7 @@ Pedido de reset (envio de código por email conforme configuração de mail).
 
 ---
 
-### `POST` — `/api/auth/reset-password`
+### `POST` — `/api/v1/auth/reset-password`
 
 **Corpo JSON**
 
@@ -186,7 +190,7 @@ Pedido de reset (envio de código por email conforme configuração de mail).
 
 ---
 
-### `POST` — `/api/auth/refresh` (autenticado)
+### `POST` — `/api/v1/auth/refresh` (autenticado)
 
 **Cabeçalhos:** `Authorization: Bearer <token válido>`
 
@@ -203,7 +207,7 @@ Pedido de reset (envio de código por email conforme configuração de mail).
 
 ---
 
-### `POST` — `/api/auth/change-password` (autenticado)
+### `POST` — `/api/v1/auth/change-password` (autenticado)
 
 **Cabeçalhos:** `Authorization: Bearer <token>`
 
@@ -224,7 +228,7 @@ Pedido de reset (envio de código por email conforme configuração de mail).
 
 ---
 
-### `GET` — `/api/me` (autenticado)
+### `GET` — `/api/v1/me` (autenticado)
 
 **Cabeçalhos:** `Authorization: Bearer <token>`
 
@@ -234,7 +238,9 @@ Pedido de reset (envio de código por email conforme configuração de mail).
 {
   "id": "<uuid>",
   "name": "...",
-  "email": "..."
+  "email": "...",
+  "roles": ["user"],
+  "permissions": []
 }
 ```
 
@@ -243,11 +249,30 @@ Pedido de reset (envio de código por email conforme configuração de mail).
 
 ---
 
-### `GET` — `/api/users/{id}`
+### Admin — papéis e permissões (RBAC)
+
+Todas as rotas abaixo exigem `Authorization: Bearer` e permissões específicas (middleware `RequirePermissionsMiddleware`). Resposta **403** se o token for válido mas o utilizador não tiver **todas** as permissões exigidas pela rota.
+
+| Método | Caminho | Permissões |
+|--------|---------|--------------|
+| `GET` | `/api/v1/admin/roles` | `roles.view` |
+| `POST` | `/api/v1/admin/roles` | `roles.create` — corpo: `name`, `slug` (`^[a-z0-9_-]{1,64}$`) |
+| `DELETE` | `/api/v1/admin/roles/{id}` | `roles.delete` — não elimina papéis com `is_system=true` |
+| `PUT` | `/api/v1/admin/roles/{id}/permissions` | `roles.assign_permissions` — corpo: `{ "permission_slugs": ["..."] }` |
+| `GET` | `/api/v1/admin/permissions` | `permissions.view` |
+| `PUT` | `/api/v1/admin/users/{id}/roles` | `users.assign_roles` — corpo: `{ "role_slugs": ["admin","user"] }` |
+
+**Papéis iniciais** (após migração): `admin`, `manager`, `user`. Novos registos recebem o papel `user`. Para dar acesso de administração a um utilizador, atribua o papel `admin` (ou `manager`) via `PUT /admin/users/{id}/roles` com um token que já tenha `users.assign_roles`.
+
+**Permissões seed** (slugs): `users.view`, `users.assign_roles`, `roles.view`, `roles.create`, `roles.delete`, `roles.assign_permissions`, `permissions.view`. O papel `admin` tem todas; `manager` tem `users.view`, `roles.view`, `permissions.view`; `user` não tem permissões administrativas por omissão.
+
+---
+
+### `GET` — `/api/v1/users/{id}`
 
 Perfil público por ID (UUID).
 
-**Resposta 200** — Mesmo formato que `/api/me`.
+**Resposta 200** — `id`, `name`, `email` (sem `roles` / `permissions`; estes campos existem em `GET /api/v1/me` para o utilizador autenticado).
 
 **404**
 
@@ -264,7 +289,7 @@ Substitua `HOST` (ex.: `http://127.0.0.1:9501`).
 **Login**
 
 ```bash
-curl -sS -X POST "$HOST/api/auth/login" \
+curl -sS -X POST "$HOST/api/v1/auth/login" \
   -H "Content-Type: application/json" \
   -d '{"email":"user@example.com","password":"Secret123"}'
 ```
@@ -274,14 +299,14 @@ curl -sS -X POST "$HOST/api/auth/login" \
 ```bash
 TOKEN="<colar_access_token>"
 
-curl -sS "$HOST/api/me" \
+curl -sS "$HOST/api/v1/me" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
 **Refresh (com token ainda válido)**
 
 ```bash
-curl -sS -X POST "$HOST/api/auth/refresh" \
+curl -sS -X POST "$HOST/api/v1/auth/refresh" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'

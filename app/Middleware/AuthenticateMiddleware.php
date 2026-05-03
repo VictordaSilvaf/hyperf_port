@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Middleware;
 
+use App\Application\Acl\EffectivePermissionsProviderInterface;
 use App\Infrastructure\Auth\AuthContext;
 use App\Infrastructure\Auth\SignedAccessTokenIssuer;
 use Hyperf\HttpServer\Contract\ResponseInterface;
@@ -19,6 +20,7 @@ class AuthenticateMiddleware implements MiddlewareInterface
     public function __construct(
         private readonly SignedAccessTokenIssuer $accessTokens,
         private readonly ResponseInterface $response,
+        private readonly EffectivePermissionsProviderInterface $effectivePermissions,
     ) {
     }
 
@@ -35,6 +37,7 @@ class AuthenticateMiddleware implements MiddlewareInterface
         }
 
         AuthContext::setUserId($userId);
+        AuthContext::setPermissionSlugs($this->effectivePermissions->permissionSlugsForUser($userId));
 
         return $handler->handle($request);
     }

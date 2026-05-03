@@ -35,7 +35,7 @@ class ExampleTest extends TestCase
         // PHPUnit 10+ uses a private runTest(), so Hyperf's RunTestsInCoroutine no longer wraps
         // the test body; HTTP test client requires running inside a Swoole coroutine.
         co_run(function () {
-            $this->get('/api/')
+            $this->get('/api/v1/')
                 ->assertOk()
                 ->assertJsonFragment([
                     'method' => 'GET',

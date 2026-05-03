@@ -93,6 +93,14 @@ Violações típicas a evitar: `Domain` que importa `Hyperf\Db`; `Application` q
 
 ---
 
+## ACL / RBAC
+
+- Domínio em `app/Domain/Acl/` (entidade `Role`, repositórios de papéis, permissões e `user_role`).
+- Casos de uso em `app/Application/Acl/` (criar papel, sincronizar permissões do papel, sincronizar papéis do utilizador).
+- Infra em `app/Infrastructure/Acl/` (`Db*` e `InMemory*` espelhados conforme `APP_USER_REPOSITORY`).
+- HTTP: `app/Controller/Admin/RbacController.php`; middleware `RequirePermissionsMiddleware` lê `permissions` nas opções da rota em `config/routes.php`.
+- Após autenticação, `AuthenticateMiddleware` carrega as permissões efectivas em `AuthContext`.
+
 ## Traduções (i18n)
 
 - Ficheiros por locale em `storage/languages/{locale}/` (ex.: `validation.php`, `http.php`).

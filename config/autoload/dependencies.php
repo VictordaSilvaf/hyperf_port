@@ -10,10 +10,15 @@ declare(strict_types=1);
  * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
 
+use App\Application\Acl\EffectivePermissionsProviderInterface;
 use App\Application\Auth\AccessTokenIssuerInterface;
 use App\Application\Auth\PasswordReset\PasswordResetNotifierInterface;
 use App\Application\Auth\PasswordReset\PasswordResetTokenStoreInterface;
 use App\Application\Shared\Security\PasswordHasherInterface;
+use App\Domain\Acl\Repository\PermissionRepositoryInterface;
+use App\Domain\Acl\Repository\RolePermissionWriterInterface;
+use App\Domain\Acl\Repository\RoleRepositoryInterface;
+use App\Domain\Acl\Repository\UserRoleRepositoryInterface;
 use App\Domain\Shared\Event\DomainEventPublisherInterface;
 use App\Domain\User\Repository\UserRepositoryInterface;
 use App\Infrastructure\Auth\ArrayPasswordResetTokenStore;
@@ -21,6 +26,17 @@ use App\Infrastructure\Auth\RedisPasswordResetTokenStore;
 use App\Infrastructure\Auth\SignedAccessTokenIssuer;
 use App\Infrastructure\Event\NoOpDomainEventPublisher;
 use App\Infrastructure\Mail\SmtpPasswordResetNotifier;
+use App\Infrastructure\Acl\DbEffectivePermissionsProvider;
+use App\Infrastructure\Acl\DbPermissionRepository;
+use App\Infrastructure\Acl\DbRolePermissionRepository;
+use App\Infrastructure\Acl\DbRoleRepository;
+use App\Infrastructure\Acl\DbUserRoleRepository;
+use App\Infrastructure\Acl\InMemoryAclStore;
+use App\Infrastructure\Acl\InMemoryEffectivePermissionsProvider;
+use App\Infrastructure\Acl\InMemoryPermissionRepository;
+use App\Infrastructure\Acl\InMemoryRolePermissionWriter;
+use App\Infrastructure\Acl\InMemoryRoleRepository;
+use App\Infrastructure\Acl\InMemoryUserRoleRepository;
 use App\Infrastructure\Persistence\User\DbUserRepository;
 use App\Infrastructure\Persistence\User\InMemoryUserRepository;
 use App\Infrastructure\Security\NativePasswordHasher;
@@ -36,9 +52,35 @@ return [
      * Hexagonal (driven) adapters: troque para DbUserRepository quando a tabela
      * `users` existir (após migrate) e o MySQL estiver configurado.
      */
+    InMemoryAclStore::class => static function (): InMemoryAclStore {
+        static $store = null;
+
+        return $store ??= InMemoryAclStore::seeded();
+    },
+
     UserRepositoryInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
         ? DbUserRepository::class
         : InMemoryUserRepository::class,
+
+    RoleRepositoryInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
+        ? DbRoleRepository::class
+        : InMemoryRoleRepository::class,
+
+    PermissionRepositoryInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
+        ? DbPermissionRepository::class
+        : InMemoryPermissionRepository::class,
+
+    UserRoleRepositoryInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
+        ? DbUserRoleRepository::class
+        : InMemoryUserRoleRepository::class,
+
+    RolePermissionWriterInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
+        ? DbRolePermissionRepository::class
+        : InMemoryRolePermissionWriter::class,
+
+    EffectivePermissionsProviderInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
+        ? DbEffectivePermissionsProvider::class
+        : InMemoryEffectivePermissionsProvider::class,
 
     DomainEventPublisherInterface::class => NoOpDomainEventPublisher::class,
 

@@ -13,6 +13,10 @@ use App\Application\Auth\ResetPassword\ResetPasswordHandler;
 use App\Application\User\RegisterUser\RegisterUserCommand;
 use App\Application\User\RegisterUser\RegisterUserHandler;
 use App\Domain\User\Exception\EmailAlreadyRegisteredException;
+use App\Infrastructure\Acl\InMemoryAclStore;
+use App\Infrastructure\Acl\InMemoryEffectivePermissionsProvider;
+use App\Infrastructure\Acl\InMemoryRoleRepository;
+use App\Infrastructure\Acl\InMemoryUserRoleRepository;
 use App\Infrastructure\Auth\ArrayPasswordResetTokenStore;
 use App\Infrastructure\Auth\SignedAccessTokenIssuer;
 use App\Infrastructure\Event\NoOpDomainEventPublisher;
@@ -28,9 +32,13 @@ test('register login and password reset flow', function () {
     $repo = new InMemoryUserRepository();
     $hasher = new NativePasswordHasher();
     $events = new NoOpDomainEventPublisher();
-    $register = new RegisterUserHandler($repo, $hasher, $events);
+    $acl = InMemoryAclStore::seeded();
+    $roleRepo = new InMemoryRoleRepository($acl);
+    $userRoles = new InMemoryUserRoleRepository($acl, $roleRepo);
+    $effective = new InMemoryEffectivePermissionsProvider($acl);
+    $register = new RegisterUserHandler($repo, $hasher, $events, $userRoles);
     $tokens = new SignedAccessTokenIssuer();
-    $login = new LoginUserHandler($repo, $hasher, $tokens);
+    $login = new LoginUserHandler($repo, $hasher, $tokens, $effective);
     $store = new ArrayPasswordResetTokenStore();
     $reset = new ResetPasswordHandler($store, $repo, $hasher);
 
@@ -38,8 +46,8 @@ test('register login and password reset flow', function () {
 
     expect($userId)->toMatch('/^[0-9a-f-]{36}$/');
 
-    $token = $login->handle(new LoginUserCommand('jane@example.com', 'Secret1a'));
-    expect($token)->toContain('.');
+    $result = $login->handle(new LoginUserCommand('jane@example.com', 'Secret1a'));
+    expect($result->accessToken)->toContain('.');
 
     expect(fn() => $login->handle(new LoginUserCommand('jane@example.com', 'WrongPass1')))->toThrow(InvalidCredentialsException::class);
 
@@ -52,7 +60,9 @@ test('register login and password reset flow', function () {
 
 test('register rejects duplicate email', function () {
     $repo = new InMemoryUserRepository();
-    $register = new RegisterUserHandler($repo, new NativePasswordHasher(), new NoOpDomainEventPublisher());
+    $acl = InMemoryAclStore::seeded();
+    $userRoles = new InMemoryUserRoleRepository($acl, new InMemoryRoleRepository($acl));
+    $register = new RegisterUserHandler($repo, new NativePasswordHasher(), new NoOpDomainEventPublisher(), $userRoles);
 
     $register->handle(new RegisterUserCommand('A', 'dup@example.com', 'Secret1a'));
 
@@ -64,7 +74,11 @@ test('change password requires current password', function () {
     $repo = new InMemoryUserRepository();
     $hasher = new NativePasswordHasher();
     $events = new NoOpDomainEventPublisher();
-    $register = new RegisterUserHandler($repo, $hasher, $events);
+    $acl = InMemoryAclStore::seeded();
+    $roleRepo = new InMemoryRoleRepository($acl);
+    $userRoles = new InMemoryUserRoleRepository($acl, $roleRepo);
+    $effective = new InMemoryEffectivePermissionsProvider($acl);
+    $register = new RegisterUserHandler($repo, $hasher, $events, $userRoles);
     $userId = $register->handle(new RegisterUserCommand('Z', 'z@example.com', 'Secret1a'));
 
     $change = new ChangePasswordHandler($repo, $hasher);
@@ -82,7 +96,7 @@ test('change password requires current password', function () {
     ));
 
     $tokens = new SignedAccessTokenIssuer();
-    $login = new LoginUserHandler($repo, $hasher, $tokens);
+    $login = new LoginUserHandler($repo, $hasher, $tokens, $effective);
     $login->handle(new LoginUserCommand('z@example.com', 'OtherSecret1b'));
 });
 

@@ -6,6 +6,7 @@ namespace App\Application\User\RegisterUser;
 
 use App\Application\Shared\Security\PasswordHasherInterface;
 use App\Domain\Shared\Event\DomainEventPublisherInterface;
+use App\Domain\Acl\Repository\UserRoleRepositoryInterface;
 use App\Domain\User\Entity\User;
 use App\Domain\User\Event\UserRegistered;
 use App\Domain\User\Exception\EmailAlreadyRegisteredException;
@@ -18,6 +19,7 @@ final class RegisterUserHandler
         private readonly UserRepositoryInterface $users,
         private readonly PasswordHasherInterface $passwordHasher,
         private readonly DomainEventPublisherInterface $domainEvents,
+        private readonly UserRoleRepositoryInterface $userRoles,
     ) {
     }
 
@@ -31,6 +33,7 @@ final class RegisterUserHandler
         $hash = $this->passwordHasher->hash($command->password);
         $user = User::register($command->name, $email, $hash);
         $this->users->save($user);
+        $this->userRoles->addRoleSlugToUserIfMissing($user->id()->value(), 'user');
         $this->domainEvents->publish(UserRegistered::forUser($user->id()));
 
         return $user->id()->value();

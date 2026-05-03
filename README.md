@@ -24,11 +24,12 @@ API REST em **[Hyperf 3.x](https://hyperf.io)** com organização em camadas (**
 
 ## Funcionalidades
 
-- **HTTP** — Prefixo global `/api`; respostas em JSON; erros de validação e HTTP tratados de forma previsível (`APP_DEBUG` controla detalhe em 500).
+- **HTTP** — Prefixo global `/api/v1`; respostas em JSON; erros de validação e HTTP tratados de forma previsível (`APP_DEBUG` controla detalhe em 500).
 - **Utilizadores** — Registo, consulta por ID, perfil do utilizador autenticado (`/me`).
 - **Auth** — Login, logout (stateless no servidor), refresh de token (enquanto o token actual for válido), alteração de palavra-passe autenticada.
 - **Reset de palavra-passe** — `forgot-password` + `reset-password` com código de 6 dígitos; armazenamento em memória (`array`) ou **Redis**; e-mail via **Symfony Mailer** (SMTP).
 - **Persistência** — Repositório de utilizadores em **memória** ou **MySQL** (`APP_USER_REPOSITORY`), configurável por `.env`.
+- **RBAC** — Papéis `admin`, `manager`, `user` (seed na migração); permissões granulares; criação de novos papéis; atribuição de permissões a papéis e de papéis a utilizadores (`/api/v1/admin/...`). Após `migrate`, todos os utilizadores existentes recebem o papel `user`; promova um admin com SQL ou com `PUT /api/v1/admin/users/{id}/roles` usando um token com permissão `users.assign_roles`.
 
 ---
 
@@ -104,7 +105,7 @@ Detalhes oficiais: [documentação Hyperf](https://hyperf.wiki).
 5. **Verificar a API**
 
    ```bash
-   curl -s http://127.0.0.1:9501/api/
+   curl -s http://127.0.0.1:9501/api/v1/
    ```
 
    Resposta esperada: JSON com `method` e `message` (ex.: `Hello Hyperf.`).

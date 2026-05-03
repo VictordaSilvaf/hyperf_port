@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Application\Acl\EffectivePermissionsProviderInterface;
 use App\Application\Auth\AccessTokenIssuerInterface;
 use App\Application\Auth\ChangePassword\ChangePasswordCommand;
 use App\Application\Auth\ChangePassword\ChangePasswordHandler;
 use App\Application\Auth\InvalidCredentialsException;
 use App\Application\Auth\LoginUser\LoginUserCommand;
 use App\Application\Auth\LoginUser\LoginUserHandler;
+use App\Application\Auth\LoginUser\LoginUserResult;
 use App\Application\Auth\RefreshAccessToken\RefreshAccessTokenHandler;
 use App\Application\Auth\RequestPasswordReset\RequestPasswordResetCommand;
 use App\Application\Auth\RequestPasswordReset\RequestPasswordResetHandler;
@@ -52,6 +54,9 @@ class AuthController extends AbstractController
     #[Inject]
     protected RefreshAccessTokenHandler $refreshAccessToken;
 
+    #[Inject]
+    protected EffectivePermissionsProviderInterface $effectivePermissions;
+
     public function register(RegisterRequest $request): array|PsrResponseInterface
     {
         $data = $request->validated();
@@ -72,6 +77,8 @@ class AuthController extends AbstractController
             'access_token' => $this->accessTokens->issue($userId),
             'token_type' => 'Bearer',
             'message' => trans('http.registration_successful'),
+            'roles' => $this->effectivePermissions->roleSlugsForUser($userId),
+            'permissions' => $this->effectivePermissions->permissionSlugsForUser($userId),
         ];
     }
 
@@ -79,7 +86,7 @@ class AuthController extends AbstractController
     {
         $data = $request->validated();
         try {
-            $token = $this->loginUser->handle(new LoginUserCommand(
+            $result = $this->loginUser->handle(new LoginUserCommand(
                 (string) $data['email'],
                 (string) $data['password'],
             ));
@@ -89,10 +96,7 @@ class AuthController extends AbstractController
             ])->withStatus(401);
         }
 
-        return [
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-        ];
+        return $this->loginResultToArray($result);
     }
 
     public function logout(): array
@@ -118,6 +122,8 @@ class AuthController extends AbstractController
         return [
             'access_token' => $token,
             'token_type' => 'Bearer',
+            'roles' => $this->effectivePermissions->roleSlugsForUser($userId),
+            'permissions' => $this->effectivePermissions->permissionSlugsForUser($userId),
         ];
     }
 
@@ -172,6 +178,19 @@ class AuthController extends AbstractController
 
         return [
             'message' => trans('http.password_updated'),
+        ];
+    }
+
+    /**
+     * @return array{access_token: string, token_type: string, roles: list<string>, permissions: list<string>}
+     */
+    private function loginResultToArray(LoginUserResult $result): array
+    {
+        return [
+            'access_token' => $result->accessToken,
+            'token_type' => 'Bearer',
+            'roles' => $result->roleSlugs,
+            'permissions' => $result->permissionSlugs,
         ];
     }
 }

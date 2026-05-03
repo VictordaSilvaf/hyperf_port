@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Auth\LoginUser;
 
+use App\Application\Acl\EffectivePermissionsProviderInterface;
 use App\Application\Auth\AccessTokenIssuerInterface;
 use App\Application\Auth\InvalidCredentialsException;
 use App\Application\Shared\Security\PasswordHasherInterface;
@@ -16,10 +17,11 @@ final class LoginUserHandler
         private readonly UserRepositoryInterface $users,
         private readonly PasswordHasherInterface $passwordHasher,
         private readonly AccessTokenIssuerInterface $accessTokens,
+        private readonly EffectivePermissionsProviderInterface $effectivePermissions,
     ) {
     }
 
-    public function handle(LoginUserCommand $command): string
+    public function handle(LoginUserCommand $command): LoginUserResult
     {
         $email = Email::fromString($command->email);
         $user = $this->users->findByEmail($email);
@@ -27,6 +29,12 @@ final class LoginUserHandler
             throw new InvalidCredentialsException();
         }
 
-        return $this->accessTokens->issue($user->id()->value());
+        $uid = $user->id()->value();
+
+        return new LoginUserResult(
+            $this->accessTokens->issue($uid),
+            $this->effectivePermissions->roleSlugsForUser($uid),
+            $this->effectivePermissions->permissionSlugsForUser($uid),
+        );
     }
 }
