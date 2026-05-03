@@ -25,11 +25,11 @@ API REST em **[Hyperf 3.x](https://hyperf.io)** com organização em camadas (**
 ## Funcionalidades
 
 - **HTTP** — Prefixo global `/api/v1`; respostas em JSON; erros de validação e HTTP tratados de forma previsível (`APP_DEBUG` controla detalhe em 500).
-- **Utilizadores** — Registo, consulta por ID, perfil do utilizador autenticado (`/me`).
+- **Utilizadores** — Registo, consulta por ID, perfil autenticado (`GET /api/v1/users/me`).
 - **Auth** — Login, logout (stateless no servidor), refresh de token (enquanto o token actual for válido), alteração de palavra-passe autenticada.
 - **Reset de palavra-passe** — `forgot-password` + `reset-password` com código de 6 dígitos; armazenamento em memória (`array`) ou **Redis**; e-mail via **Symfony Mailer** (SMTP).
 - **Persistência** — Repositório de utilizadores em **memória** ou **MySQL** (`APP_USER_REPOSITORY`), configurável por `.env`.
-- **RBAC** — Papéis `admin`, `manager`, `user` (seed na migração); permissões granulares; criação de novos papéis; atribuição de permissões a papéis e de papéis a utilizadores (`/api/v1/admin/...`). Após `migrate`, todos os utilizadores existentes recebem o papel `user`; promova um admin com SQL ou com `PUT /api/v1/admin/users/{id}/roles` usando um token com permissão `users.assign_roles`.
+- **RBAC** — Papéis `admin`, `manager`, `user` (seed na migração); permissões granulares; criação de novos papéis; atribuição de permissões a papéis e de papéis a utilizadores (`/api/v1/admin/...`). Após `migrate`, todos os utilizadores existentes recebem o papel `user`. São criados dois utilizadores de desenvolvimento (apenas com MySQL): `admin@victordev.com` (papel `admin`) e `manager@victordev.com` (papel `manager`), ambos com palavra-passe inicial **`VictorDev123!`** — altere ou elimine em produção.
 
 ---
 
@@ -151,7 +151,7 @@ O ficheiro **[.env.example](.env.example)** é a referência completa. Resumo:
 
 ## Base de dados e migrações
 
-Migrações em `migrations/` (tabela `users` e colunas necessárias).
+Migrações em `migrations/` (tabela `users`, RBAC e contas de *staff* de desenvolvimento).
 
 ```bash
 php bin/hyperf.php migrate
@@ -159,6 +159,8 @@ php bin/hyperf.php migrate:status
 ```
 
 Garanta que `DB_DATABASE`, `DB_USERNAME` e `DB_PASSWORD` coincidem com o MySQL (no Docker, `MYSQL_ROOT_PASSWORD` e `MYSQL_DATABASE` em `docker-compose.yml`).
+
+**Contas seed (após `migrate` com `APP_USER_REPOSITORY=db`):** `admin@victordev.com` e `manager@victordev.com`, palavra-passe **`VictorDev123!`**. Não use estas credenciais em produção.
 
 ---
 

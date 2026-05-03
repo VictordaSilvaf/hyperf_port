@@ -14,45 +14,57 @@ use App\Middleware\AuthenticateMiddleware;
 use App\Middleware\RequirePermissionsMiddleware;
 use Hyperf\HttpServer\Router\Router;
 
-$authz = [AuthenticateMiddleware::class, RequirePermissionsMiddleware::class];
+$auth = [AuthenticateMiddleware::class, RequirePermissionsMiddleware::class];
 
-Router::addGroup('/api/v1', function () use ($authz) {
+Router::addGroup('/api/v1', function () use ($auth) {
     Router::addRoute(['GET', 'POST', 'HEAD'], '/', 'App\Controller\IndexController@index');
 
-    Router::post('/auth/register', 'App\Controller\AuthController@register');
-    Router::post('/auth/login', 'App\Controller\AuthController@login');
-    Router::post('/auth/logout', 'App\Controller\AuthController@logout');
-    Router::post('/auth/forgot-password', 'App\Controller\AuthController@forgotPassword');
-    Router::post('/auth/reset-password', 'App\Controller\AuthController@resetPassword');
+    Router::addGroup('/auth', function () {
+        Router::post('/register', 'App\Controller\AuthController@register');
+        Router::post('/login', 'App\Controller\AuthController@login');
+        Router::post('/logout', 'App\Controller\AuthController@logout');
+        Router::post('/forgot-password', 'App\Controller\AuthController@forgotPassword');
+        Router::post('/reset-password', 'App\Controller\AuthController@resetPassword');
 
-    Router::post('/auth/refresh', 'App\Controller\AuthController@refresh', ['middleware' => [AuthenticateMiddleware::class]]);
-    Router::post('/auth/change-password', 'App\Controller\AuthController@changePassword', ['middleware' => [AuthenticateMiddleware::class]]);
+        Router::post('/refresh', 'App\Controller\AuthController@refresh', [
+            'middleware' => [AuthenticateMiddleware::class],
+        ]);
+        Router::post('/change-password', 'App\Controller\AuthController@changePassword', [
+            'middleware' => [AuthenticateMiddleware::class],
+        ]);
+    });
 
-    Router::get('/me', 'App\Controller\UserController@me', ['middleware' => [AuthenticateMiddleware::class]]);
-    Router::get('/users/{id}', 'App\Controller\UserController@show');
+    Router::addGroup('/users', function () {
+        Router::get('/me', 'App\Controller\UserController@me', [
+            'middleware' => [AuthenticateMiddleware::class],
+        ]);
+        Router::get('/{id}', 'App\Controller\UserController@show');
+    });
 
-    Router::get('/admin/roles', 'App\Controller\Admin\RbacController@listRoles', [
-        'middleware' => $authz,
-        'permissions' => ['roles.view'],
-    ]);
-    Router::post('/admin/roles', 'App\Controller\Admin\RbacController@createRole', [
-        'middleware' => $authz,
-        'permissions' => ['roles.create'],
-    ]);
-    Router::delete('/admin/roles/{id}', 'App\Controller\Admin\RbacController@destroyRole', [
-        'middleware' => $authz,
-        'permissions' => ['roles.delete'],
-    ]);
-    Router::put('/admin/roles/{id}/permissions', 'App\Controller\Admin\RbacController@syncRolePermissions', [
-        'middleware' => $authz,
-        'permissions' => ['roles.assign_permissions'],
-    ]);
-    Router::get('/admin/permissions', 'App\Controller\Admin\RbacController@listPermissions', [
-        'middleware' => $authz,
-        'permissions' => ['permissions.view'],
-    ]);
-    Router::put('/admin/users/{id}/roles', 'App\Controller\Admin\RbacController@syncUserRoles', [
-        'middleware' => $authz,
-        'permissions' => ['users.assign_roles'],
-    ]);
+    Router::addGroup('/admin', function () use ($auth) {
+        Router::get('/roles', 'App\Controller\Admin\RbacController@listRoles', [
+            'middleware' => $auth,
+            'permissions' => ['roles.view'],
+        ]);
+        Router::post('/roles', 'App\Controller\Admin\RbacController@createRole', [
+            'middleware' => $auth,
+            'permissions' => ['roles.create'],
+        ]);
+        Router::delete('/roles/{id}', 'App\Controller\Admin\RbacController@destroyRole', [
+            'middleware' => $auth,
+            'permissions' => ['roles.delete'],
+        ]);
+        Router::put('/roles/{id}/permissions', 'App\Controller\Admin\RbacController@syncRolePermissions', [
+            'middleware' => $auth,
+            'permissions' => ['roles.assign_permissions'],
+        ]);
+        Router::get('/permissions', 'App\Controller\Admin\RbacController@listPermissions', [
+            'middleware' => $auth,
+            'permissions' => ['permissions.view'],
+        ]);
+        Router::put('/users/{id}/roles', 'App\Controller\Admin\RbacController@syncUserRoles', [
+            'middleware' => $auth,
+            'permissions' => ['users.assign_roles'],
+        ]);
+    });
 });

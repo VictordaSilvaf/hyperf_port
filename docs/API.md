@@ -199,7 +199,9 @@ Pedido de reset (envio de código por email conforme configuração de mail).
 ```json
 {
   "access_token": "<novo_token>",
-  "token_type": "Bearer"
+  "token_type": "Bearer",
+  "roles": ["user"],
+  "permissions": []
 }
 ```
 
@@ -228,9 +230,9 @@ Pedido de reset (envio de código por email conforme configuração de mail).
 
 ---
 
-### `GET` — `/api/v1/me` (autenticado)
+### `GET` — `/api/v1/users/me` (autenticado)
 
-**Cabeçalhos:** `Authorization: Bearer <token>`
+**Cabeçalhos:** `Authorization: Bearer <token>` — requer `AuthenticateMiddleware` (token válido).
 
 **Resposta 200**
 
@@ -272,7 +274,7 @@ Todas as rotas abaixo exigem `Authorization: Bearer` e permissões específicas 
 
 Perfil público por ID (UUID).
 
-**Resposta 200** — `id`, `name`, `email` (sem `roles` / `permissions`; estes campos existem em `GET /api/v1/me` para o utilizador autenticado).
+**Resposta 200** — `id`, `name`, `email` (sem `roles` / `permissions`; estes campos existem em `GET /api/v1/users/me` para o utilizador autenticado).
 
 **404**
 
@@ -299,7 +301,7 @@ curl -sS -X POST "$HOST/api/v1/auth/login" \
 ```bash
 TOKEN="<colar_access_token>"
 
-curl -sS "$HOST/api/v1/me" \
+curl -sS "$HOST/api/v1/users/me" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
