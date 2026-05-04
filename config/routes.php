@@ -42,22 +42,25 @@ Router::addGroup('/api/v1', function () use ($auth) {
     });
 
     Router::addGroup('/admin', function () use ($auth) {
-        Router::get('/users', 'App\Controller\Admin\AdminUserController@index', [
-            'middleware' => $auth,
-            'permissions' => ['users.view'],
-        ]);
-        Router::post('/users', 'App\Controller\Admin\AdminUserController@store', [
-            'middleware' => $auth,
-            'permissions' => ['users.create'],
-        ]);
-        Router::get('/users/{id}', 'App\Controller\Admin\AdminUserController@show', [
-            'middleware' => $auth,
-            'permissions' => ['users.view'],
-        ]);
-        Router::put('/users/{id}', 'App\Controller\Admin\AdminUserController@update', [
-            'middleware' => $auth,
-            'permissions' => ['users.update'],
-        ]);
+        Router::addGroup('/users', function () use ($auth) {
+            Router::get('/', 'App\Controller\Admin\AdminUserController@index', [
+                'middleware' => $auth,
+                'permissions' => ['users.view'],
+            ]);
+            Router::post('/', 'App\Controller\Admin\AdminUserController@store', [
+                'middleware' => $auth,
+                'permissions' => ['users.create'],
+            ]);
+            Router::get('/{id}', 'App\Controller\Admin\AdminUserController@show', [
+                'middleware' => $auth,
+                'permissions' => ['users.view'],
+            ]);
+            Router::put('/{id}', 'App\Controller\Admin\AdminUserController@update', [
+                'middleware' => $auth,
+                'permissions' => ['users.update'],
+            ]);
+        });
+
         Router::get('/roles', 'App\Controller\Admin\RbacController@listRoles', [
             'middleware' => $auth,
             'permissions' => ['roles.view'],
