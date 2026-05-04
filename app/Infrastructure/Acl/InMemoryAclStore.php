@@ -56,6 +56,10 @@ final class InMemoryAclStore
             ['id' => 'b0000005-0000-4000-8000-000000000001', 'slug' => 'roles.delete', 'description' => 'Eliminar papéis'],
             ['id' => 'b0000006-0000-4000-8000-000000000001', 'slug' => 'roles.assign_permissions', 'description' => 'Permissões do papel'],
             ['id' => 'b0000007-0000-4000-8000-000000000001', 'slug' => 'permissions.view', 'description' => 'Listar permissões'],
+            ['id' => 'b0000008-0000-4000-8000-000000000001', 'slug' => 'profile.view_roles', 'description' => 'Consultar os próprios papéis'],
+            ['id' => 'b0000009-0000-4000-8000-000000000001', 'slug' => 'profile.view_permissions', 'description' => 'Consultar as próprias permissões'],
+            ['id' => 'b0000010-0000-4000-8000-000000000001', 'slug' => 'users.create', 'description' => 'Criar utilizadores'],
+            ['id' => 'b0000011-0000-4000-8000-000000000001', 'slug' => 'users.update', 'description' => 'Editar utilizadores'],
         ];
         foreach ($perms as $p) {
             $s->permissionsById[$p['id']] = $p;
@@ -68,8 +72,13 @@ final class InMemoryAclStore
             'b0000001-0000-4000-8000-000000000001',
             'b0000003-0000-4000-8000-000000000001',
             'b0000007-0000-4000-8000-000000000001',
+            'b0000010-0000-4000-8000-000000000001',
+            'b0000011-0000-4000-8000-000000000001',
         ];
-        $s->roleToPermissionIds[self::ROLE_USER] = [];
+        $s->roleToPermissionIds[self::ROLE_USER] = [
+            'b0000008-0000-4000-8000-000000000001',
+            'b0000009-0000-4000-8000-000000000001',
+        ];
 
         return $s;
     }

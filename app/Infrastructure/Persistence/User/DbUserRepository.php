@@ -51,6 +51,35 @@ final class DbUserRepository implements UserRepositoryInterface
         return $row === null ? null : $this->rowToUser($row);
     }
 
+    public function paginatedSummaries(int $page, int $perPage, ?string $search = null): array
+    {
+        $builder = Db::table(self::TABLE)->select(['id', 'name', 'email', 'created_at', 'updated_at']);
+        $trimmedSearch = $search !== null ? trim($search) : '';
+        if ($trimmedSearch !== '') {
+            $term = '%' . addcslashes($trimmedSearch, '%_\\') . '%';
+            $builder->where(static function ($q) use ($term): void {
+                $q->where('name', 'like', $term)->orWhere('email', 'like', $term);
+            });
+        }
+
+        $total = (clone $builder)->count();
+        $rows = $builder->orderByDesc('created_at')->orderBy('id')->forPage($page, $perPage)->get();
+
+        $items = [];
+        foreach ($rows as $row) {
+            $data = (array) $row;
+            $items[] = [
+                'id' => (string) $data['id'],
+                'name' => (string) $data['name'],
+                'email' => (string) $data['email'],
+                'created_at' => isset($data['created_at']) ? (string) $data['created_at'] : null,
+                'updated_at' => isset($data['updated_at']) ? (string) $data['updated_at'] : null,
+            ];
+        }
+
+        return ['total' => (int) $total, 'items' => $items];
+    }
+
     /**
      * @param array|object $row
      */

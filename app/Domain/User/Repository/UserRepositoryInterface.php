@@ -15,4 +15,12 @@ interface UserRepositoryInterface
     public function findById(UserId $id): ?User;
 
     public function findByEmail(Email $email): ?User;
+
+    /**
+     * @return array{
+     *   total: int,
+     *   items: list<array{id: string, name: string, email: string, created_at: ?string, updated_at: ?string}>
+     * }
+     */
+    public function paginatedSummaries(int $page, int $perPage, ?string $search = null): array;
 }

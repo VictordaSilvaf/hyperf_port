@@ -34,4 +34,40 @@ final class InMemoryUserRepository implements UserRepositoryInterface
 
         return null;
     }
+
+    public function paginatedSummaries(int $page, int $perPage, ?string $search = null): array
+    {
+        $list = array_values($this->items);
+        $trimmed = $search !== null ? trim($search) : '';
+        if ($trimmed !== '') {
+            $needle = strtolower($trimmed);
+            $list = array_values(array_filter(
+                $list,
+                static function (User $u) use ($needle): bool {
+                    return str_contains(strtolower($u->name()), $needle)
+                        || str_contains(strtolower($u->email()->value()), $needle);
+                }
+            ));
+        }
+
+        usort($list, static function (User $a, User $b): int {
+            return strcmp($a->email()->value(), $b->email()->value());
+        });
+
+        $total = count($list);
+        $offset = max(0, ($page - 1) * $perPage);
+        $slice = array_slice($list, $offset, $perPage);
+        $items = [];
+        foreach ($slice as $user) {
+            $items[] = [
+                'id' => $user->id()->value(),
+                'name' => $user->name(),
+                'email' => $user->email()->value(),
+                'created_at' => null,
+                'updated_at' => null,
+            ];
+        }
+
+        return ['total' => $total, 'items' => $items];
+    }
 }

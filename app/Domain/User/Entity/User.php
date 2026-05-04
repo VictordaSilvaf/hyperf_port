@@ -45,6 +45,16 @@ final class User
         return new self($this->id, $this->name, $this->email, $newPasswordHash);
     }
 
+    public function withProfile(string $name, Email $email): self
+    {
+        $trimmed = trim($name);
+        if ($trimmed === '') {
+            throw new InvalidArgumentException('Name cannot be empty.');
+        }
+
+        return new self($this->id, $trimmed, $email, $this->passwordHash);
+    }
+
     public function id(): UserId
     {
         return $this->id;

@@ -251,6 +251,15 @@ Pedido de reset (envio de código por email conforme configuração de mail).
 
 ---
 
+### Admin — utilizadores (dashboard / backoffice)
+
+| Método | Caminho | Permissões | Notas |
+| ------ | ------- | ---------- | ----- |
+| `GET` | `/api/v1/admin/users` | `users.view` | Query opcional: `page` (≥1), `per_page` (1–100, padrão 15), `search` (nome ou e-mail). Resposta: `data[]` com `id`, `name`, `email`, `created_at`, `updated_at` e `meta` (`total`, `page`, `per_page`, `last_page`). |
+| `POST` | `/api/v1/admin/users` | `users.create` | Corpo: `name`, `email`, `password`, `password_confirmation` (mesmas regras que o registo público). Resposta **200** com `id` e mensagem; **409** se o e-mail existir. |
+| `GET` | `/api/v1/admin/users/{id}` | `users.view` | Perfil com `roles` e `permissions` efectivas (slugs). **404** se o ID não existir. |
+| `PUT` | `/api/v1/admin/users/{id}` | `users.update` | Corpo: `name`, `email`. **409** se o e-mail pertencer a outro utilizador. |
+
 ### Admin — papéis e permissões (RBAC)
 
 Todas as rotas abaixo exigem `Authorization: Bearer` e permissões específicas (middleware `RequirePermissionsMiddleware`). Resposta **403** se o token for válido mas o utilizador não tiver **todas** as permissões exigidas pela rota.
@@ -266,7 +275,7 @@ Todas as rotas abaixo exigem `Authorization: Bearer` e permissões específicas 
 
 **Papéis iniciais** (após migração): `admin`, `manager`, `user`. Novos registos recebem o papel `user`. Para dar acesso de administração a um utilizador, atribua o papel `admin` (ou `manager`) via `PUT /admin/users/{id}/roles` com um token que já tenha `users.assign_roles`.
 
-**Permissões seed** (slugs): `users.view`, `users.assign_roles`, `roles.view`, `roles.create`, `roles.delete`, `roles.assign_permissions`, `permissions.view`. O papel `admin` tem todas; `manager` tem `users.view`, `roles.view`, `permissions.view`; `user` não tem permissões administrativas por omissão.
+**Permissões seed** (slugs): `users.view`, `users.create`, `users.update`, `users.assign_roles`, `roles.view`, `roles.create`, `roles.delete`, `roles.assign_permissions`, `permissions.view`, `profile.view_roles`, `profile.view_permissions`. O papel `admin` tem todas; `manager` inclui gestão de utilizadores (`users.view`, `users.create`, `users.update`) e leitura de papéis/permissões; o papel `user` tem por omissão as permissões de perfil `profile.*` (ver documentação de `GET /users/me`).
 
 ---
 

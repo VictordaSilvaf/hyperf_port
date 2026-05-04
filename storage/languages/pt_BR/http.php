@@ -21,4 +21,6 @@ return [
     'rbac_role_deleted' => 'Role deletada.',
     'rbac_role_permissions_updated' => 'Permissões da role atualizadas.',
     'rbac_user_roles_updated' => 'Roles do usuário atualizadas.',
+    'admin_user_created' => 'Utilizador criado.',
+    'admin_user_updated' => 'Utilizador atualizado.',
 ];
