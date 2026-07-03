@@ -27,8 +27,19 @@ class CreateProjectRequest extends FormRequest
             'title' => 'required|string|min:2|max:200',
             'slug' => 'nullable|string|min:2|max:200|regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
             'description' => 'nullable|string|max:5000',
-            'image_path' => 'nullable|string|max:500',
-            'owner_id' => 'nullable|uuid',
+            'content' => 'nullable|string|max:100000',
+            'repository_url' => 'nullable|url|max:500',
+            'demo_url' => 'nullable|url|max:500',
+            'thumbnail' => 'nullable|string|max:500',
+            'cover' => 'nullable|string|max:500',
+            'status' => 'nullable|in:draft,published,archived',
+            'featured' => 'nullable|boolean',
+            'categories' => 'nullable|array',
+            'categories.*' => 'uuid',
+            'technologies' => 'nullable|array',
+            'technologies.*' => 'uuid',
+            'tags' => 'nullable|array',
+            'tags.*' => 'uuid',
         ];
     }
 }

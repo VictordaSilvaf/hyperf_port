@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace App\Application\Project\ReorderProjects;
 
+use App\Application\Project\ProjectPublicCacheInterface;
 use App\Domain\Project\Exception\ProjectNotFoundException;
 use App\Domain\Project\Repository\ProjectRepositoryInterface;
 use App\Domain\Project\ValueObject\ProjectId;
@@ -20,19 +21,21 @@ final class ReorderProjectsHandler
 {
     public function __construct(
         private readonly ProjectRepositoryInterface $projects,
+        private readonly ProjectPublicCacheInterface $cache,
     ) {
     }
 
-    public function handle(ReorderProjectsCommand $command): void
+    /** @param list<array{id: string, order: int}> $items */
+    public function handle(array $items): void
     {
-        foreach ($command->items as $item) {
+        foreach ($items as $item) {
             $id = ProjectId::fromString((string) $item['id']);
             $project = $this->projects->findById($id);
             if ($project === null) {
                 throw ProjectNotFoundException::byId((string) $item['id']);
             }
-
-            $this->projects->save($project->withSortOrder((int) $item['sort_order']));
+            $this->projects->save($project->withSortOrder((int) $item['order']));
         }
+        $this->cache->bump();
     }
 }

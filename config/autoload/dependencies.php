@@ -14,19 +14,29 @@ use App\Application\Auth\AccessTokenIssuerInterface;
 use App\Application\Auth\PasswordReset\PasswordResetNotifierInterface;
 use App\Application\Auth\PasswordReset\PasswordResetTokenStoreInterface;
 use App\Application\Health\GetHealth\GetHealthHandler;
+use App\Application\Project\ProjectPublicCacheInterface;
+use App\Application\Project\ProjectViewCounterInterface;
 use App\Application\Shared\Security\PasswordHasherInterface;
 use App\Application\Storage\ObjectStorageInterface;
 use App\Domain\Acl\Repository\PermissionRepositoryInterface;
 use App\Domain\Acl\Repository\RolePermissionWriterInterface;
 use App\Domain\Acl\Repository\RoleRepositoryInterface;
 use App\Domain\Acl\Repository\UserRoleRepositoryInterface;
+use App\Domain\Category\Repository\CategoryRepositoryInterface;
 use App\Domain\Post\Repository\PostRepositoryInterface;
 use App\Domain\Project\Repository\ProjectRepositoryInterface;
 use App\Domain\Shared\Event\DomainEventPublisherInterface;
+use App\Domain\Tag\Repository\TagRepositoryInterface;
+use App\Domain\Technology\Repository\TechnologyRepositoryInterface;
+use App\Domain\Upload\Repository\UploadRepositoryInterface;
 use App\Domain\User\Repository\UserRepositoryInterface;
 use App\Infrastructure\Auth\SignedAccessTokenIssuer;
 use App\Infrastructure\Cache\ArrayPasswordResetTokenStore;
+use App\Infrastructure\Cache\ArrayProjectPublicCache;
+use App\Infrastructure\Cache\ArrayProjectViewCounter;
 use App\Infrastructure\Cache\RedisPasswordResetTokenStore;
+use App\Infrastructure\Cache\RedisProjectPublicCache;
+use App\Infrastructure\Cache\RedisProjectViewCounter;
 use App\Infrastructure\Event\NoOpDomainEventPublisher;
 use App\Infrastructure\Health\ApplicationHealthProbe;
 use App\Infrastructure\Health\DatabaseHealthProbe;
@@ -44,10 +54,18 @@ use App\Infrastructure\Persistence\Acl\InMemoryPermissionRepository;
 use App\Infrastructure\Persistence\Acl\InMemoryRolePermissionWriter;
 use App\Infrastructure\Persistence\Acl\InMemoryRoleRepository;
 use App\Infrastructure\Persistence\Acl\InMemoryUserRoleRepository;
+use App\Infrastructure\Persistence\Category\DbCategoryRepository;
+use App\Infrastructure\Persistence\Category\InMemoryCategoryRepository;
 use App\Infrastructure\Persistence\Post\DbPostRepository;
 use App\Infrastructure\Persistence\Post\InMemoryPostRepository;
 use App\Infrastructure\Persistence\Project\DbProjectRepository;
 use App\Infrastructure\Persistence\Project\InMemoryProjectRepository;
+use App\Infrastructure\Persistence\Tag\DbTagRepository;
+use App\Infrastructure\Persistence\Tag\InMemoryTagRepository;
+use App\Infrastructure\Persistence\Technology\DbTechnologyRepository;
+use App\Infrastructure\Persistence\Technology\InMemoryTechnologyRepository;
+use App\Infrastructure\Persistence\Upload\DbUploadRepository;
+use App\Infrastructure\Persistence\Upload\InMemoryUploadRepository;
 use App\Infrastructure\Persistence\User\DbUserRepository;
 use App\Infrastructure\Persistence\User\InMemoryUserRepository;
 use App\Infrastructure\Security\NativePasswordHasher;
@@ -82,6 +100,30 @@ return [
     PostRepositoryInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
         ? DbPostRepository::class
         : InMemoryPostRepository::class,
+
+    CategoryRepositoryInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
+        ? DbCategoryRepository::class
+        : InMemoryCategoryRepository::class,
+
+    TechnologyRepositoryInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
+        ? DbTechnologyRepository::class
+        : InMemoryTechnologyRepository::class,
+
+    TagRepositoryInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
+        ? DbTagRepository::class
+        : InMemoryTagRepository::class,
+
+    UploadRepositoryInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
+        ? DbUploadRepository::class
+        : InMemoryUploadRepository::class,
+
+    ProjectViewCounterInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
+        ? RedisProjectViewCounter::class
+        : ArrayProjectViewCounter::class,
+
+    ProjectPublicCacheInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
+        ? RedisProjectPublicCache::class
+        : ArrayProjectPublicCache::class,
 
     RoleRepositoryInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
         ? DbRoleRepository::class

@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace App\Application\Project\DeleteProject;
 
+use App\Application\Project\ProjectPublicCacheInterface;
 use App\Domain\Project\Exception\ProjectNotFoundException;
 use App\Domain\Project\Repository\ProjectRepositoryInterface;
 use App\Domain\Project\ValueObject\ProjectId;
@@ -20,16 +21,26 @@ final class DeleteProjectHandler
 {
     public function __construct(
         private readonly ProjectRepositoryInterface $projects,
+        private readonly ProjectPublicCacheInterface $cache,
     ) {
     }
 
-    public function handle(DeleteProjectCommand $command): void
+    public function handle(string $projectId, bool $force = false): void
     {
-        $id = ProjectId::fromString($command->projectId);
-        if ($this->projects->findById($id) === null) {
-            throw ProjectNotFoundException::byId($command->projectId);
+        $id = ProjectId::fromString($projectId);
+        $project = $this->projects->findById($id, $force);
+        if ($project === null && ! $force) {
+            $project = $this->projects->findById($id, true);
+        }
+        if ($project === null) {
+            throw ProjectNotFoundException::byId($projectId);
         }
 
-        $this->projects->delete($id);
+        if ($force) {
+            $this->projects->forceDelete($id);
+        } else {
+            $this->projects->softDelete($id);
+        }
+        $this->cache->bump();
     }
 }

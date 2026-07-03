@@ -12,7 +12,9 @@ declare(strict_types=1);
 
 namespace App\Application\Project\GetProjectBySlug;
 
-use App\Application\Project\GetProject\GetProjectResult;
+use App\Application\Project\ProjectPublicCacheInterface;
+use App\Application\Project\ProjectViewCounterInterface;
+use App\Application\Project\Shared\ProjectPresenter;
 use App\Domain\Project\Exception\ProjectNotFoundException;
 use App\Domain\Project\Repository\ProjectRepositoryInterface;
 use App\Domain\Project\ValueObject\ProjectSlug;
@@ -21,26 +23,32 @@ final class GetProjectBySlugHandler
 {
     public function __construct(
         private readonly ProjectRepositoryInterface $projects,
+        private readonly ProjectPresenter $presenter,
+        private readonly ProjectPublicCacheInterface $cache,
+        private readonly ProjectViewCounterInterface $viewCounter,
     ) {
     }
 
-    public function handle(GetProjectBySlugQuery $query): GetProjectResult
+    public function handle(string $slug, bool $trackView = false): array
     {
-        $slug = ProjectSlug::fromString($query->slug);
-        $project = $this->projects->findBySlug($slug);
-        if ($project === null || ($query->publicOnly && ! $project->status()->isPublic())) {
-            throw ProjectNotFoundException::bySlug($query->slug);
+        $cacheKey = 'slug:' . $slug;
+        $cached = $this->cache->get($cacheKey);
+        if (is_array($cached) && ! $trackView) {
+            return $cached;
         }
 
-        return new GetProjectResult(
-            $project->id()->value(),
-            $project->title(),
-            $project->slug()->value(),
-            $project->description(),
-            $project->status()->value,
-            $project->sortOrder(),
-            $project->imagePath(),
-            $project->ownerId(),
-        );
+        $project = $this->projects->findBySlug(ProjectSlug::fromString($slug), true);
+        if ($project === null) {
+            throw ProjectNotFoundException::bySlug($slug);
+        }
+
+        if ($trackView) {
+            $this->viewCounter->increment($project->id()->value());
+        }
+
+        $payload = ['data' => $this->presenter->toDetail($project)];
+        $this->cache->set($cacheKey, $payload, 300);
+
+        return $payload;
     }
 }

@@ -23,11 +23,6 @@ class UpdateProjectRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
-            'title' => 'required|string|min:2|max:200',
-            'slug' => 'nullable|string|min:2|max:200|regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
-            'description' => 'nullable|string|max:5000',
-            'image_path' => 'nullable|string|max:500',
-        ];
+        return (new CreateProjectRequest())->rules();
     }
 }

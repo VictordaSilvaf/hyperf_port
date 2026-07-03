@@ -15,6 +15,7 @@ namespace App\Domain\Project\Entity;
 use App\Domain\Project\ValueObject\ProjectId;
 use App\Domain\Project\ValueObject\ProjectSlug;
 use App\Domain\Project\ValueObject\ProjectStatus;
+use DateTimeImmutable;
 use InvalidArgumentException;
 
 final class Project
@@ -24,122 +25,160 @@ final class Project
         private readonly string $title,
         private readonly ProjectSlug $slug,
         private readonly ?string $description,
+        private readonly ?string $content,
+        private readonly ?string $repositoryUrl,
+        private readonly ?string $demoUrl,
+        private readonly ?string $thumbnailPath,
+        private readonly ?string $coverPath,
         private readonly ProjectStatus $status,
+        private readonly bool $featured,
+        private readonly ?DateTimeImmutable $publishedAt,
         private readonly int $sortOrder,
-        private readonly ?string $imagePath,
+        private readonly int $views,
         private readonly ?string $ownerId,
     ) {
     }
 
-    public static function create(
-        string $title,
-        ProjectSlug $slug,
-        ?string $description,
-        int $sortOrder,
-        ?string $imagePath = null,
-        ?string $ownerId = null,
-    ): self {
-        $trimmedTitle = trim($title);
-        if ($trimmedTitle === '') {
+    /**
+     * @param array{
+     *   title: string,
+     *   slug: ProjectSlug,
+     *   description?: null|string,
+     *   content?: null|string,
+     *   repository_url?: null|string,
+     *   demo_url?: null|string,
+     *   thumbnail?: null|string,
+     *   cover?: null|string,
+     *   status?: ProjectStatus,
+     *   featured?: bool,
+     *   sort_order: int,
+     * } $data
+     */
+    public static function create(array $data): self
+    {
+        $title = trim($data['title']);
+        if ($title === '') {
             throw new InvalidArgumentException('Project title cannot be empty.');
         }
 
         return new self(
             ProjectId::generate(),
-            $trimmedTitle,
-            $slug,
-            self::normalizeDescription($description),
-            ProjectStatus::Draft,
-            $sortOrder,
-            $imagePath,
-            $ownerId,
+            $title,
+            $data['slug'],
+            self::nullableString($data['description'] ?? null),
+            self::nullableString($data['content'] ?? null),
+            self::nullableString($data['repository_url'] ?? null),
+            self::nullableString($data['demo_url'] ?? null),
+            self::nullableString($data['thumbnail'] ?? null),
+            self::nullableString($data['cover'] ?? null),
+            $data['status'] ?? ProjectStatus::Draft,
+            $data['featured'] ?? false,
+            null,
+            $data['sort_order'],
+            0,
+            null,
         );
     }
 
-    public static function restore(
-        ProjectId $id,
-        string $title,
-        ProjectSlug $slug,
-        ?string $description,
-        ProjectStatus $status,
-        int $sortOrder,
-        ?string $imagePath,
-        ?string $ownerId,
-    ): self {
-        return new self($id, $title, $slug, $description, $status, $sortOrder, $imagePath, $ownerId);
-    }
-
-    public function update(
-        string $title,
-        ProjectSlug $slug,
-        ?string $description,
-        ?string $imagePath,
-    ): self {
-        $trimmedTitle = trim($title);
-        if ($trimmedTitle === '') {
-            throw new InvalidArgumentException('Project title cannot be empty.');
-        }
-
-        return new self(
-            $this->id,
-            $trimmedTitle,
-            $slug,
-            self::normalizeDescription($description),
-            $this->status,
-            $this->sortOrder,
-            $imagePath,
-            $this->ownerId,
-        );
-    }
-
-    public function publish(): self
+    /**
+     * @param array{
+     *   id: ProjectId,
+     *   title: string,
+     *   slug: ProjectSlug,
+     *   description: null|string,
+     *   content: null|string,
+     *   repository_url: null|string,
+     *   demo_url: null|string,
+     *   thumbnail: null|string,
+     *   cover: null|string,
+     *   status: ProjectStatus,
+     *   featured: bool,
+     *   published_at: null|DateTimeImmutable,
+     *   sort_order: int,
+     *   views: int,
+     *   owner_id: null|string,
+     * } $data
+     */
+    public static function restore(array $data): self
     {
-        if ($this->status === ProjectStatus::Published) {
-            return $this;
-        }
-
         return new self(
-            $this->id,
-            $this->title,
-            $this->slug,
-            $this->description,
-            ProjectStatus::Published,
-            $this->sortOrder,
-            $this->imagePath,
-            $this->ownerId,
+            $data['id'],
+            $data['title'],
+            $data['slug'],
+            $data['description'],
+            $data['content'],
+            $data['repository_url'],
+            $data['demo_url'],
+            $data['thumbnail'],
+            $data['cover'],
+            $data['status'],
+            $data['featured'],
+            $data['published_at'],
+            $data['sort_order'],
+            $data['views'],
+            $data['owner_id'],
         );
+    }
+
+    public function replace(array $changes): self
+    {
+        return self::restore([
+            'id' => $this->id,
+            'title' => $changes['title'] ?? $this->title,
+            'slug' => $changes['slug'] ?? $this->slug,
+            'description' => array_key_exists('description', $changes) ? self::nullableString($changes['description']) : $this->description,
+            'content' => array_key_exists('content', $changes) ? self::nullableString($changes['content']) : $this->content,
+            'repository_url' => array_key_exists('repository_url', $changes) ? self::nullableString($changes['repository_url']) : $this->repositoryUrl,
+            'demo_url' => array_key_exists('demo_url', $changes) ? self::nullableString($changes['demo_url']) : $this->demoUrl,
+            'thumbnail' => array_key_exists('thumbnail', $changes) ? self::nullableString($changes['thumbnail']) : $this->thumbnailPath,
+            'cover' => array_key_exists('cover', $changes) ? self::nullableString($changes['cover']) : $this->coverPath,
+            'status' => $changes['status'] ?? $this->status,
+            'featured' => $changes['featured'] ?? $this->featured,
+            'published_at' => array_key_exists('published_at', $changes) ? $changes['published_at'] : $this->publishedAt,
+            'sort_order' => $changes['sort_order'] ?? $this->sortOrder,
+            'views' => $changes['views'] ?? $this->views,
+            'owner_id' => array_key_exists('owner_id', $changes) ? $changes['owner_id'] : $this->ownerId,
+        ]);
+    }
+
+    public function publish(?DateTimeImmutable $publishedAt = null): self
+    {
+        return $this->replace([
+            'status' => ProjectStatus::Published,
+            'published_at' => $publishedAt ?? new DateTimeImmutable(),
+        ]);
     }
 
     public function archive(): self
     {
-        if ($this->status === ProjectStatus::Archived) {
-            return $this;
-        }
+        return $this->replace(['status' => ProjectStatus::Archived]);
+    }
 
-        return new self(
-            $this->id,
-            $this->title,
-            $this->slug,
-            $this->description,
-            ProjectStatus::Archived,
-            $this->sortOrder,
-            $this->imagePath,
-            $this->ownerId,
-        );
+    public function toDraft(): self
+    {
+        return $this->replace(['status' => ProjectStatus::Draft, 'published_at' => null]);
     }
 
     public function withSortOrder(int $sortOrder): self
     {
-        return new self(
-            $this->id,
-            $this->title,
-            $this->slug,
-            $this->description,
-            $this->status,
-            $sortOrder,
-            $this->imagePath,
-            $this->ownerId,
-        );
+        return $this->replace(['sort_order' => $sortOrder]);
+    }
+
+    public function duplicateAsDraft(ProjectSlug $slug, int $sortOrder): self
+    {
+        return self::create([
+            'title' => $this->title . ' (cópia)',
+            'slug' => $slug,
+            'description' => $this->description,
+            'content' => $this->content,
+            'repository_url' => $this->repositoryUrl,
+            'demo_url' => $this->demoUrl,
+            'thumbnail' => $this->thumbnailPath,
+            'cover' => $this->coverPath,
+            'status' => ProjectStatus::Draft,
+            'featured' => false,
+            'sort_order' => $sortOrder,
+        ]);
     }
 
     public function id(): ProjectId
@@ -162,9 +201,44 @@ final class Project
         return $this->description;
     }
 
+    public function content(): ?string
+    {
+        return $this->content;
+    }
+
+    public function repositoryUrl(): ?string
+    {
+        return $this->repositoryUrl;
+    }
+
+    public function demoUrl(): ?string
+    {
+        return $this->demoUrl;
+    }
+
+    public function thumbnailPath(): ?string
+    {
+        return $this->thumbnailPath;
+    }
+
+    public function coverPath(): ?string
+    {
+        return $this->coverPath;
+    }
+
     public function status(): ProjectStatus
     {
         return $this->status;
+    }
+
+    public function featured(): bool
+    {
+        return $this->featured;
+    }
+
+    public function publishedAt(): ?DateTimeImmutable
+    {
+        return $this->publishedAt;
     }
 
     public function sortOrder(): int
@@ -172,9 +246,9 @@ final class Project
         return $this->sortOrder;
     }
 
-    public function imagePath(): ?string
+    public function views(): int
     {
-        return $this->imagePath;
+        return $this->views;
     }
 
     public function ownerId(): ?string
@@ -182,13 +256,12 @@ final class Project
         return $this->ownerId;
     }
 
-    private static function normalizeDescription(?string $description): ?string
+    private static function nullableString(?string $value): ?string
     {
-        if ($description === null) {
+        if ($value === null) {
             return null;
         }
-
-        $trimmed = trim($description);
+        $trimmed = trim($value);
 
         return $trimmed === '' ? null : $trimmed;
     }

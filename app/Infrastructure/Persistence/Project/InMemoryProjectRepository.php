@@ -13,8 +13,11 @@ declare(strict_types=1);
 namespace App\Infrastructure\Persistence\Project;
 
 use App\Domain\Project\Entity\Project;
+use App\Domain\Project\Entity\ProjectImage;
 use App\Domain\Project\Repository\ProjectRepositoryInterface;
 use App\Domain\Project\ValueObject\ProjectId;
+use App\Domain\Project\ValueObject\ProjectImageId;
+use App\Domain\Project\ValueObject\ProjectListFilter;
 use App\Domain\Project\ValueObject\ProjectSlug;
 use App\Domain\Project\ValueObject\ProjectStatus;
 
@@ -23,25 +26,64 @@ final class InMemoryProjectRepository implements ProjectRepositoryInterface
     /** @var array<string, Project> */
     private array $items = [];
 
+    /** @var array<string, true> */
+    private array $trashed = [];
+
+    /** @var array<string, list<string>> */
+    private array $categories = [];
+
+    /** @var array<string, list<string>> */
+    private array $technologies = [];
+
+    /** @var array<string, list<string>> */
+    private array $tags = [];
+
+    /** @var array<string, ProjectImage> */
+    private array $images = [];
+
     public function save(Project $project): void
     {
         $this->items[$project->id()->value()] = $project;
     }
 
-    public function delete(ProjectId $id): void
+    public function softDelete(ProjectId $id): void
     {
-        unset($this->items[$id->value()]);
+        $this->trashed[$id->value()] = true;
     }
 
-    public function findById(ProjectId $id): ?Project
+    public function restore(ProjectId $id): void
     {
-        return $this->items[$id->value()] ?? null;
+        unset($this->trashed[$id->value()]);
     }
 
-    public function findBySlug(ProjectSlug $slug): ?Project
+    public function forceDelete(ProjectId $id): void
     {
-        foreach ($this->items as $project) {
+        unset($this->items[$id->value()], $this->trashed[$id->value()]);
+    }
+
+    public function findById(ProjectId $id, bool $withTrashed = false): ?Project
+    {
+        if (! isset($this->items[$id->value()])) {
+            return null;
+        }
+        if (! $withTrashed && isset($this->trashed[$id->value()])) {
+            return null;
+        }
+
+        return $this->items[$id->value()];
+    }
+
+    public function findBySlug(ProjectSlug $slug, bool $publicOnly = false): ?Project
+    {
+        foreach ($this->items as $id => $project) {
+            if (isset($this->trashed[$id])) {
+                continue;
+            }
             if ($project->slug()->value() === $slug->value()) {
+                if ($publicOnly && ! $project->status()->isPublic()) {
+                    return null;
+                }
+
                 return $project;
             }
         }
@@ -52,47 +94,144 @@ final class InMemoryProjectRepository implements ProjectRepositoryInterface
     public function nextSortOrder(): int
     {
         if ($this->items === []) {
-            return 0;
+            return 1;
         }
 
         return max(array_map(static fn (Project $p): int => $p->sortOrder(), $this->items)) + 1;
     }
 
-    public function paginatedSummaries(
-        int $page,
-        int $perPage,
-        ?string $search = null,
-        ?ProjectStatus $status = null,
-    ): array {
-        $list = array_values($this->items);
-        $trimmed = $search !== null ? trim($search) : '';
-        if ($trimmed !== '') {
-            $needle = strtolower($trimmed);
-            $list = array_values(array_filter(
-                $list,
-                static fn (Project $p): bool => str_contains(strtolower($p->title()), $needle)
-                    || str_contains($p->slug()->value(), $needle)
-            ));
+    public function incrementViews(ProjectId $id, int $amount): void
+    {
+        $project = $this->findById($id, true);
+        if ($project === null) {
+            return;
         }
-        if ($status !== null) {
-            $list = array_values(array_filter(
-                $list,
-                static fn (Project $p): bool => $p->status() === $status
-            ));
+        $this->items[$id->value()] = $project->replace(['views' => $project->views() + $amount]);
+    }
+
+    public function paginate(ProjectListFilter $filter): array
+    {
+        $list = [];
+        foreach ($this->items as $id => $project) {
+            if (isset($this->trashed[$id]) && ! $filter->withTrashed) {
+                continue;
+            }
+            if ($filter->publicOnly && ! $project->status()->isPublic()) {
+                continue;
+            }
+            if ($filter->status !== null && $project->status() !== $filter->status) {
+                continue;
+            }
+            if ($filter->featured !== null && $project->featured() !== $filter->featured) {
+                continue;
+            }
+            $list[] = $project;
         }
-
-        usort($list, static fn (Project $a, Project $b): int => $a->sortOrder() <=> $b->sortOrder());
-
-        $total = count($list);
-        $offset = max(0, ($page - 1) * $perPage);
-        $slice = array_slice($list, $offset, $perPage);
 
         return [
-            'total' => $total,
-            'items' => array_map(
-                static fn (Project $p): array => ProjectPersistenceMapper::toSummary($p),
-                $slice
-            ),
+            'total' => count($list),
+            'items' => array_map(static fn (Project $p): array => [
+                'id' => $p->id()->value(),
+                'title' => $p->title(),
+                'slug' => $p->slug()->value(),
+                'status' => $p->status()->value,
+                'featured' => $p->featured(),
+                'order' => $p->sortOrder(),
+            ], $list),
         ];
+    }
+
+    public function statistics(): array
+    {
+        $published = $draft = $archived = $featured = $views = 0;
+        foreach ($this->items as $id => $project) {
+            if (isset($this->trashed[$id])) {
+                continue;
+            }
+            match ($project->status()) {
+                ProjectStatus::Published => ++$published,
+                ProjectStatus::Draft => ++$draft,
+                ProjectStatus::Archived => ++$archived,
+            };
+            if ($project->featured()) {
+                ++$featured;
+            }
+            $views += $project->views();
+        }
+
+        return compact('published', 'draft', 'archived', 'featured', 'views');
+    }
+
+    public function syncCategories(ProjectId $projectId, array $categoryIds): void
+    {
+        $this->categories[$projectId->value()] = $categoryIds;
+    }
+
+    public function syncTechnologies(ProjectId $projectId, array $technologyIds): void
+    {
+        $this->technologies[$projectId->value()] = $technologyIds;
+    }
+
+    public function syncTags(ProjectId $projectId, array $tagIds): void
+    {
+        $this->tags[$projectId->value()] = $tagIds;
+    }
+
+    public function categoryIdsFor(ProjectId $projectId): array
+    {
+        return $this->categories[$projectId->value()] ?? [];
+    }
+
+    public function technologyIdsFor(ProjectId $projectId): array
+    {
+        return $this->technologies[$projectId->value()] ?? [];
+    }
+
+    public function tagIdsFor(ProjectId $projectId): array
+    {
+        return $this->tags[$projectId->value()] ?? [];
+    }
+
+    public function saveImage(ProjectImage $image): void
+    {
+        $this->images[$image->id()->value()] = $image;
+    }
+
+    public function deleteImage(ProjectImageId $imageId): void
+    {
+        unset($this->images[$imageId->value()]);
+    }
+
+    public function findImageById(ProjectImageId $imageId): ?ProjectImage
+    {
+        return $this->images[$imageId->value()] ?? null;
+    }
+
+    public function imagesFor(ProjectId $projectId): array
+    {
+        return array_values(array_filter(
+            $this->images,
+            static fn (ProjectImage $i): bool => $i->projectId()->value() === $projectId->value()
+        ));
+    }
+
+    public function reorderImages(ProjectId $projectId, array $items): void
+    {
+        foreach ($items as $item) {
+            $image = $this->findImageById(ProjectImageId::fromString((string) $item['id']));
+            if ($image !== null) {
+                $this->images[$image->id()->value()] = $image->withSortOrder((int) $item['sort_order']);
+            }
+        }
+    }
+
+    public function relatedPublished(ProjectId $projectId, int $limit = 6): array
+    {
+        return [];
+    }
+
+    public function search(string $query, int $page, int $perPage): array
+    {
+        return $this->paginate(new ProjectListFilter(page: $page, perPage: $perPage, search: $query, publicOnly: true));
     }
 }

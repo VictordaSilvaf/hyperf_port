@@ -12,20 +12,25 @@ declare(strict_types=1);
 
 namespace App\Application\Project\UpdateProject;
 
+use App\Application\Project\ProjectPublicCacheInterface;
+use App\Application\Project\Shared\ProjectPresenter;
 use App\Domain\Project\Exception\ProjectNotFoundException;
 use App\Domain\Project\Exception\ProjectSlugTakenException;
 use App\Domain\Project\Repository\ProjectRepositoryInterface;
 use App\Domain\Project\ValueObject\ProjectId;
 use App\Domain\Project\ValueObject\ProjectSlug;
+use App\Domain\Project\ValueObject\ProjectStatus;
 
 final class UpdateProjectHandler
 {
     public function __construct(
         private readonly ProjectRepositoryInterface $projects,
+        private readonly ProjectPublicCacheInterface $cache,
+        private readonly ProjectPresenter $presenter,
     ) {
     }
 
-    public function handle(UpdateProjectCommand $command): void
+    public function handle(UpdateProjectCommand $command): array
     {
         $id = ProjectId::fromString($command->projectId);
         $project = $this->projects->findById($id);
@@ -40,12 +45,25 @@ final class UpdateProjectHandler
             throw ProjectSlugTakenException::forSlug($slug->value());
         }
 
-        $updated = $project->update(
-            $command->title,
-            $slug,
-            $command->description,
-            $command->imagePath,
-        );
+        $updated = $project->replace([
+            'title' => $command->title,
+            'slug' => $slug,
+            'description' => $command->description,
+            'content' => $command->content,
+            'repository_url' => $command->repositoryUrl,
+            'demo_url' => $command->demoUrl,
+            'thumbnail' => $command->thumbnail,
+            'cover' => $command->cover,
+            'status' => $command->status !== null ? ProjectStatus::from($command->status) : $project->status(),
+            'featured' => $command->featured,
+        ]);
+
         $this->projects->save($updated);
+        $this->projects->syncCategories($id, $command->categories);
+        $this->projects->syncTechnologies($id, $command->technologies);
+        $this->projects->syncTags($id, $command->tags);
+        $this->cache->bump();
+
+        return ['data' => $this->presenter->toDetail($updated)];
     }
 }

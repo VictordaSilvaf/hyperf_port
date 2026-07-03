@@ -12,25 +12,35 @@ declare(strict_types=1);
 
 namespace App\Application\Project\PublishProject;
 
+use App\Application\Project\ProjectPublicCacheInterface;
+use App\Application\Project\Shared\ProjectPresenter;
 use App\Domain\Project\Exception\ProjectNotFoundException;
 use App\Domain\Project\Repository\ProjectRepositoryInterface;
 use App\Domain\Project\ValueObject\ProjectId;
+use DateTimeImmutable;
 
 final class PublishProjectHandler
 {
     public function __construct(
         private readonly ProjectRepositoryInterface $projects,
+        private readonly ProjectPublicCacheInterface $cache,
+        private readonly ProjectPresenter $presenter,
     ) {
     }
 
-    public function handle(PublishProjectCommand $command): void
+    public function handle(string $projectId, ?string $publishedAt = null): array
     {
-        $id = ProjectId::fromString($command->projectId);
+        $id = ProjectId::fromString($projectId);
         $project = $this->projects->findById($id);
         if ($project === null) {
-            throw ProjectNotFoundException::byId($command->projectId);
+            throw ProjectNotFoundException::byId($projectId);
         }
 
-        $this->projects->save($project->publish());
+        $at = $publishedAt !== null ? new DateTimeImmutable($publishedAt) : null;
+        $updated = $project->publish($at);
+        $this->projects->save($updated);
+        $this->cache->bump();
+
+        return ['data' => $this->presenter->toDetail($updated)];
     }
 }
