@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Page\Block;
 
+use App\Domain\Page\Exception\InvalidBlockPayloadException;
+
 final class HeroBlockValidator implements BlockValidatorInterface
 {
     use BlockValidationHelpers;
