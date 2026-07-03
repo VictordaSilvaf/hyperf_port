@@ -224,7 +224,18 @@ return [
 
     ObjectStorageInterface::class => FlysystemObjectStorage::class,
 
-    ImageProcessorInterface::class => GdImageProcessor::class,
+    ImageProcessorInterface::class => static function (ContainerInterface $container): GdImageProcessor {
+        $config = $container->get(ConfigInterface::class);
+
+        return new GdImageProcessor(
+            (int) $config->get('upload.max_width', 2048),
+            (int) $config->get('upload.max_height', 2048),
+            (int) $config->get('upload.jpeg_quality', 85),
+            (int) $config->get('upload.webp_quality', 82),
+            (int) $config->get('upload.thumbnail_width', 400),
+            (int) $config->get('upload.thumbnail_height', 400),
+        );
+    },
 
     UploadJobDispatcherInterface::class => static function (ContainerInterface $container): UploadJobDispatcherInterface {
         $useQueue = (bool) \Hyperf\Config\config('upload.queue_processing', true);

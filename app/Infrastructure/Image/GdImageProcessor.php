@@ -17,8 +17,6 @@ use App\Application\Upload\ProcessUploadImage\ProcessedImageResult;
 use GdImage;
 use RuntimeException;
 
-use function Hyperf\Config\config;
-
 final class GdImageProcessor implements ImageProcessorInterface
 {
     private const SUPPORTED = [
@@ -27,6 +25,16 @@ final class GdImageProcessor implements ImageProcessorInterface
         'image/webp' => IMAGETYPE_WEBP,
         'image/gif' => IMAGETYPE_GIF,
     ];
+
+    public function __construct(
+        private readonly int $maxWidth = 2048,
+        private readonly int $maxHeight = 2048,
+        private readonly int $jpegQuality = 85,
+        private readonly int $webpQuality = 82,
+        private readonly int $thumbnailWidth = 400,
+        private readonly int $thumbnailHeight = 400,
+    ) {
+    }
 
     public function supports(string $mimeType): bool
     {
@@ -50,25 +58,18 @@ final class GdImageProcessor implements ImageProcessorInterface
         }
 
         try {
-            $maxWidth = (int) config('upload.max_width', 2048);
-            $maxHeight = (int) config('upload.max_height', 2048);
-            $jpegQuality = (int) config('upload.jpeg_quality', 85);
-            $webpQuality = (int) config('upload.webp_quality', 82);
-            $thumbWidth = (int) config('upload.thumbnail_width', 400);
-            $thumbHeight = (int) config('upload.thumbnail_height', 400);
-
             $source = $this->fixOrientation($source, $contents);
-            $source = $this->resizeDown($source, $maxWidth, $maxHeight);
+            $source = $this->resizeDown($source, $this->maxWidth, $this->maxHeight);
 
             $width = imagesx($source);
             $height = imagesy($source);
 
             $optimizedMime = $mimeType === 'image/png' ? 'image/png' : 'image/jpeg';
-            $optimizedContents = $this->encode($source, $optimizedMime, $jpegQuality, $webpQuality);
-            $webpContents = $this->encodeWebp($source, $webpQuality);
+            $optimizedContents = $this->encode($source, $optimizedMime, $this->jpegQuality, $this->webpQuality);
+            $webpContents = $this->encodeWebp($source, $this->webpQuality);
             $thumbnailContents = $this->encodeWebp(
-                $this->coverThumbnail($source, $thumbWidth, $thumbHeight),
-                $webpQuality,
+                $this->coverThumbnail($source, $this->thumbnailWidth, $this->thumbnailHeight),
+                $this->webpQuality,
             );
 
             return new ProcessedImageResult(
