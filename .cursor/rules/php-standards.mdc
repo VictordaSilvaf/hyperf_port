@@ -1,0 +1,42 @@
+---
+description: Padrões PHP do projeto — strict types, estilo e DI Hyperf
+globs: "**/*.php"
+alwaysApply: false
+---
+
+# Padrões PHP
+
+## Obrigatório em ficheiros novos
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace App\...;
+```
+
+## Estilo (PHP-CS-Fixer)
+
+- Classes `final` quando não destinadas a extensão
+- Constructor property promotion com `private readonly`
+- Imports ordenados alfabeticamente; sem imports não usados
+- Aspas simples; arrays curtos `[]`
+- PSR-12 + regras em `.php-cs-fixer.php`
+
+## Hyperf / DI
+
+- Controllers: `#[Inject]` para handlers e serviços
+- Handlers: injecção por construtor (preferido para testabilidade)
+- Sem `new` de adaptadores de infra no domínio ou aplicação
+
+## Excepções
+
+- Regras de negócio → excepções em `Domain/*/Exception/`
+- Falhas de aplicação (ex.: credenciais) → `Application/*/`
+- Mapear para HTTP nos controllers ou `Exception/Handler/`
+
+## Value objects
+
+- Factories estáticas: `Email::fromString()`, `UserId::fromString()`
+- Imutáveis; validação na construção

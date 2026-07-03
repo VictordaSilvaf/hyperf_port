@@ -1,0 +1,32 @@
+---
+description: Testes com Pest — unitários, integração HTTP e execução no Docker
+globs: "{test/**,phpunit.xml.dist}"
+alwaysApply: false
+---
+
+# Testes
+
+## Estrutura
+
+| Pasta | Uso |
+|-------|-----|
+| `test/Unit/` | Handlers e lógica de aplicação (rápido, sem HTTP) |
+| `test/Cases/` | Integração HTTP com `Hyperf\Testing\TestCase` |
+| `test/Feature/` | Testes de feature adicionais |
+
+## Execução
+
+```bash
+# Host (sem Swoole: integração pode ser skipped)
+./vendor/bin/pest --no-coverage
+
+# Suíte completa no container
+docker compose run --rm --entrypoint php hyperf-skeleton /opt/www/vendor/bin/pest --no-coverage
+```
+
+## Convenções
+
+- PHPUnit força `APP_LOCALE=en` — asserções de mensagem em inglês
+- Preferir testar handlers directamente em `test/Unit/`
+- Mock de ports via interfaces; espelhar padrões em `test/Unit/Auth/`, `test/Unit/Acl/`
+- Comportamento novo → adicionar ou actualizar testes na mesma alteração

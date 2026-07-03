@@ -1,0 +1,30 @@
+# Dependências e artefactos de build
+vendor/
+runtime/
+.phpunit.result.cache
+.phpunit.cache
+*.cache
+
+# Ambiente e segredos
+.env
+.env.*
+!.env.example
+
+# Controlo de versão e IDE
+.git/
+.idea/
+.vscode/
+.phpintel/
+
+# Ficheiros gerados / locais
+.phpunit*
+/phpstan.neon
+/phpunit.xml
+*.log
+coverage/
+build/
+dist/
+
+# Binários e patches
+*.patch
+.DS_Store

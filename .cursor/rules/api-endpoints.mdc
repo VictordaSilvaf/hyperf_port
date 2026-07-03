@@ -1,0 +1,37 @@
+---
+description: Convenções HTTP — rotas, controllers, FormRequest e documentação API
+globs: "{app/Controller/**,app/Http/**,config/routes.php,docs/API.md}"
+alwaysApply: false
+---
+
+# Endpoints HTTP
+
+## Fluxo
+
+1. Rota em `config/routes.php` (prefixo `/api/v1`)
+2. Controller fino delega validação a `FormRequest`
+3. Handler recebe Command/Query; controller mapeia excepções → HTTP
+
+## Códigos HTTP comuns
+
+| Situação | Código |
+|----------|--------|
+| Validação falhou | 422 |
+| Não autenticado | 401 |
+| Sem permissão (RBAC) | 403 |
+| Recurso inexistente | 404 |
+| Conflito (ex.: email duplicado) | 409 |
+
+## RBAC
+
+- Permissões na rota: opção `permissions` em `config/routes.php`
+- Middleware: `RequirePermissionsMiddleware` + `AuthenticateMiddleware`
+
+## Respostas
+
+- JSON consistente; mensagens via `trans('http.chave')`
+- Admin: prefixo `/api/v1/admin/...`
+
+## Documentação
+
+Ao alterar rotas, payloads ou códigos de resposta, actualizar **docs/API.md** na mesma entrega.

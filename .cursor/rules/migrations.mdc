@@ -1,0 +1,24 @@
+---
+description: Migrações de base de dados e seed RBAC
+globs: migrations/**
+alwaysApply: false
+---
+
+# Migrações
+
+## Convenções
+
+- Nome: `YYYY_MM_DD_HHMMSS_descricao.php`
+- Executar: `php bin/hyperf.php migrate` (ou via Docker)
+- Garantir compatibilidade com `APP_USER_REPOSITORY=db`
+
+## RBAC
+
+- Permissões e papéis: seguir padrão das migrações existentes em `migrations/`
+- Novas permissões admin: associar a papéis `admin` e/ou `manager` conforme `docs/API.md`
+- Após migrate, utilizadores existentes recebem papel `user` (comportamento actual)
+
+## Desenvolvimento
+
+- Contas seed: `admin@victordev.com`, `manager@victordev.com` — **não** usar em produção
+- Alterações de schema → considerar impacto em `Infrastructure/Persistence/` e repositórios `Db*`

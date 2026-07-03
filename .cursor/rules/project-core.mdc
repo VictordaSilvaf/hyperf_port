@@ -1,0 +1,30 @@
+---
+description: Contexto central do projeto Hyperf API — stack, docs e princípios gerais
+alwaysApply: true
+---
+
+# Hyperf API — contexto do projeto
+
+API REST Hyperf 3.x (PHP ≥ 8.1) com DDD/hexagonal, auth Bearer, RBAC e Pest.
+
+## Documentação de referência
+
+- Arquitectura e camadas: `docs/PROJECT.md`
+- Contratos HTTP: `docs/API.md`
+- Setup e env: `README.md`, `.env.example`
+
+## Princípios de implementação
+
+- Diffs mínimos; reutilizar padrões existentes antes de inventar abstrações
+- Controllers finos; lógica de negócio em `Application/*Handler`
+- Dependências por interfaces (ports), não por classes concretas de `Infrastructure`
+- Mensagens ao cliente via `trans('http.*')` ou validação i18n
+- Não commitar `.env` nem credenciais; não alterar git config
+
+## Comandos frequentes
+
+```bash
+docker compose exec hyperf-skeleton php bin/hyperf.php migrate
+./vendor/bin/pest --no-coverage
+composer cs-fix && composer analyse
+```
