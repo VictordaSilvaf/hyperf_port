@@ -46,7 +46,11 @@ Router::addGroup('/api/v1', function () use ($auth) {
     });
 
     // Public portfolio API
-    Router::get('/projects/home', 'App\Presentation\Http\Controllers\Public\ProjectController@home');
+    Router::get('/pages/home', 'App\Presentation\Http\Controllers\Public\PageController@home');
+    Router::get('/pages', 'App\Presentation\Http\Controllers\Public\PageController@index');
+    Router::get('/pages/{slug}', 'App\Presentation\Http\Controllers\Public\PageController@show');
+    Router::get('/block-types', 'App\Presentation\Http\Controllers\Public\BlockTypeController@index');
+    Router::get('/site/settings', 'App\Presentation\Http\Controllers\Public\SiteSettingsController@show');
     Router::get('/projects', 'App\Presentation\Http\Controllers\Public\ProjectController@index');
     Router::get('/projects/{slug}/related', 'App\Presentation\Http\Controllers\Public\ProjectController@related');
     Router::get('/projects/{slug}', 'App\Presentation\Http\Controllers\Public\ProjectController@show');
@@ -162,5 +166,57 @@ Router::addGroup('/api/v1', function () use ($auth) {
                 'middleware' => $auth, 'permissions' => ['projects.update'],
             ]);
         });
+
+        Router::addGroup('/pages', function () use ($auth) {
+            Router::patch('/order', 'App\Presentation\Http\Controllers\Admin\AdminPageController@reorder', [
+                'middleware' => $auth, 'permissions' => ['pages.update'],
+            ]);
+            Router::get('/', 'App\Presentation\Http\Controllers\Admin\AdminPageController@index', [
+                'middleware' => $auth, 'permissions' => ['pages.view'],
+            ]);
+            Router::post('/', 'App\Presentation\Http\Controllers\Admin\AdminPageController@store', [
+                'middleware' => $auth, 'permissions' => ['pages.create'],
+            ]);
+            Router::get('/{id}', 'App\Presentation\Http\Controllers\Admin\AdminPageController@show', [
+                'middleware' => $auth, 'permissions' => ['pages.view'],
+            ]);
+            Router::put('/{id}', 'App\Presentation\Http\Controllers\Admin\AdminPageController@update', [
+                'middleware' => $auth, 'permissions' => ['pages.update'],
+            ]);
+            Router::patch('/{id}', 'App\Presentation\Http\Controllers\Admin\AdminPageController@patch', [
+                'middleware' => $auth, 'permissions' => ['pages.update'],
+            ]);
+            Router::delete('/{id}', 'App\Presentation\Http\Controllers\Admin\AdminPageController@destroy', [
+                'middleware' => $auth, 'permissions' => ['pages.delete'],
+            ]);
+            Router::delete('/{id}/force', 'App\Presentation\Http\Controllers\Admin\AdminPageController@forceDestroy', [
+                'middleware' => $auth, 'permissions' => ['pages.delete'],
+            ]);
+            Router::patch('/{id}/restore', 'App\Presentation\Http\Controllers\Admin\AdminPageController@restore', [
+                'middleware' => $auth, 'permissions' => ['pages.update'],
+            ]);
+            Router::patch('/{id}/publish', 'App\Presentation\Http\Controllers\Admin\AdminPageController@publish', [
+                'middleware' => $auth, 'permissions' => ['pages.publish'],
+            ]);
+            Router::patch('/{id}/archive', 'App\Presentation\Http\Controllers\Admin\AdminPageController@archive', [
+                'middleware' => $auth, 'permissions' => ['pages.publish'],
+            ]);
+            Router::patch('/{id}/draft', 'App\Presentation\Http\Controllers\Admin\AdminPageController@draft', [
+                'middleware' => $auth, 'permissions' => ['pages.publish'],
+            ]);
+            Router::post('/{id}/duplicate', 'App\Presentation\Http\Controllers\Admin\AdminPageController@duplicate', [
+                'middleware' => $auth, 'permissions' => ['pages.create'],
+            ]);
+            Router::put('/{id}/blocks', 'App\Presentation\Http\Controllers\Admin\AdminPageController@syncBlocks', [
+                'middleware' => $auth, 'permissions' => ['pages.update'],
+            ]);
+        });
+
+        Router::get('/site/settings', 'App\Presentation\Http\Controllers\Admin\AdminSiteSettingsController@show', [
+            'middleware' => $auth, 'permissions' => ['site.update'],
+        ]);
+        Router::put('/site/settings', 'App\Presentation\Http\Controllers\Admin\AdminSiteSettingsController@update', [
+            'middleware' => $auth, 'permissions' => ['site.update'],
+        ]);
     });
 });

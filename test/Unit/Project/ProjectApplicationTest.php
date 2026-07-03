@@ -51,7 +51,7 @@ test('update project replaces fields and syncs taxonomies', function () {
     $fixtures = projectFixtures();
     $id = seedProject($fixtures);
 
-    $update = new UpdateProjectHandler($fixtures['repo'], $fixtures['cache'], $fixtures['presenter']);
+    $update = new UpdateProjectHandler($fixtures['repo'], $fixtures['cache'], $fixtures['cacheInvalidator'], $fixtures['presenter']);
     $result = $update->handle(new UpdateProjectCommand(
         $id,
         'Updated Title',
@@ -81,7 +81,7 @@ test('patch project applies partial changes', function () {
     $fixtures = projectFixtures();
     $id = seedProject($fixtures);
 
-    $patch = new PatchProjectHandler($fixtures['repo'], $fixtures['cache'], $fixtures['presenter']);
+    $patch = new PatchProjectHandler($fixtures['repo'], $fixtures['cache'], $fixtures['cacheInvalidator'], $fixtures['presenter']);
     $result = $patch->handle(new PatchProjectCommand($id, [
         'title' => 'Patched Title',
         'featured' => true,
@@ -99,7 +99,7 @@ test('update rejects duplicate slug from another project', function () {
     seedProject($fixtures, projectCreateCommand('First', 'first-project'));
     $secondId = seedProject($fixtures, projectCreateCommand('Second', 'second-project'));
 
-    $update = new UpdateProjectHandler($fixtures['repo'], $fixtures['cache'], $fixtures['presenter']);
+    $update = new UpdateProjectHandler($fixtures['repo'], $fixtures['cache'], $fixtures['cacheInvalidator'], $fixtures['presenter']);
 
     expect(fn () => $update->handle(new UpdateProjectCommand(
         $secondId,
@@ -123,8 +123,8 @@ test('soft delete hides project and restore brings it back', function () {
     $fixtures = projectFixtures();
     $id = seedProject($fixtures);
 
-    $delete = new DeleteProjectHandler($fixtures['repo'], $fixtures['cache']);
-    $restore = new RestoreProjectHandler($fixtures['repo'], $fixtures['cache'], $fixtures['presenter']);
+    $delete = new DeleteProjectHandler($fixtures['repo'], $fixtures['cache'], $fixtures['cacheInvalidator']);
+    $restore = new RestoreProjectHandler($fixtures['repo'], $fixtures['cache'], $fixtures['cacheInvalidator'], $fixtures['presenter']);
     $get = new GetProjectHandler($fixtures['repo'], $fixtures['presenter']);
 
     $delete->handle($id);
@@ -139,8 +139,8 @@ test('force delete removes project permanently', function () {
     $fixtures = projectFixtures();
     $id = seedProject($fixtures);
 
-    $delete = new DeleteProjectHandler($fixtures['repo'], $fixtures['cache']);
-    $restore = new RestoreProjectHandler($fixtures['repo'], $fixtures['cache'], $fixtures['presenter']);
+    $delete = new DeleteProjectHandler($fixtures['repo'], $fixtures['cache'], $fixtures['cacheInvalidator']);
+    $restore = new RestoreProjectHandler($fixtures['repo'], $fixtures['cache'], $fixtures['cacheInvalidator'], $fixtures['presenter']);
 
     $delete->handle($id, true);
 
@@ -151,8 +151,8 @@ test('archive and draft change project status', function () {
     $fixtures = projectFixtures();
     $id = seedPublishedProject($fixtures);
 
-    $archive = new ArchiveProjectHandler($fixtures['repo'], $fixtures['cache'], $fixtures['presenter']);
-    $draft = new DraftProjectHandler($fixtures['repo'], $fixtures['cache'], $fixtures['presenter']);
+    $archive = new ArchiveProjectHandler($fixtures['repo'], $fixtures['cache'], $fixtures['cacheInvalidator'], $fixtures['presenter']);
+    $draft = new DraftProjectHandler($fixtures['repo'], $fixtures['cache'], $fixtures['cacheInvalidator'], $fixtures['presenter']);
 
     $archived = $archive->handle($id);
     expect($archived['data']['status'])->toBe(ProjectStatus::Archived->value);
@@ -166,7 +166,7 @@ test('duplicate project creates draft copy with unique slug', function () {
     $id = seedPublishedProject($fixtures, projectCreateCommand('Original', 'original'));
     $fixtures['repo']->syncTags(ProjectId::fromString($id), ['tag-a']);
 
-    $duplicate = new DuplicateProjectHandler($fixtures['repo'], $fixtures['presenter']);
+    $duplicate = new DuplicateProjectHandler($fixtures['repo'], $fixtures['cache'], $fixtures['cacheInvalidator'], $fixtures['presenter']);
     $copy = $duplicate->handle($id);
 
     expect($copy['data']['id'])->not->toBe($id);
@@ -195,7 +195,7 @@ test('statistics aggregate counts by status', function () {
     seedPublishedProject($fixtures, projectCreateCommand('Pub', 'pub', 'published', true));
     seedProject($fixtures, projectCreateCommand('Draft', 'draft'));
     $archivedId = seedPublishedProject($fixtures, projectCreateCommand('Old', 'old'));
-    (new ArchiveProjectHandler($fixtures['repo'], $fixtures['cache'], $fixtures['presenter']))->handle($archivedId);
+    (new ArchiveProjectHandler($fixtures['repo'], $fixtures['cache'], $fixtures['cacheInvalidator'], $fixtures['presenter']))->handle($archivedId);
 
     $stats = (new GetProjectStatisticsHandler($fixtures['repo']))->handle();
 

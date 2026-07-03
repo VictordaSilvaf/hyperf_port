@@ -14,6 +14,7 @@ namespace App\Application\Project\SyncProjectTaxonomies;
 
 use App\Application\Project\ProjectPublicCacheInterface;
 use App\Application\Project\Shared\ProjectPresenter;
+use App\Application\Shared\PublicContentCacheInvalidatorInterface;
 use App\Domain\Project\Exception\ProjectNotFoundException;
 use App\Domain\Project\Repository\ProjectRepositoryInterface;
 use App\Domain\Project\ValueObject\ProjectId;
@@ -23,6 +24,7 @@ final class SyncProjectTagsHandler
     public function __construct(
         private readonly ProjectRepositoryInterface $projects,
         private readonly ProjectPublicCacheInterface $cache,
+        private readonly PublicContentCacheInvalidatorInterface $cacheInvalidator,
         private readonly ProjectPresenter $presenter,
     ) {
     }
@@ -37,6 +39,7 @@ final class SyncProjectTagsHandler
         }
         $this->projects->syncTags($id, $tagIds);
         $this->cache->bump();
+        $this->cacheInvalidator->invalidatePages();
 
         return ['data' => $this->presenter->toDetail($project)];
     }

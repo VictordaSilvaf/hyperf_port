@@ -14,9 +14,13 @@ use App\Application\Auth\AccessTokenIssuerInterface;
 use App\Application\Auth\PasswordReset\PasswordResetNotifierInterface;
 use App\Application\Auth\PasswordReset\PasswordResetTokenStoreInterface;
 use App\Application\Health\GetHealth\GetHealthHandler;
+use App\Application\Page\BlockRegistryInterface;
+use App\Application\Page\PagePublicCacheInterface;
 use App\Application\Project\ProjectPublicCacheInterface;
 use App\Application\Project\ProjectViewCounterInterface;
+use App\Application\Shared\PublicContentCacheInvalidatorInterface;
 use App\Application\Shared\Security\PasswordHasherInterface;
+use App\Application\Site\SitePublicCacheInterface;
 use App\Application\Storage\ObjectStorageInterface;
 use App\Application\Upload\ImageProcessorInterface;
 use App\Application\Upload\UploadJobDispatcherInterface;
@@ -25,20 +29,27 @@ use App\Domain\Acl\Repository\RolePermissionWriterInterface;
 use App\Domain\Acl\Repository\RoleRepositoryInterface;
 use App\Domain\Acl\Repository\UserRoleRepositoryInterface;
 use App\Domain\Category\Repository\CategoryRepositoryInterface;
+use App\Domain\Page\Repository\PageRepositoryInterface;
 use App\Domain\Post\Repository\PostRepositoryInterface;
 use App\Domain\Project\Repository\ProjectRepositoryInterface;
 use App\Domain\Shared\Event\DomainEventPublisherInterface;
+use App\Domain\Site\Repository\SiteSettingsRepositoryInterface;
 use App\Domain\Tag\Repository\TagRepositoryInterface;
 use App\Domain\Technology\Repository\TechnologyRepositoryInterface;
 use App\Domain\Upload\Repository\UploadRepositoryInterface;
 use App\Domain\User\Repository\UserRepositoryInterface;
 use App\Infrastructure\Auth\SignedAccessTokenIssuer;
+use App\Infrastructure\Cache\ArrayPagePublicCache;
 use App\Infrastructure\Cache\ArrayPasswordResetTokenStore;
 use App\Infrastructure\Cache\ArrayProjectPublicCache;
 use App\Infrastructure\Cache\ArrayProjectViewCounter;
+use App\Infrastructure\Cache\ArraySitePublicCache;
+use App\Infrastructure\Cache\PublicContentCacheInvalidator;
+use App\Infrastructure\Cache\RedisPagePublicCache;
 use App\Infrastructure\Cache\RedisPasswordResetTokenStore;
 use App\Infrastructure\Cache\RedisProjectPublicCache;
 use App\Infrastructure\Cache\RedisProjectViewCounter;
+use App\Infrastructure\Cache\RedisSitePublicCache;
 use App\Infrastructure\Event\NoOpDomainEventPublisher;
 use App\Infrastructure\Health\ApplicationHealthProbe;
 use App\Infrastructure\Health\DatabaseHealthProbe;
@@ -46,6 +57,7 @@ use App\Infrastructure\Health\RedisHealthProbe;
 use App\Infrastructure\Health\StorageHealthProbe;
 use App\Infrastructure\Image\GdImageProcessor;
 use App\Infrastructure\Mail\SmtpPasswordResetNotifier;
+use App\Infrastructure\Page\BlockRegistry;
 use App\Infrastructure\Persistence\Acl\DbEffectivePermissionsProvider;
 use App\Infrastructure\Persistence\Acl\DbPermissionRepository;
 use App\Infrastructure\Persistence\Acl\DbRolePermissionRepository;
@@ -59,10 +71,14 @@ use App\Infrastructure\Persistence\Acl\InMemoryRoleRepository;
 use App\Infrastructure\Persistence\Acl\InMemoryUserRoleRepository;
 use App\Infrastructure\Persistence\Category\DbCategoryRepository;
 use App\Infrastructure\Persistence\Category\InMemoryCategoryRepository;
+use App\Infrastructure\Persistence\Page\DbPageRepository;
+use App\Infrastructure\Persistence\Page\InMemoryPageRepository;
 use App\Infrastructure\Persistence\Post\DbPostRepository;
 use App\Infrastructure\Persistence\Post\InMemoryPostRepository;
 use App\Infrastructure\Persistence\Project\DbProjectRepository;
 use App\Infrastructure\Persistence\Project\InMemoryProjectRepository;
+use App\Infrastructure\Persistence\Site\DbSiteSettingsRepository;
+use App\Infrastructure\Persistence\Site\InMemorySiteSettingsRepository;
 use App\Infrastructure\Persistence\Tag\DbTagRepository;
 use App\Infrastructure\Persistence\Tag\InMemoryTagRepository;
 use App\Infrastructure\Persistence\Technology\DbTechnologyRepository;
@@ -102,6 +118,16 @@ return [
         ? DbProjectRepository::class
         : InMemoryProjectRepository::class,
 
+    PageRepositoryInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
+        ? DbPageRepository::class
+        : InMemoryPageRepository::class,
+
+    SiteSettingsRepositoryInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
+        ? DbSiteSettingsRepository::class
+        : InMemorySiteSettingsRepository::class,
+
+    BlockRegistryInterface::class => BlockRegistry::class,
+
     PostRepositoryInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
         ? DbPostRepository::class
         : InMemoryPostRepository::class,
@@ -129,6 +155,16 @@ return [
     ProjectPublicCacheInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
         ? RedisProjectPublicCache::class
         : ArrayProjectPublicCache::class,
+
+    PagePublicCacheInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
+        ? RedisPagePublicCache::class
+        : ArrayPagePublicCache::class,
+
+    SitePublicCacheInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
+        ? RedisSitePublicCache::class
+        : ArraySitePublicCache::class,
+
+    PublicContentCacheInvalidatorInterface::class => PublicContentCacheInvalidator::class,
 
     RoleRepositoryInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
         ? DbRoleRepository::class

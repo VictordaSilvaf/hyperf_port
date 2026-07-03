@@ -18,13 +18,16 @@ Referência completa de endpoints HTTP. Fonte: `config/routes.php`.
 3. [Geral & Health](#geral--health)
 4. [Autenticação](#autenticação)
 5. [Utilizadores (público)](#utilizadores-público)
-6. [Portfolio (público)](#portfolio-público)
-7. [Admin — Utilizadores](#admin--utilizadores)
-8. [Admin — RBAC](#admin--rbac)
-9. [Admin — Uploads](#admin--uploads)
-10. [Admin — Projetos](#admin--projetos)
-11. [Permissões RBAC](#permissões-rbac)
-12. [Códigos de erro comuns](#códigos-de-erro-comuns)
+6. [Páginas (público)](#páginas-público)
+7. [Portfolio (público)](#portfolio-público)
+8. [Admin — Utilizadores](#admin--utilizadores)
+9. [Admin — RBAC](#admin--rbac)
+10. [Admin — Uploads](#admin--uploads)
+11. [Admin — Projetos](#admin--projetos)
+12. [Admin — Páginas](#admin--páginas)
+13. [Admin — Site Settings](#admin--site-settings)
+14. [Permissões RBAC](#permissões-rbac)
+15. [Códigos de erro comuns](#códigos-de-erro-comuns)
 
 ---
 
@@ -151,6 +154,77 @@ Resposta paginada:
   "slug": "laravel"
 }
 ```
+
+### `PageDetail` — página completa (admin e público)
+
+Admin: blocos com `payload` bruto; SEO como objecto editável. Público: blocos enriquecidos (URLs, projectos, tecnologias) e SEO resolvido.
+
+```json
+{
+  "id": "p1000001-0000-4000-8000-000000000001",
+  "title": "Início",
+  "slug": "inicio",
+  "layout": "default",
+  "is_home": true,
+  "status": "published",
+  "published_at": "2026-07-04T15:00:00+00:00",
+  "order": 1,
+  "seo": {
+    "meta_title": "Início",
+    "meta_description": "Portfolio e projetos de Victor Fernandes",
+    "og_title": "Início",
+    "og_description": "Portfolio e projetos",
+    "og_image_id": "up000001-0000-4000-8000-000000000001",
+    "canonical_url": null,
+    "robots": "index,follow",
+    "twitter_card": "summary_large_image"
+  },
+  "blocks": [ "...PageBlock..." ]
+}
+```
+
+> Respostas admin envolvem em `{ "data": PageDetail }`. Na API pública, `seo` inclui `title`, `description`, `canonical`, `open_graph` e `twitter` já resolvidos.
+
+### `PageBlock` — bloco de página
+
+```json
+{
+  "id": "b1000001-0000-4000-8000-000000000001",
+  "type": "hero",
+  "order": 1,
+  "payload": {
+    "headline": "Olá, sou Victor",
+    "subheadline": "Desenvolvedor full-stack",
+    "image_id": "up000001-0000-4000-8000-000000000001",
+    "cta": { "label": "Ver projetos", "href": "/projects" }
+  },
+  "settings": {}
+}
+```
+
+Tipos suportados: `hero`, `markdown`, `image`, `gallery`, `featured_projects`, `project_list`, `tech_stack`, `cta`, `embed`, `spacer`.
+
+### `SiteSettings` — configurações globais do site
+
+```json
+{
+  "nav": [],
+  "footer": {},
+  "social": {},
+  "branding": {},
+  "seo": {
+    "site_name": "Victor Dev",
+    "default_meta_description": "Portfolio e blog técnico",
+    "default_og_image_id": "up000001-0000-4000-8000-000000000001",
+    "twitter_site": "@victordev",
+    "google_site_verification": null,
+    "locale": "pt_BR"
+  },
+  "updated_at": "2026-07-04T15:00:00+00:00"
+}
+```
+
+> Resposta pública/admin envolve em `{ "data": SiteSettings }`.
 
 ### Senha forte (register, reset, change)
 
@@ -470,27 +544,140 @@ Base: `/api/v1/users`
 
 ---
 
-## Portfolio (público)
+## Páginas (público)
 
-Apenas projetos com `status: published` aparecem nestas rotas (exceto `/search`, que também filtra publicados).
+Apenas páginas com `status: published` aparecem nestas rotas. A home é a página com `is_home: true`.
 
 ### Home
 
 | | |
 |---|---|
-| **GET** `/api/v1/projects/home` | |
+| **GET** `/api/v1/pages/home` | |
+| Auth | Não |
+
+Retorna a página marcada como home, com blocos enriquecidos e SEO resolvido (cache Redis, TTL 300s).
+
+**Resposta 200**
+
+```json
+{
+  "data": { "...PageDetail (público)..." }
+}
+```
+
+**Erros:** `404` nenhuma home publicada
+
+---
+
+### Listar páginas
+
+| | |
+|---|---|
+| **GET** `/api/v1/pages` | |
+| Auth | Não |
+
+Lista resumida para navegação (menu, sitemap).
+
+**Query**
+
+| Param | Tipo | Descrição |
+|-------|------|-----------|
+| `page` | int | Paginação |
+| `per_page` | int | Itens por página (máx. 100) |
+
+**Resposta 200**
+
+```json
+{
+  "data": [
+    {
+      "id": "p1000001-0000-4000-8000-000000000001",
+      "title": "Início",
+      "slug": "inicio",
+      "status": "published",
+      "is_home": true,
+      "sort_order": 1,
+      "published_at": "2026-07-04T15:00:00+00:00"
+    }
+  ],
+  "meta": { "total": 3, "page": 1, "per_page": 15 }
+}
+```
+
+---
+
+### Detalhe por slug
+
+| | |
+|---|---|
+| **GET** `/api/v1/pages/{slug}` | |
 | Auth | Não |
 
 **Resposta 200**
 
 ```json
 {
-  "featured": [ "ProjectSummary..." ],
-  "latest": [ "ProjectSummary..." ]
+  "data": { "...PageDetail (público)..." }
+}
+```
+
+**Erros:** `404` página não encontrada ou não publicada
+
+---
+
+### Tipos de bloco
+
+| | |
+|---|---|
+| **GET** `/api/v1/block-types` | |
+| Auth | Não |
+
+Catálogo para o editor (Page Builder): tipo, label e JSON Schema do `payload`.
+
+**Resposta 200**
+
+```json
+{
+  "data": [
+    {
+      "type": "hero",
+      "label": "Hero",
+      "schema": {
+        "type": "object",
+        "required": ["headline"],
+        "properties": {
+          "headline": { "type": "string", "maxLength": 200 }
+        }
+      }
+    }
+  ]
 }
 ```
 
 ---
+
+### Configurações do site
+
+| | |
+|---|---|
+| **GET** `/api/v1/site/settings` | |
+| Auth | Não |
+
+Nav, footer, social, branding e defaults SEO. Cache Redis (TTL 300s).
+
+**Resposta 200**
+
+```json
+{
+  "data": { "...SiteSettings..." }
+}
+```
+
+---
+
+## Portfolio (público)
+
+Apenas projetos com `status: published` aparecem nestas rotas (exceto `/search`, que também filtra publicados).
 
 ### Listar projetos
 
@@ -1281,6 +1468,348 @@ Cria cópia em `draft` com slug `{original}-copy`, relações copiadas.
 
 ---
 
+## Admin — Páginas
+
+Base: `/api/v1/admin/pages` — todas exigem **Admin 🔒**
+
+Page Builder: páginas compostas por blocos validados (`PUT /{id}/blocks` substitui a lista completa).
+
+### Reordenar
+
+| | |
+|---|---|
+| **PATCH** `/api/v1/admin/pages/order` | |
+| Permissão | `pages.update` |
+
+**Body**
+
+```json
+{
+  "items": [
+    { "id": "p1000001-0000-4000-8000-000000000001", "sort_order": 1 },
+    { "id": "p1000002-0000-4000-8000-000000000002", "sort_order": 2 }
+  ]
+}
+```
+
+**Resposta 200**
+
+```json
+{
+  "message": "Ordem das páginas actualizada."
+}
+```
+
+---
+
+### Listar
+
+| | |
+|---|---|
+| **GET** `/api/v1/admin/pages` | |
+| Permissão | `pages.view` |
+
+**Query:** `page`, `per_page`
+
+**Resposta 200** — paginada (mesmo formato de item que a listagem pública, inclui `draft`/`archived`).
+
+---
+
+### Criar
+
+| | |
+|---|---|
+| **POST** `/api/v1/admin/pages` | |
+| Permissão | `pages.create` |
+
+**Body**
+
+```json
+{
+  "title": "Sobre",
+  "slug": "sobre",
+  "layout": "default",
+  "is_home": false,
+  "status": "draft",
+  "seo": {
+    "meta_title": "Sobre mim",
+    "meta_description": "Biografia e experiência"
+  }
+}
+```
+
+| Campo | Obrigatório | Notas |
+|-------|-------------|-------|
+| `title` | Sim | 2–200 chars |
+| `slug` | Não | Auto-gerado do título se omitido |
+| `layout` | Não | `default`, `full-width`, `landing` |
+| `is_home` | Não | Default `false`; apenas uma página pode ser home |
+| `status` | Não | Default `draft` |
+
+**Resposta 200**
+
+```json
+{
+  "data": { "...PageDetail..." }
+}
+```
+
+**Erros:** `409` slug já em uso
+
+---
+
+### Detalhe
+
+| | |
+|---|---|
+| **GET** `/api/v1/admin/pages/{id}` | |
+| Permissão | `pages.view` |
+
+**Query:** `with_trashed=true` (opcional) — inclui soft-deleted
+
+**Resposta 200**
+
+```json
+{
+  "data": { "...PageDetail..." }
+}
+```
+
+---
+
+### Atualizar (completo)
+
+| | |
+|---|---|
+| **PUT** `/api/v1/admin/pages/{id}` | |
+| Permissão | `pages.update` |
+
+**Body** — mesmo schema do POST (todos os campos obrigatórios do create).
+
+**Resposta 200** — `{ "data": PageDetail }`
+
+---
+
+### Atualizar (parcial)
+
+| | |
+|---|---|
+| **PATCH** `/api/v1/admin/pages/{id}` | |
+| Permissão | `pages.update` |
+
+**Body** — envie apenas os campos a alterar:
+
+```json
+{
+  "title": "Novo título",
+  "is_home": true,
+  "order": 2
+}
+```
+
+**Resposta 200** — `{ "data": PageDetail }`
+
+---
+
+### Publicar
+
+| | |
+|---|---|
+| **PATCH** `/api/v1/admin/pages/{id}/publish` | |
+| Permissão | `pages.publish` |
+
+**Body** (opcional)
+
+```json
+{
+  "published_at": "2026-07-04T15:00:00+00:00"
+}
+```
+
+**Resposta 200** — `{ "data": PageDetail }` com `status: "published"`. Invalida cache público.
+
+---
+
+### Arquivar
+
+| | |
+|---|---|
+| **PATCH** `/api/v1/admin/pages/{id}/archive` | |
+| Permissão | `pages.publish` |
+
+**Resposta 200** — `{ "data": PageDetail }` com `status: "archived"`
+
+---
+
+### Voltar para draft
+
+| | |
+|---|---|
+| **PATCH** `/api/v1/admin/pages/{id}/draft` | |
+| Permissão | `pages.publish` |
+
+**Resposta 200** — `{ "data": PageDetail }` com `status: "draft"`, `published_at: null`
+
+---
+
+### Soft delete
+
+| | |
+|---|---|
+| **DELETE** `/api/v1/admin/pages/{id}` | |
+| Permissão | `pages.delete` |
+
+**Resposta 200**
+
+```json
+{
+  "message": "Página eliminada."
+}
+```
+
+---
+
+### Restaurar
+
+| | |
+|---|---|
+| **PATCH** `/api/v1/admin/pages/{id}/restore` | |
+| Permissão | `pages.update` |
+
+**Resposta 200** — `{ "data": PageDetail }`
+
+---
+
+### Exclusão definitiva
+
+| | |
+|---|---|
+| **DELETE** `/api/v1/admin/pages/{id}/force` | |
+| Permissão | `pages.delete` |
+
+Remove permanentemente (inclui blocos em cascade).
+
+---
+
+### Duplicar
+
+| | |
+|---|---|
+| **POST** `/api/v1/admin/pages/{id}/duplicate` | |
+| Permissão | `pages.create` |
+
+**Resposta 200** — `{ "data": PageDetail }` (cópia em `draft`, slug único)
+
+---
+
+### Sync blocos
+
+| | |
+|---|---|
+| **PUT** `/api/v1/admin/pages/{id}/blocks` | |
+| Permissão | `pages.update` |
+
+Substitui **todos** os blocos da página. Valida `type` e `payload` conforme o registo de blocos.
+
+**Body**
+
+```json
+{
+  "blocks": [
+    {
+      "type": "hero",
+      "payload": {
+        "headline": "Olá, sou Victor",
+        "subheadline": "Desenvolvedor full-stack",
+        "image_id": "up000001-0000-4000-8000-000000000001"
+      },
+      "settings": {}
+    },
+    {
+      "type": "markdown",
+      "payload": {
+        "content": "# Sobre\n\nTexto em Markdown..."
+      },
+      "settings": {}
+    },
+    {
+      "type": "featured_projects",
+      "payload": {
+        "project_ids": [
+          "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+        ]
+      },
+      "settings": {}
+    }
+  ]
+}
+```
+
+**Resposta 200** — `{ "data": PageDetail }`. Invalida cache público.
+
+**Erros:** `422` payload de bloco inválido
+
+---
+
+## Admin — Site Settings
+
+Singleton de configuração global do site.
+
+### Obter (admin)
+
+| | |
+|---|---|
+| **GET** `/api/v1/admin/site/settings` | |
+| Permissão | `site.update` |
+
+**Resposta 200**
+
+```json
+{
+  "data": { "...SiteSettings..." }
+}
+```
+
+---
+
+### Actualizar
+
+| | |
+|---|---|
+| **PUT** `/api/v1/admin/site/settings` | |
+| Permissão | `site.update` |
+
+**Body** — parcial (`sometimes`); envie apenas secções a alterar:
+
+```json
+{
+  "nav": [
+    { "label": "Início", "href": "/" },
+    { "label": "Projetos", "href": "/projects" }
+  ],
+  "seo": {
+    "site_name": "Victor Dev",
+    "default_meta_description": "Portfolio e blog técnico",
+    "locale": "pt_BR"
+  },
+  "branding": {
+    "logo_upload_id": "up000001-0000-4000-8000-000000000001"
+  }
+}
+```
+
+**Resposta 200**
+
+```json
+{
+  "data": { "...SiteSettings..." }
+}
+```
+
+Invalida cache público de `/site/settings` e SEO de páginas.
+
+---
+
 ## Permissões RBAC
 
 | Slug | Descrição |
@@ -1298,7 +1827,13 @@ Cria cópia em `draft` com slug `{original}-copy`, relações copiadas.
 | `projects.create` | Criar projetos |
 | `projects.update` | Editar / reordenar projetos |
 | `projects.delete` | Eliminar projetos |
-| `projects.publish` | Publicar / arquivar / draft |
+| `projects.publish` | Publicar / arquivar / draft (projetos) |
+| `pages.view` | Listar páginas |
+| `pages.create` | Criar / duplicar páginas |
+| `pages.update` | Editar / reordenar páginas / sync blocos |
+| `pages.delete` | Eliminar páginas |
+| `pages.publish` | Publicar / arquivar / draft (páginas) |
+| `site.update` | Ver e editar configurações do site |
 | `uploads.create` | Upload de ficheiros |
 
 Papéis seed: `admin` (todas), `manager` (subset), `user` (básico).
@@ -1311,8 +1846,8 @@ Papéis seed: `admin` (todas), `manager` (subset), `user` (básico).
 |------|----------|-------------------|
 | 401 | Token ausente, inválido ou expirado | `Não autorizado` |
 | 403 | Sem permissão RBAC | `Proibido` |
-| 404 | Recurso não encontrado | `Projeto não encontrado.` |
-| 409 | Conflito (slug, e-mail, role) | `Slug de projeto já em uso.` |
+| 404 | Recurso não encontrado | `Projeto não encontrado.` / `Página não encontrada.` |
+| 409 | Conflito (slug, e-mail, role) | `Slug de projeto já em uso.` / `Slug de página já em uso.` |
 | 422 | Validação falhou | `Validation failed` + `errors` |
 | 503 | Health check falhou | `status: fail` nos probes |
 
@@ -1335,7 +1870,11 @@ Papéis seed: `admin` (todas), `manager` (subset), `user` (básico).
 | POST | `/api/v1/auth/change-password` | 🔒 |
 | GET | `/api/v1/users/me` | 🔒 |
 | GET | `/api/v1/users/{id}` | — |
-| GET | `/api/v1/projects/home` | — |
+| GET | `/api/v1/pages/home` | — |
+| GET | `/api/v1/pages` | — |
+| GET | `/api/v1/pages/{slug}` | — |
+| GET | `/api/v1/block-types` | — |
+| GET | `/api/v1/site/settings` | — |
 | GET | `/api/v1/projects` | — |
 | GET | `/api/v1/projects/{slug}` | — |
 | GET | `/api/v1/projects/{slug}/related` | — |
@@ -1376,6 +1915,22 @@ Papéis seed: `admin` (todas), `manager` (subset), `user` (básico).
 | PUT | `/api/v1/admin/projects/{id}/categories` | Admin |
 | PUT | `/api/v1/admin/projects/{id}/technologies` | Admin |
 | PUT | `/api/v1/admin/projects/{id}/tags` | Admin |
+| PATCH | `/api/v1/admin/pages/order` | Admin |
+| GET | `/api/v1/admin/pages` | Admin |
+| POST | `/api/v1/admin/pages` | Admin |
+| GET | `/api/v1/admin/pages/{id}` | Admin |
+| PUT | `/api/v1/admin/pages/{id}` | Admin |
+| PATCH | `/api/v1/admin/pages/{id}` | Admin |
+| DELETE | `/api/v1/admin/pages/{id}` | Admin |
+| DELETE | `/api/v1/admin/pages/{id}/force` | Admin |
+| PATCH | `/api/v1/admin/pages/{id}/restore` | Admin |
+| PATCH | `/api/v1/admin/pages/{id}/publish` | Admin |
+| PATCH | `/api/v1/admin/pages/{id}/archive` | Admin |
+| PATCH | `/api/v1/admin/pages/{id}/draft` | Admin |
+| POST | `/api/v1/admin/pages/{id}/duplicate` | Admin |
+| PUT | `/api/v1/admin/pages/{id}/blocks` | Admin |
+| GET | `/api/v1/admin/site/settings` | Admin |
+| PUT | `/api/v1/admin/site/settings` | Admin |
 
 ---
 

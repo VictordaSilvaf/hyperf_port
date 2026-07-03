@@ -9,6 +9,7 @@ declare(strict_types=1);
  * @contact  victordasilvafernandes@gmail.com
  * @see      https://github.com/VictordaSilvaf/hyperf_port.git
  */
+use App\Application\Shared\PublicContentCacheInvalidatorInterface;
 use App\Application\Storage\ObjectStorageInterface;
 use App\Application\Upload\ImageProcessorInterface;
 use App\Application\Upload\ProcessUploadImage\ProcessedImageResult;
@@ -116,7 +117,21 @@ function uploadProcessingFixtures(): array
         }
     };
 
-    $process = new ProcessUploadImageHandler($uploads, $storage, $processor, $logger);
+    $cacheInvalidator = new class implements PublicContentCacheInvalidatorInterface {
+        public function invalidatePages(): void
+        {
+        }
+
+        public function invalidateSite(): void
+        {
+        }
+
+        public function invalidateProjects(): void
+        {
+        }
+    };
+
+    $process = new ProcessUploadImageHandler($uploads, $storage, $processor, $logger, $cacheInvalidator);
     $dispatcher = new SyncUploadJobDispatcher($process);
     $store = new StoreUploadHandler($uploads, $storage, $dispatcher);
 

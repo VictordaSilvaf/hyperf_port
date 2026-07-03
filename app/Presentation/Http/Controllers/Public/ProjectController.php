@@ -14,7 +14,6 @@ namespace App\Presentation\Http\Controllers\Public;
 
 use App\Application\Category\ListCategories\ListCategoriesHandler;
 use App\Application\Project\GetProjectBySlug\GetProjectBySlugHandler;
-use App\Application\Project\GetProjectHome\GetProjectHomeHandler;
 use App\Application\Project\GetRelatedProjects\GetRelatedProjectsHandler;
 use App\Application\Project\ListProjects\ListProjectsHandler;
 use App\Application\Project\SearchProjects\SearchProjectsHandler;
@@ -38,9 +37,6 @@ final class ProjectController extends AbstractController
     protected GetProjectBySlugHandler $getProjectBySlug;
 
     #[Inject]
-    protected GetProjectHomeHandler $home;
-
-    #[Inject]
     protected GetRelatedProjectsHandler $related;
 
     #[Inject]
@@ -48,11 +44,6 @@ final class ProjectController extends AbstractController
 
     #[Inject]
     protected DriverFactory $queue;
-
-    public function home(): array
-    {
-        return $this->home->handle();
-    }
 
     public function index(): array
     {

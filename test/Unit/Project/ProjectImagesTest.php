@@ -25,9 +25,9 @@ test('add remove and reorder project images', function () {
     $firstUpload = seedUpload($fixtures, 'uploads/a.jpg');
     $secondUpload = seedUpload($fixtures, 'uploads/b.jpg');
 
-    $add = new AddProjectImageHandler($fixtures['repo'], $fixtures['uploads'], $fixtures['cache']);
-    $remove = new RemoveProjectImageHandler($fixtures['repo'], $fixtures['cache']);
-    $reorder = new ReorderProjectImagesHandler($fixtures['repo'], $fixtures['cache']);
+    $add = new AddProjectImageHandler($fixtures['repo'], $fixtures['uploads'], $fixtures['cache'], $fixtures['cacheInvalidator']);
+    $remove = new RemoveProjectImageHandler($fixtures['repo'], $fixtures['cache'], $fixtures['cacheInvalidator']);
+    $reorder = new ReorderProjectImagesHandler($fixtures['repo'], $fixtures['cache'], $fixtures['cacheInvalidator']);
 
     $first = $add->handle($projectId, $firstUpload->id()->value(), 'First');
     $second = $add->handle($projectId, $secondUpload->id()->value(), 'Second');
@@ -55,7 +55,7 @@ test('set thumbnail and cover from upload', function () {
     $thumb = seedUpload($fixtures, 'uploads/thumb.jpg');
     $cover = seedUpload($fixtures, 'uploads/cover.jpg');
 
-    $set = new SetProjectThumbnailHandler($fixtures['repo'], $fixtures['uploads'], $fixtures['cache']);
+    $set = new SetProjectThumbnailHandler($fixtures['repo'], $fixtures['uploads'], $fixtures['cache'], $fixtures['cacheInvalidator']);
     $set->handle($projectId, $thumb->id()->value());
     $set->setCover($projectId, $cover->id()->value());
 
@@ -69,6 +69,6 @@ test('add image rejects missing upload', function () {
     $fixtures = projectFixtures();
     $projectId = seedProject($fixtures);
 
-    $add = new AddProjectImageHandler($fixtures['repo'], $fixtures['uploads'], $fixtures['cache']);
+    $add = new AddProjectImageHandler($fixtures['repo'], $fixtures['uploads'], $fixtures['cache'], $fixtures['cacheInvalidator']);
     $add->handle($projectId, 'a0000001-0000-4000-8000-000000000099', null);
 })->throws(ProjectNotFoundException::class);

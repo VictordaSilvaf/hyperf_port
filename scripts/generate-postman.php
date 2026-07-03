@@ -32,7 +32,8 @@ const publicAuthPaths = ['auth/register', 'auth/login', 'auth/logout', 'auth/for
 const isPublicAuth = publicAuthPaths.some(p => path.includes(p));
 const isHealth = path.includes('health');
 const isPublicGet = method === 'GET' && !path.includes('admin') && (
-    path.includes('projects') || path.includes('categories') ||
+    path.includes('projects') || path.includes('pages') || path.includes('block-types') ||
+    path.includes('site/settings') || path.includes('categories') ||
     path.includes('technologies') || path.includes('tags') ||
     path.includes('search') || /users\/[^/]+$/.test(path) ||
     path.endsWith('/api/v1') || path.endsWith('/api/v1/')
@@ -162,6 +163,12 @@ $saveProject = [
     "if (d.slug) pm.environment.set('projectSlug', d.slug);",
 ];
 
+$savePage = [
+    'const d = pm.response.json().data || pm.response.json();',
+    "if (d.id) pm.environment.set('pageId', d.id);",
+    "if (d.slug) pm.environment.set('pageSlug', d.slug);",
+];
+
 $saveUpload = [
     'const j = pm.response.json();',
     "if (j.id) pm.environment.set('uploadId', j.id);",
@@ -276,7 +283,22 @@ $collection = [
         ]),
 
         folder('03 — Portfolio (Public)', [
-            req('Projects — Home', 'GET', '/projects/home', null, null, $statusTest(200)),
+            req('Pages — Home', 'GET', '/pages/home', null, null, array_merge($statusTest(200), [
+                "pm.test('Has data', () => pm.expect(pm.response.json().data).to.be.an('object'));",
+            ], $savePage)),
+            req('Pages — List', 'GET', '/pages', null, [
+                ['key' => 'page', 'value' => '1'],
+                ['key' => 'per_page', 'value' => '15'],
+            ], $statusTest(200)),
+            req('Pages — Show by slug', 'GET', '/pages/{{pageSlug}}', null, null, array_merge($statusTest(200), [
+                "pm.test('Has data', () => pm.expect(pm.response.json().data).to.be.an('object'));",
+            ])),
+            req('Block Types — list', 'GET', '/block-types', null, null, array_merge($statusTest(200), [
+                "pm.test('Has block types', () => pm.expect(pm.response.json().data).to.be.an('array'));",
+            ])),
+            req('Site Settings — public', 'GET', '/site/settings', null, null, array_merge($statusTest(200), [
+                "pm.test('Has data', () => pm.expect(pm.response.json().data).to.be.an('object'));",
+            ])),
             req('Projects — List', 'GET', '/projects', null, [
                 ['key' => 'page', 'value' => '1'],
                 ['key' => 'per_page', 'value' => '15'],
@@ -298,6 +320,7 @@ $collection = [
             req('Technologies — list', 'GET', '/technologies', null, null, array_merge($statusTest(200), $saveFirstTaxonomy)),
             req('Tags — list', 'GET', '/tags', null, null, array_merge($statusTest(200), $saveFirstTaxonomy)),
             req('Projects — Show — not found (404)', 'GET', '/projects/non-existent-slug-404', null, null, $statusTest(404)),
+            req('Pages — Show — not found (404)', 'GET', '/pages/non-existent-slug-404', null, null, $statusTest(404)),
         ]),
 
         folder('04 — Admin — Users', [
@@ -448,6 +471,111 @@ $collection = [
             ]),
         ]),
 
+        folder('08 — Admin — Pages', [
+            folder('CRUD', [
+                req('List pages', 'GET', '/admin/pages', null, [
+                    ['key' => 'page', 'value' => '1'],
+                    ['key' => 'per_page', 'value' => '15'],
+                ], $statusTest(200)),
+                req('Create page', 'POST', '/admin/pages', [
+                    'title' => 'Postman Page {{$timestamp}}',
+                    'slug' => 'postman-page-{{$timestamp}}',
+                    'layout' => 'default',
+                    'is_home' => false,
+                    'status' => 'draft',
+                    'seo' => [
+                        'meta_title' => 'Postman Page',
+                        'meta_description' => 'Created via Postman collection',
+                    ],
+                ], null, array_merge($statusTest(200), $savePage)),
+                req('Show page', 'GET', '/admin/pages/{{pageId}}', null, null, $statusTest(200)),
+                req('Patch page', 'PATCH', '/admin/pages/{{pageId}}', [
+                    'title' => 'Postman Page Updated',
+                ], null, array_merge($statusTest(200), $savePage)),
+                req('Update page (full)', 'PUT', '/admin/pages/{{pageId}}', [
+                    'title' => 'Postman Page Full Update',
+                    'slug' => '{{pageSlug}}',
+                    'layout' => 'default',
+                    'is_home' => false,
+                    'status' => 'draft',
+                    'seo' => [
+                        'meta_title' => 'Postman Page Full',
+                        'meta_description' => 'Full PUT update',
+                    ],
+                ], null, $statusTest(200)),
+            ]),
+            folder('Lifecycle', [
+                req('Publish page', 'PATCH', '/admin/pages/{{pageId}}/publish', null, null, array_merge($statusTest(200), $savePage, [
+                    "pm.test('Published', () => pm.expect(pm.response.json().data.status).to.eql('published'));",
+                ])),
+                req('Archive page', 'PATCH', '/admin/pages/{{pageId}}/archive', null, null, array_merge($statusTest(200), [
+                    "pm.test('Archived', () => pm.expect(pm.response.json().data.status).to.eql('archived'));",
+                ])),
+                req('Draft page', 'PATCH', '/admin/pages/{{pageId}}/draft', null, null, array_merge($statusTest(200), [
+                    "pm.test('Draft', () => pm.expect(pm.response.json().data.status).to.eql('draft'));",
+                ])),
+                req('Publish page again', 'PATCH', '/admin/pages/{{pageId}}/publish', null, null, $statusTest(200)),
+                req('Duplicate page', 'POST', '/admin/pages/{{pageId}}/duplicate', null, null, array_merge($statusTest(200), [
+                    'const d = pm.response.json().data;',
+                    "if (d?.id) pm.environment.set('pageCopyId', d.id);",
+                ])),
+                req('Soft delete page copy', 'DELETE', '/admin/pages/{{pageCopyId}}', null, null, $statusTest(200)),
+                req('Restore page copy', 'PATCH', '/admin/pages/{{pageCopyId}}/restore', null, null, $statusTest(200)),
+                req('Force delete page copy', 'DELETE', '/admin/pages/{{pageCopyId}}/force', null, null, $statusTest(200)),
+                req('Reorder pages', 'PATCH', '/admin/pages/order', [
+                    'items' => [
+                        ['id' => '{{pageId}}', 'sort_order' => 1],
+                    ],
+                ], null, $statusTest(200)),
+            ]),
+            folder('Blocks', [
+                req('Sync page blocks', 'PUT', '/admin/pages/{{pageId}}/blocks', [
+                    'blocks' => [
+                        [
+                            'type' => 'hero',
+                            'payload' => [
+                                'headline' => 'Postman Hero',
+                                'subheadline' => 'Page Builder test block',
+                            ],
+                            'settings' => [],
+                        ],
+                        [
+                            'type' => 'markdown',
+                            'payload' => [
+                                'content' => "# Postman\n\nSynced via collection.",
+                            ],
+                            'settings' => [],
+                        ],
+                    ],
+                ], null, array_merge($statusTest(200), [
+                    "pm.test('Has blocks', () => pm.expect(pm.response.json().data.blocks).to.be.an('array'));",
+                ])),
+            ]),
+            folder('Errors', [
+                req('Show page — not found (404)', 'GET', '/admin/pages/a0000001-0000-4000-8000-000000000099', null, null, $statusTest(404)),
+                req('Create page — validation (422)', 'POST', '/admin/pages', [
+                    'title' => '',
+                ], null, $statusTest(422)),
+            ]),
+        ], 'Requires Login — Admin. Permission: pages.*'),
+
+        folder('09 — Admin — Site Settings', [
+            req('Get site settings', 'GET', '/admin/site/settings', null, null, array_merge($statusTest(200), [
+                "pm.test('Has data', () => pm.expect(pm.response.json().data).to.be.an('object'));",
+            ])),
+            req('Update site settings', 'PUT', '/admin/site/settings', [
+                'seo' => [
+                    'site_name' => 'Victor Dev',
+                    'default_meta_description' => 'Portfolio updated via Postman',
+                    'locale' => 'pt_BR',
+                ],
+                'nav' => [
+                    ['label' => 'Início', 'href' => '/'],
+                    ['label' => 'Projetos', 'href' => '/projects'],
+                ],
+            ], null, $statusTest(200)),
+        ], 'Requires Login — Admin. Permission: site.update'),
+
         folder('99 — Flows (E2E)', [
             req('Flow 1 — Login Admin', 'POST', '/auth/login', [
                 'email' => '{{adminEmail}}',
@@ -518,6 +646,9 @@ $commonEnv = [
     ['key' => 'projectId', 'value' => ''],
     ['key' => 'projectSlug', 'value' => ''],
     ['key' => 'projectCopyId', 'value' => ''],
+    ['key' => 'pageId', 'value' => ''],
+    ['key' => 'pageSlug', 'value' => ''],
+    ['key' => 'pageCopyId', 'value' => ''],
     ['key' => 'uploadId', 'value' => ''],
     ['key' => 'projectImageId', 'value' => ''],
     ['key' => 'categoryId', 'value' => ''],

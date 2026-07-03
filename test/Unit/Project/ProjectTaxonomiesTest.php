@@ -20,9 +20,9 @@ test('sync categories technologies and tags on project', function () {
     $fixtures = projectFixtures();
     $projectId = seedProject($fixtures);
 
-    $categories = new SyncProjectCategoriesHandler($fixtures['repo'], $fixtures['cache'], $fixtures['presenter']);
-    $technologies = new SyncProjectTechnologiesHandler($fixtures['repo'], $fixtures['cache'], $fixtures['presenter']);
-    $tags = new SyncProjectTagsHandler($fixtures['repo'], $fixtures['cache'], $fixtures['presenter']);
+    $categories = new SyncProjectCategoriesHandler($fixtures['repo'], $fixtures['cache'], $fixtures['cacheInvalidator'], $fixtures['presenter']);
+    $technologies = new SyncProjectTechnologiesHandler($fixtures['repo'], $fixtures['cache'], $fixtures['cacheInvalidator'], $fixtures['presenter']);
+    $tags = new SyncProjectTagsHandler($fixtures['repo'], $fixtures['cache'], $fixtures['cacheInvalidator'], $fixtures['presenter']);
 
     $categories->handle($projectId, ['cat-1', 'cat-2']);
     $technologies->handle($projectId, ['tech-1']);
@@ -39,7 +39,7 @@ test('sync taxonomies replaces previous relations', function () {
     $projectId = seedProject($fixtures);
     $id = ProjectId::fromString($projectId);
 
-    $categories = new SyncProjectCategoriesHandler($fixtures['repo'], $fixtures['cache'], $fixtures['presenter']);
+    $categories = new SyncProjectCategoriesHandler($fixtures['repo'], $fixtures['cache'], $fixtures['cacheInvalidator'], $fixtures['presenter']);
     $categories->handle($projectId, ['cat-old']);
     $categories->handle($projectId, ['cat-new']);
 

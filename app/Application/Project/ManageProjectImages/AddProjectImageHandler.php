@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace App\Application\Project\ManageProjectImages;
 
 use App\Application\Project\ProjectPublicCacheInterface;
+use App\Application\Shared\PublicContentCacheInvalidatorInterface;
 use App\Domain\Project\Entity\ProjectImage;
 use App\Domain\Project\Exception\ProjectNotFoundException;
 use App\Domain\Project\Repository\ProjectRepositoryInterface;
@@ -26,6 +27,7 @@ final class AddProjectImageHandler
         private readonly ProjectRepositoryInterface $projects,
         private readonly UploadRepositoryInterface $uploads,
         private readonly ProjectPublicCacheInterface $cache,
+        private readonly PublicContentCacheInvalidatorInterface $cacheInvalidator,
     ) {
     }
 
@@ -44,6 +46,7 @@ final class AddProjectImageHandler
         $image = ProjectImage::create($id, UploadId::fromString($uploadId), $caption, $order);
         $this->projects->saveImage($image);
         $this->cache->bump();
+        $this->cacheInvalidator->invalidatePages();
 
         return ['id' => $image->id()->value()];
     }

@@ -14,6 +14,7 @@ namespace App\Application\Project\RestoreProject;
 
 use App\Application\Project\ProjectPublicCacheInterface;
 use App\Application\Project\Shared\ProjectPresenter;
+use App\Application\Shared\PublicContentCacheInvalidatorInterface;
 use App\Domain\Project\Exception\ProjectNotFoundException;
 use App\Domain\Project\Repository\ProjectRepositoryInterface;
 use App\Domain\Project\ValueObject\ProjectId;
@@ -23,6 +24,7 @@ final class RestoreProjectHandler
     public function __construct(
         private readonly ProjectRepositoryInterface $projects,
         private readonly ProjectPublicCacheInterface $cache,
+        private readonly PublicContentCacheInvalidatorInterface $cacheInvalidator,
         private readonly ProjectPresenter $presenter,
     ) {
     }
@@ -36,6 +38,7 @@ final class RestoreProjectHandler
 
         $this->projects->restore($id);
         $this->cache->bump();
+        $this->cacheInvalidator->invalidatePages();
         $project = $this->projects->findById($id);
         if ($project === null) {
             throw ProjectNotFoundException::byId($projectId);

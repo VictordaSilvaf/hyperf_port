@@ -6,7 +6,7 @@ Collection profissional para testes manuais, regressão e CI (Newman).
 
 | Ficheiro | Descrição |
 | -------- | --------- |
-| [VictorDev-Hyperf-API.postman_collection.json](VictorDev-Hyperf-API.postman_collection.json) | Collection v2.1 (~60 requests) |
+| [VictorDev-Hyperf-API.postman_collection.json](VictorDev-Hyperf-API.postman_collection.json) | Collection v2.1 (~75 requests) |
 | [environments/victordev-local.postman_environment.json](environments/victordev-local.postman_environment.json) | Docker local (`http://127.0.0.1:9501`) |
 | [environments/victordev-staging.postman_environment.json](environments/victordev-staging.postman_environment.json) | Staging (ajuste `baseUrl`) |
 | [environments/victordev-production.postman_environment.json](environments/victordev-production.postman_environment.json) | Produção (sem passwords) |
@@ -17,7 +17,7 @@ Collection profissional para testes manuais, regressão e CI (Newman).
 2. Seleccione o environment **VictorDev — Local** (canto superior direito)
 3. Confirme que a API está a correr: `./hyper up -d`
 4. Execute **01 — Auth → Login — Admin** (grava `accessToken`)
-5. Explore pastas **04–07 Admin** ou corra **99 — Flows (E2E)** no Collection Runner
+5. Explore pastas **04–09 Admin** ou corra **99 — Flows (E2E)** no Collection Runner
 
 ## Estrutura da collection
 
@@ -25,11 +25,13 @@ Collection profissional para testes manuais, regressão e CI (Newman).
 00 — Setup & Health
 01 — Auth (Success + Errors)
 02 — Users (Public)
-03 — Portfolio (Public)
+03 — Portfolio (Public) — pages, projects, taxonomies, site settings
 04 — Admin — Users
 05 — Admin — RBAC
 06 — Admin — Uploads
 07 — Admin — Projects (CRUD, Lifecycle, Images, Errors)
+08 — Admin — Pages (CRUD, Lifecycle, Blocks)
+09 — Admin — Site Settings
 99 — Flows (E2E)
 ```
 
@@ -63,6 +65,7 @@ Collection profissional para testes manuais, regressão e CI (Newman).
 | `adminEmail` / `adminPassword` | Seed dev (`admin@victordev.com`) |
 | `accessToken` | Preenchido após login |
 | `projectId`, `projectSlug` | Fluxo de projectos |
+| `pageId`, `pageSlug` | Fluxo de páginas (Page Builder) |
 | `uploadId`, `projectImageId` | Galeria |
 | `categoryId`, `technologyId`, `tagId` | Taxonomias (auto após GET lists) |
 

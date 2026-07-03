@@ -184,4 +184,9 @@ return [
 
     'chinese_word' => 'O campo :attribute deve conter caracteres válidos (chinês, inglês, número ou sublinhado).',
     'sequential_array' => 'O campo :attribute deve ser um array sequencial.',
+    'seo_meta_title_max' => 'O meta title não pode ter mais de 70 caracteres.',
+    'seo_meta_description_max' => 'A meta description não pode ter mais de 160 caracteres.',
+    'blocks_required' => 'É necessário pelo menos um bloco.',
+    'blocks_type_required' => 'Cada bloco deve ter um tipo.',
+    'blocks_payload_required' => 'Cada bloco deve ter um payload.',
 ];

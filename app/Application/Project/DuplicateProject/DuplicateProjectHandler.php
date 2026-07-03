@@ -12,7 +12,9 @@ declare(strict_types=1);
 
 namespace App\Application\Project\DuplicateProject;
 
+use App\Application\Project\ProjectPublicCacheInterface;
 use App\Application\Project\Shared\ProjectPresenter;
+use App\Application\Shared\PublicContentCacheInvalidatorInterface;
 use App\Domain\Project\Exception\ProjectNotFoundException;
 use App\Domain\Project\Exception\ProjectSlugTakenException;
 use App\Domain\Project\Repository\ProjectRepositoryInterface;
@@ -23,6 +25,8 @@ final class DuplicateProjectHandler
 {
     public function __construct(
         private readonly ProjectRepositoryInterface $projects,
+        private readonly ProjectPublicCacheInterface $cache,
+        private readonly PublicContentCacheInvalidatorInterface $cacheInvalidator,
         private readonly ProjectPresenter $presenter,
     ) {
     }
@@ -51,6 +55,8 @@ final class DuplicateProjectHandler
         $this->projects->syncCategories($copy->id(), $this->projects->categoryIdsFor($id));
         $this->projects->syncTechnologies($copy->id(), $this->projects->technologyIdsFor($id));
         $this->projects->syncTags($copy->id(), $this->projects->tagIdsFor($id));
+        $this->cache->bump();
+        $this->cacheInvalidator->invalidatePages();
 
         return ['data' => $this->presenter->toDetail($copy)];
     }

@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace App\Application\Project\ManageProjectImages;
 
 use App\Application\Project\ProjectPublicCacheInterface;
+use App\Application\Shared\PublicContentCacheInvalidatorInterface;
 use App\Domain\Project\Exception\ProjectNotFoundException;
 use App\Domain\Project\Repository\ProjectRepositoryInterface;
 use App\Domain\Project\ValueObject\ProjectId;
@@ -22,6 +23,7 @@ final class ReorderProjectImagesHandler
     public function __construct(
         private readonly ProjectRepositoryInterface $projects,
         private readonly ProjectPublicCacheInterface $cache,
+        private readonly PublicContentCacheInvalidatorInterface $cacheInvalidator,
     ) {
     }
 
@@ -38,5 +40,6 @@ final class ReorderProjectImagesHandler
         ], $items);
         $this->projects->reorderImages($pid, $mapped);
         $this->cache->bump();
+        $this->cacheInvalidator->invalidatePages();
     }
 }

@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace App\Application\Project\ManageProjectImages;
 
 use App\Application\Project\ProjectPublicCacheInterface;
+use App\Application\Shared\PublicContentCacheInvalidatorInterface;
 use App\Domain\Project\Exception\ProjectNotFoundException;
 use App\Domain\Project\Repository\ProjectRepositoryInterface;
 use App\Domain\Project\ValueObject\ProjectId;
@@ -26,6 +27,7 @@ final class SetProjectThumbnailHandler
         private readonly ProjectRepositoryInterface $projects,
         private readonly UploadRepositoryInterface $uploads,
         private readonly ProjectPublicCacheInterface $cache,
+        private readonly PublicContentCacheInvalidatorInterface $cacheInvalidator,
     ) {
     }
 
@@ -54,6 +56,7 @@ final class SetProjectThumbnailHandler
         $updated = $project->replace([$field => $this->resolveStoragePath($upload, $field)]);
         $this->projects->save($updated);
         $this->cache->bump();
+        $this->cacheInvalidator->invalidatePages();
     }
 
     private function resolveStoragePath(Upload $upload, string $field): string

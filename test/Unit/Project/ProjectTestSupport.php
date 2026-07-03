@@ -13,6 +13,7 @@ use App\Application\Project\CreateProject\CreateProjectCommand;
 use App\Application\Project\CreateProject\CreateProjectHandler;
 use App\Application\Project\PublishProject\PublishProjectHandler;
 use App\Application\Project\Shared\ProjectPresenter;
+use App\Application\Shared\PublicContentCacheInvalidatorInterface;
 use App\Domain\Project\ValueObject\ProjectId;
 use App\Domain\Upload\Entity\Upload;
 use App\Infrastructure\Cache\ArrayProjectPublicCache;
@@ -23,10 +24,26 @@ use App\Infrastructure\Persistence\Tag\InMemoryTagRepository;
 use App\Infrastructure\Persistence\Technology\InMemoryTechnologyRepository;
 use App\Infrastructure\Persistence\Upload\InMemoryUploadRepository;
 
+final class NoOpPublicContentCacheInvalidator implements PublicContentCacheInvalidatorInterface
+{
+    public function invalidatePages(): void
+    {
+    }
+
+    public function invalidateSite(): void
+    {
+    }
+
+    public function invalidateProjects(): void
+    {
+    }
+}
+
 /**
  * @return array{
  *     repo: InMemoryProjectRepository,
  *     cache: ArrayProjectPublicCache,
+ *     cacheInvalidator: NoOpPublicContentCacheInvalidator,
  *     viewCounter: ArrayProjectViewCounter,
  *     uploads: InMemoryUploadRepository,
  *     presenter: ProjectPresenter,
@@ -38,6 +55,7 @@ function projectFixtures(): array
 {
     $repo = new InMemoryProjectRepository();
     $cache = new ArrayProjectPublicCache();
+    $cacheInvalidator = new NoOpPublicContentCacheInvalidator();
     $viewCounter = new ArrayProjectViewCounter();
     $uploads = new InMemoryUploadRepository();
     $presenter = new ProjectPresenter(
@@ -47,10 +65,10 @@ function projectFixtures(): array
         new InMemoryTagRepository(),
         $uploads,
     );
-    $create = new CreateProjectHandler($repo, $cache, $presenter);
-    $publish = new PublishProjectHandler($repo, $cache, $presenter);
+    $create = new CreateProjectHandler($repo, $cache, $cacheInvalidator, $presenter);
+    $publish = new PublishProjectHandler($repo, $cache, $cacheInvalidator, $presenter);
 
-    return compact('repo', 'cache', 'viewCounter', 'uploads', 'presenter', 'create', 'publish');
+    return compact('repo', 'cache', 'cacheInvalidator', 'viewCounter', 'uploads', 'presenter', 'create', 'publish');
 }
 
 function projectCreateCommand(

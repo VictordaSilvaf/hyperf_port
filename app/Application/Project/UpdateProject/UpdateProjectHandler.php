@@ -14,6 +14,7 @@ namespace App\Application\Project\UpdateProject;
 
 use App\Application\Project\ProjectPublicCacheInterface;
 use App\Application\Project\Shared\ProjectPresenter;
+use App\Application\Shared\PublicContentCacheInvalidatorInterface;
 use App\Domain\Project\Exception\ProjectNotFoundException;
 use App\Domain\Project\Exception\ProjectSlugTakenException;
 use App\Domain\Project\Repository\ProjectRepositoryInterface;
@@ -26,6 +27,7 @@ final class UpdateProjectHandler
     public function __construct(
         private readonly ProjectRepositoryInterface $projects,
         private readonly ProjectPublicCacheInterface $cache,
+        private readonly PublicContentCacheInvalidatorInterface $cacheInvalidator,
         private readonly ProjectPresenter $presenter,
     ) {
     }
@@ -63,6 +65,7 @@ final class UpdateProjectHandler
         $this->projects->syncTechnologies($id, $command->technologies);
         $this->projects->syncTags($id, $command->tags);
         $this->cache->bump();
+        $this->cacheInvalidator->invalidatePages();
 
         return ['data' => $this->presenter->toDetail($updated)];
     }

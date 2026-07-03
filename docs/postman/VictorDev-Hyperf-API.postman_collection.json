@@ -49,7 +49,8 @@
                     "const isPublicAuth = publicAuthPaths.some(p => path.includes(p));",
                     "const isHealth = path.includes('health');",
                     "const isPublicGet = method === 'GET' && !path.includes('admin') && (",
-                    "    path.includes('projects') || path.includes('categories') ||",
+                    "    path.includes('projects') || path.includes('pages') || path.includes('block-types') ||",
+                    "    path.includes('site/settings') || path.includes('categories') ||",
                     "    path.includes('technologies') || path.includes('tags') ||",
                     "    path.includes('search') || /users\\/[^/]+$/.test(path) ||",
                     "    path.endsWith('/api/v1') || path.endsWith('/api/v1/')",
@@ -725,17 +726,17 @@
             "name": "03 — Portfolio (Public)",
             "item": [
                 {
-                    "name": "Projects — Home",
+                    "name": "Pages — Home",
                     "request": {
                         "method": "GET",
                         "header": [],
                         "url": {
-                            "raw": "{{baseUrl}}{{apiPrefix}}/projects/home",
+                            "raw": "{{baseUrl}}{{apiPrefix}}/pages/home",
                             "host": [
                                 "{{baseUrl}}"
                             ],
                             "path": [
-                                "projects",
+                                "pages",
                                 "home"
                             ]
                         }
@@ -746,7 +747,134 @@
                             "script": {
                                 "type": "text/javascript",
                                 "exec": [
+                                    "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                                    "pm.test('Has data', () => pm.expect(pm.response.json().data).to.be.an('object'));",
+                                    "const d = pm.response.json().data || pm.response.json();",
+                                    "if (d.id) pm.environment.set('pageId', d.id);",
+                                    "if (d.slug) pm.environment.set('pageSlug', d.slug);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Pages — List",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}{{apiPrefix}}/pages?page=1&per_page=15",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "pages"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
+                                }
+                            ]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
                                     "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Pages — Show by slug",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}{{apiPrefix}}/pages/{{pageSlug}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "pages",
+                                "{{pageSlug}}"
+                            ]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                                    "pm.test('Has data', () => pm.expect(pm.response.json().data).to.be.an('object'));"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Block Types — list",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}{{apiPrefix}}/block-types",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "block-types"
+                            ]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                                    "pm.test('Has block types', () => pm.expect(pm.response.json().data).to.be.an('array'));"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Site Settings — public",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}{{apiPrefix}}/site/settings",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "site",
+                                "settings"
+                            ]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                                    "pm.test('Has data', () => pm.expect(pm.response.json().data).to.be.an('object'));"
                                 ]
                             }
                         }
@@ -1036,6 +1164,34 @@
                             ],
                             "path": [
                                 "projects",
+                                "non-existent-slug-404"
+                            ]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status 404', () => pm.response.to.have.status(404));"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Pages — Show — not found (404)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}{{apiPrefix}}/pages/non-existent-slug-404",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "pages",
                                 "non-existent-slug-404"
                             ]
                         }
@@ -2368,6 +2524,683 @@
                     ]
                 }
             ]
+        },
+        {
+            "name": "08 — Admin — Pages",
+            "item": [
+                {
+                    "name": "CRUD",
+                    "item": [
+                        {
+                            "name": "List pages",
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}{{apiPrefix}}/admin/pages?page=1&per_page=15",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "pages"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "page",
+                                            "value": "1"
+                                        },
+                                        {
+                                            "key": "per_page",
+                                            "value": "15"
+                                        }
+                                    ]
+                                }
+                            },
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Create page",
+                            "request": {
+                                "method": "POST",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}{{apiPrefix}}/admin/pages",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "pages"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"title\": \"Postman Page {{$timestamp}}\",\n    \"slug\": \"postman-page-{{$timestamp}}\",\n    \"layout\": \"default\",\n    \"is_home\": false,\n    \"status\": \"draft\",\n    \"seo\": {\n        \"meta_title\": \"Postman Page\",\n        \"meta_description\": \"Created via Postman collection\"\n    }\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                                            "const d = pm.response.json().data || pm.response.json();",
+                                            "if (d.id) pm.environment.set('pageId', d.id);",
+                                            "if (d.slug) pm.environment.set('pageSlug', d.slug);"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Show page",
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}{{apiPrefix}}/admin/pages/{{pageId}}",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "pages",
+                                        "{{pageId}}"
+                                    ]
+                                }
+                            },
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Patch page",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}{{apiPrefix}}/admin/pages/{{pageId}}",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "pages",
+                                        "{{pageId}}"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"title\": \"Postman Page Updated\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                                            "const d = pm.response.json().data || pm.response.json();",
+                                            "if (d.id) pm.environment.set('pageId', d.id);",
+                                            "if (d.slug) pm.environment.set('pageSlug', d.slug);"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Update page (full)",
+                            "request": {
+                                "method": "PUT",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}{{apiPrefix}}/admin/pages/{{pageId}}",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "pages",
+                                        "{{pageId}}"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"title\": \"Postman Page Full Update\",\n    \"slug\": \"{{pageSlug}}\",\n    \"layout\": \"default\",\n    \"is_home\": false,\n    \"status\": \"draft\",\n    \"seo\": {\n        \"meta_title\": \"Postman Page Full\",\n        \"meta_description\": \"Full PUT update\"\n    }\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Lifecycle",
+                    "item": [
+                        {
+                            "name": "Publish page",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}{{apiPrefix}}/admin/pages/{{pageId}}/publish",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "pages",
+                                        "{{pageId}}",
+                                        "publish"
+                                    ]
+                                }
+                            },
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                                            "const d = pm.response.json().data || pm.response.json();",
+                                            "if (d.id) pm.environment.set('pageId', d.id);",
+                                            "if (d.slug) pm.environment.set('pageSlug', d.slug);",
+                                            "pm.test('Published', () => pm.expect(pm.response.json().data.status).to.eql('published'));"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Archive page",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}{{apiPrefix}}/admin/pages/{{pageId}}/archive",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "pages",
+                                        "{{pageId}}",
+                                        "archive"
+                                    ]
+                                }
+                            },
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                                            "pm.test('Archived', () => pm.expect(pm.response.json().data.status).to.eql('archived'));"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Draft page",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}{{apiPrefix}}/admin/pages/{{pageId}}/draft",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "pages",
+                                        "{{pageId}}",
+                                        "draft"
+                                    ]
+                                }
+                            },
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                                            "pm.test('Draft', () => pm.expect(pm.response.json().data.status).to.eql('draft'));"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Publish page again",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}{{apiPrefix}}/admin/pages/{{pageId}}/publish",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "pages",
+                                        "{{pageId}}",
+                                        "publish"
+                                    ]
+                                }
+                            },
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Duplicate page",
+                            "request": {
+                                "method": "POST",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}{{apiPrefix}}/admin/pages/{{pageId}}/duplicate",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "pages",
+                                        "{{pageId}}",
+                                        "duplicate"
+                                    ]
+                                }
+                            },
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                                            "const d = pm.response.json().data;",
+                                            "if (d?.id) pm.environment.set('pageCopyId', d.id);"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Soft delete page copy",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}{{apiPrefix}}/admin/pages/{{pageCopyId}}",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "pages",
+                                        "{{pageCopyId}}"
+                                    ]
+                                }
+                            },
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Restore page copy",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}{{apiPrefix}}/admin/pages/{{pageCopyId}}/restore",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "pages",
+                                        "{{pageCopyId}}",
+                                        "restore"
+                                    ]
+                                }
+                            },
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Force delete page copy",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}{{apiPrefix}}/admin/pages/{{pageCopyId}}/force",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "pages",
+                                        "{{pageCopyId}}",
+                                        "force"
+                                    ]
+                                }
+                            },
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Reorder pages",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}{{apiPrefix}}/admin/pages/order",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "pages",
+                                        "order"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"items\": [\n        {\n            \"id\": \"{{pageId}}\",\n            \"sort_order\": 1\n        }\n    ]\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Blocks",
+                    "item": [
+                        {
+                            "name": "Sync page blocks",
+                            "request": {
+                                "method": "PUT",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}{{apiPrefix}}/admin/pages/{{pageId}}/blocks",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "pages",
+                                        "{{pageId}}",
+                                        "blocks"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"blocks\": [\n        {\n            \"type\": \"hero\",\n            \"payload\": {\n                \"headline\": \"Postman Hero\",\n                \"subheadline\": \"Page Builder test block\"\n            },\n            \"settings\": []\n        },\n        {\n            \"type\": \"markdown\",\n            \"payload\": {\n                \"content\": \"# Postman\\n\\nSynced via collection.\"\n            },\n            \"settings\": []\n        }\n    ]\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                                            "pm.test('Has blocks', () => pm.expect(pm.response.json().data.blocks).to.be.an('array'));"
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Errors",
+                    "item": [
+                        {
+                            "name": "Show page — not found (404)",
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}{{apiPrefix}}/admin/pages/a0000001-0000-4000-8000-000000000099",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "pages",
+                                        "a0000001-0000-4000-8000-000000000099"
+                                    ]
+                                }
+                            },
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('Status 404', () => pm.response.to.have.status(404));"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Create page — validation (422)",
+                            "request": {
+                                "method": "POST",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}{{apiPrefix}}/admin/pages",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "pages"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"title\": \"\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('Status 422', () => pm.response.to.have.status(422));"
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "description": "Requires Login — Admin. Permission: pages.*"
+        },
+        {
+            "name": "09 — Admin — Site Settings",
+            "item": [
+                {
+                    "name": "Get site settings",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}{{apiPrefix}}/admin/site/settings",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "site",
+                                "settings"
+                            ]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                                    "pm.test('Has data', () => pm.expect(pm.response.json().data).to.be.an('object'));"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Update site settings",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}{{apiPrefix}}/admin/site/settings",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "site",
+                                "settings"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"seo\": {\n        \"site_name\": \"Victor Dev\",\n        \"default_meta_description\": \"Portfolio updated via Postman\",\n        \"locale\": \"pt_BR\"\n    },\n    \"nav\": [\n        {\n            \"label\": \"Início\",\n            \"href\": \"/\"\n        },\n        {\n            \"label\": \"Projetos\",\n            \"href\": \"/projects\"\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ],
+            "description": "Requires Login — Admin. Permission: site.update"
         },
         {
             "name": "99 — Flows (E2E)",

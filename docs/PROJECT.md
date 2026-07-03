@@ -62,6 +62,8 @@ flowchart LR
 | User | `Domain/User/` | `Application/User/` | `Persistence/User/` |
 | Acl | `Domain/Acl/` | `Application/Acl/` | `Persistence/Acl/` |
 | Project | `Domain/Project/` | `Application/Project/` | `Persistence/Project/` |
+| Page | `Domain/Page/` | `Application/Page/` | `Persistence/Page/` |
+| Site | `Domain/Site/` | `Application/Site/` | `Persistence/Site/` |
 | Post | `Domain/Post/` | `Application/Post/` | `Persistence/Post/` |
 
 ### `Listener/`

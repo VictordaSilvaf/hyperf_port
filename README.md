@@ -10,6 +10,7 @@ O fluxo de desenvolvimento **recomendado** é **100% via Docker**, usando a CLI 
 
 - [Funcionalidades](#funcionalidades)
 - [Portfólio e projetos](#portfólio-e-projetos)
+- [Page Builder e site](#page-builder-e-site)
 - [Upload e processamento de imagens](#upload-e-processamento-de-imagens)
 - [Stack](#stack)
 - [Requisitos](#requisitos)
@@ -38,7 +39,9 @@ O fluxo de desenvolvimento **recomendado** é **100% via Docker**, usando a CLI 
 - **Persistência** — Repositório de utilizadores em **memória** ou **PostgreSQL** (`APP_USER_REPOSITORY`), configurável por `.env`.
 - **RBAC** — Papéis `admin`, `manager`, `user` (seed na migração); permissões granulares; criação de novos papéis; atribuição de permissões a papéis e de papéis a utilizadores (`/api/v1/admin/...`). Após `migrate`, todos os utilizadores existentes recebem o papel `user`. São criados dois utilizadores de desenvolvimento (com PostgreSQL): `admin@victordev.com` (papel `admin`) e `manager@victordev.com` (papel `manager`), ambos com palavra-passe inicial **`VictorDev123!`** — altere ou elimine em produção.
 - **Admin — utilizadores** — Listagem, detalhe, criação e edição em `/api/v1/admin/users` (permissões `users.view`, `users.create`, `users.update`; ver `docs/API.md`). Migração `2026_05_23_000000_add_users_create_update_permissions.php` adiciona as permissões e associa-as a `admin` e `manager`.
-- **Portfólio — projetos** — CRUD admin, publicar/arquivar/rascunho, soft/force delete, duplicar, estatísticas, reordenação, sync de taxonomias e galeria de imagens. API pública: home, listagem, detalhe por slug, relacionados, busca e taxonomias (`categories`, `technologies`, `tags`). Ver [Portfólio e projetos](#portfólio-e-projetos) e [docs/ROUTES.md](docs/ROUTES.md).
+- **Portfólio — projetos** — CRUD admin, publicar/arquivar/rascunho, soft/force delete, duplicar, estatísticas, reordenação, sync de taxonomias e galeria de imagens. API pública: listagem, detalhe por slug, relacionados, busca e taxonomias (`categories`, `technologies`, `tags`). Ver [Portfólio e projetos](#portfólio-e-projetos) e [docs/ROUTES.md](docs/ROUTES.md).
+- **Page Builder — páginas** — CRUD admin, blocos compostos (hero, markdown, galeria, listagens de projectos, etc.), publicar/arquivar/rascunho, reordenação e duplicar. API pública: home (`GET /pages/home`), listagem, detalhe por slug e catálogo de tipos de bloco (`GET /block-types`). Ver [Page Builder e site](#page-builder-e-site) e [docs/ROUTES.md](docs/ROUTES.md).
+- **Site Settings** — Configurações globais (nav, footer, social, branding, SEO defaults). Leitura pública em `GET /site/settings`; edição admin com permissão `site.update`.
 - **Upload de ficheiros** — `POST /api/v1/admin/uploads` (MinIO/R2). Imagens passam por fila Redis: optimização, WebP e thumbnail. Ver [Upload e processamento de imagens](#upload-e-processamento-de-imagens).
 - **Cache e métricas (projetos)** — Cache Redis para listagens/detalhe público; contador de views em Redis com flush assíncrono para PostgreSQL (`FlushProjectViewsJob`).
 - **Busca avançada (PostgreSQL)** — Full-text search (`tsvector`, config `portuguese`) + trigram (`pg_trgm`) em projetos e utilizadores; índices GIN via migração. Substitui `ILIKE` puro em produção com DB.
@@ -51,7 +54,7 @@ Contexto DDD em `app/Domain/Project/` (+ `Category`, `Technology`, `Tag`, `Uploa
 
 | Área | Endpoints (prefixo `/api/v1`) | Notas |
 | ---- | ----------------------------- | ----- |
-| **Público** | `GET /projects/home`, `/projects`, `/projects/{slug}`, `/projects/{slug}/related`, `/search`, `/categories`, `/technologies`, `/tags` | Só projetos `published`; detalhe incrementa views (`trackView`) |
+| **Público** | `GET /projects`, `/projects/{slug}`, `/projects/{slug}/related`, `/search`, `/categories`, `/technologies`, `/tags` | Só projetos `published`; detalhe incrementa views (`trackView`) |
 | **Admin** | `GET/POST/PATCH/DELETE /admin/projects`, publish/archive/draft, duplicate, statistics, imagens, sync taxonomias | RBAC `projects.*`, `uploads.create` |
 
 **Estado do projecto:** `draft` → `published` → `archived`; soft delete com restore; slug único (UUID v4).
@@ -59,6 +62,25 @@ Contexto DDD em `app/Domain/Project/` (+ `Category`, `Technology`, `Tag`, `Uploa
 **Resposta admin:** `{ "data": ProjectDetail }` — título, slug, conteúdo Markdown, URLs, thumbnail/cover, taxonomias, galeria, views, `published_at`, `featured`.
 
 **Documentação completa:** [docs/ROUTES.md](docs/ROUTES.md) — todos os bodies JSON, query params e permissões.
+
+---
+
+## Page Builder e site
+
+Contexto DDD em `app/Domain/Page/` (+ blocos validados em `Domain/Page/Block/`) e `app/Domain/Site/`.
+
+| Área | Endpoints (prefixo `/api/v1`) | Notas |
+| ---- | ----------------------------- | ----- |
+| **Público — páginas** | `GET /pages/home`, `/pages`, `/pages/{slug}`, `/block-types` | Só páginas `published`; home = página com `is_home: true`; blocos enriquecidos (URLs de upload, projectos, taxonomias) |
+| **Público — site** | `GET /site/settings` | Nav, footer, social, branding e defaults SEO; cache Redis (TTL 300s) |
+| **Admin — páginas** | `GET/POST/PATCH/DELETE /admin/pages`, publish/archive/draft, duplicate, reorder, `PUT /admin/pages/{id}/blocks` | RBAC `pages.*` |
+| **Admin — site** | `GET/PUT /admin/site/settings` | RBAC `site.update` |
+
+**Estado da página:** `draft` → `published` → `archived`; soft delete com restore; slug único; uma única página pode ser `is_home`.
+
+**Resposta admin:** `{ "data": PageDetail }` — título, slug, layout, blocos, SEO, `published_at`, `order`.
+
+**Documentação completa:** [docs/ROUTES.md](docs/ROUTES.md) — schemas `PageDetail`, `PageBlock`, `SiteSettings` e payloads de blocos.
 
 ---
 

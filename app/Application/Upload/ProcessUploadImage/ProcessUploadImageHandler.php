@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace App\Application\Upload\ProcessUploadImage;
 
+use App\Application\Shared\PublicContentCacheInvalidatorInterface;
 use App\Application\Storage\ObjectStorageInterface;
 use App\Application\Upload\ImageProcessorInterface;
 use App\Domain\Upload\Repository\UploadRepositoryInterface;
@@ -27,6 +28,7 @@ final class ProcessUploadImageHandler
         private readonly ObjectStorageInterface $storage,
         private readonly ImageProcessorInterface $processor,
         private readonly LoggerInterface $logger,
+        private readonly PublicContentCacheInvalidatorInterface $cacheInvalidator,
     ) {
     }
 
@@ -81,6 +83,7 @@ final class ProcessUploadImageHandler
             );
 
             $this->uploads->save($processed);
+            $this->cacheInvalidator->invalidatePages();
         } catch (Throwable $exception) {
             $this->logger->error('Upload image processing failed: ' . $exception->getMessage(), [
                 'upload_id' => $uploadId,

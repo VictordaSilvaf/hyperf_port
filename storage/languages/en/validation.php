@@ -209,4 +209,9 @@ return [
 
     'chinese_word' => 'The :attribute must contain valid characters(chinese/english character, number, underscore)',
     'sequential_array' => 'The :attribute must be sequential array',
+    'seo_meta_title_max' => 'The meta title may not be greater than 70 characters.',
+    'seo_meta_description_max' => 'The meta description may not be greater than 160 characters.',
+    'blocks_required' => 'At least one block is required.',
+    'blocks_type_required' => 'Each block must have a type.',
+    'blocks_payload_required' => 'Each block must have a payload.',
 ];

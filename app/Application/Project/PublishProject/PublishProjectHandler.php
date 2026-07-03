@@ -14,6 +14,7 @@ namespace App\Application\Project\PublishProject;
 
 use App\Application\Project\ProjectPublicCacheInterface;
 use App\Application\Project\Shared\ProjectPresenter;
+use App\Application\Shared\PublicContentCacheInvalidatorInterface;
 use App\Domain\Project\Exception\ProjectNotFoundException;
 use App\Domain\Project\Repository\ProjectRepositoryInterface;
 use App\Domain\Project\ValueObject\ProjectId;
@@ -24,6 +25,7 @@ final class PublishProjectHandler
     public function __construct(
         private readonly ProjectRepositoryInterface $projects,
         private readonly ProjectPublicCacheInterface $cache,
+        private readonly PublicContentCacheInvalidatorInterface $cacheInvalidator,
         private readonly ProjectPresenter $presenter,
     ) {
     }
@@ -40,6 +42,7 @@ final class PublishProjectHandler
         $updated = $project->publish($at);
         $this->projects->save($updated);
         $this->cache->bump();
+        $this->cacheInvalidator->invalidatePages();
 
         return ['data' => $this->presenter->toDetail($updated)];
     }

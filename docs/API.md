@@ -370,23 +370,49 @@ Perfil público por ID (UUID).
 
 Lista projetos **publicados**, ordenados por `sort_order`.
 
-Query: `page`, `per_page`.
+Query: `page`, `per_page`, `search`, `technology`, `category`, `tag`, `featured`, `sort`, `direction`.
 
 ### `GET` — `/api/v1/projects/{slug}`
 
-Detalhe de um projeto publicado pelo slug.
+Detalhe de um projeto publicado pelo slug. Incrementa contador de views.
 
-### `GET` — `/api/v1/projects/{projectId}/posts`
+### `GET` — `/api/v1/projects/{slug}/related`
 
-Posts **publicados** de um projecto.
+Projetos relacionados (categorias, tecnologias e tags partilhadas).
+
+### `GET` — `/api/v1/search`
+
+Busca global em projetos publicados. Query obrigatória: `q`.
 
 ---
 
-## Posts (público)
+## Páginas (público)
 
-### `GET` — `/api/v1/posts/{id}`
+Page Builder — conteúdo do site em páginas com blocos compostos.
 
-Detalhe de um post publicado.
+### `GET` — `/api/v1/pages/home`
+
+Página inicial (`is_home: true`, `status: published`). Resposta: `{ "data": PageDetail }` com blocos enriquecidos e SEO resolvido.
+
+### `GET` — `/api/v1/pages`
+
+Lista páginas publicadas (navegação). Query: `page`, `per_page`.
+
+### `GET` — `/api/v1/pages/{slug}`
+
+Detalhe de uma página publicada. Blocos enriquecidos (imagens, projectos, tecnologias conforme o tipo).
+
+### `GET` — `/api/v1/block-types`
+
+Catálogo de tipos de bloco disponíveis no editor (`type`, `label`, `schema` JSON Schema).
+
+---
+
+## Site Settings (público)
+
+### `GET` — `/api/v1/site/settings`
+
+Configurações globais do site: `nav`, `footer`, `social`, `branding`, `seo` (defaults), `updated_at`.
 
 ---
 
@@ -396,31 +422,62 @@ Requer autenticação + permissões RBAC (`projects.*`).
 
 | Método | Rota | Permissão |
 |--------|------|-----------|
+| GET | `/api/v1/admin/projects/statistics` | `projects.view` |
+| PATCH | `/api/v1/admin/projects/order` | `projects.update` |
 | GET | `/api/v1/admin/projects` | `projects.view` |
 | POST | `/api/v1/admin/projects` | `projects.create` |
 | GET | `/api/v1/admin/projects/{id}` | `projects.view` |
 | PUT | `/api/v1/admin/projects/{id}` | `projects.update` |
+| PATCH | `/api/v1/admin/projects/{id}` | `projects.update` |
 | DELETE | `/api/v1/admin/projects/{id}` | `projects.delete` |
-| POST | `/api/v1/admin/projects/{id}/publish` | `projects.publish` |
-| POST | `/api/v1/admin/projects/{id}/archive` | `projects.publish` |
-| PUT | `/api/v1/admin/projects/reorder` | `projects.update` |
+| DELETE | `/api/v1/admin/projects/{id}/force` | `projects.delete` |
+| PATCH | `/api/v1/admin/projects/{id}/restore` | `projects.update` |
+| PATCH | `/api/v1/admin/projects/{id}/publish` | `projects.publish` |
+| PATCH | `/api/v1/admin/projects/{id}/archive` | `projects.publish` |
+| PATCH | `/api/v1/admin/projects/{id}/draft` | `projects.publish` |
+| POST | `/api/v1/admin/projects/{id}/duplicate` | `projects.create` |
 
-Corpo de criação: `title`, `slug?`, `description?`, `image_path?`, `owner_id?`.
+Corpo de criação: `title`, `slug?`, `description?`, `content?`, taxonomias e URLs opcionais.
 
 ---
 
-## Posts (admin)
+## Páginas (admin)
 
-Requer autenticação + permissões RBAC (`posts.*`).
+Requer autenticação + permissões RBAC (`pages.*`).
 
 | Método | Rota | Permissão |
 |--------|------|-----------|
-| GET | `/api/v1/admin/projects/{projectId}/posts` | `posts.view` |
-| POST | `/api/v1/admin/posts` | `posts.create` |
-| GET | `/api/v1/admin/posts/{id}` | `posts.view` |
-| PUT | `/api/v1/admin/posts/{id}` | `posts.update` |
-| DELETE | `/api/v1/admin/posts/{id}` | `posts.delete` |
-| POST | `/api/v1/admin/posts/{id}/publish` | `posts.publish` |
+| PATCH | `/api/v1/admin/pages/order` | `pages.update` |
+| GET | `/api/v1/admin/pages` | `pages.view` |
+| POST | `/api/v1/admin/pages` | `pages.create` |
+| GET | `/api/v1/admin/pages/{id}` | `pages.view` |
+| PUT | `/api/v1/admin/pages/{id}` | `pages.update` |
+| PATCH | `/api/v1/admin/pages/{id}` | `pages.update` |
+| DELETE | `/api/v1/admin/pages/{id}` | `pages.delete` |
+| DELETE | `/api/v1/admin/pages/{id}/force` | `pages.delete` |
+| PATCH | `/api/v1/admin/pages/{id}/restore` | `pages.update` |
+| PATCH | `/api/v1/admin/pages/{id}/publish` | `pages.publish` |
+| PATCH | `/api/v1/admin/pages/{id}/archive` | `pages.publish` |
+| PATCH | `/api/v1/admin/pages/{id}/draft` | `pages.publish` |
+| POST | `/api/v1/admin/pages/{id}/duplicate` | `pages.create` |
+| PUT | `/api/v1/admin/pages/{id}/blocks` | `pages.update` |
+
+Corpo de criação: `title`, `slug?`, `layout?` (`default`, `full-width`, `landing`), `is_home?`, `status?`, `seo?`.
+
+Sync de blocos (`PUT .../blocks`): `{ "blocks": [{ "type": "hero", "payload": {...}, "settings": {} }] }` — substitui todos os blocos da página.
+
+---
+
+## Site Settings (admin)
+
+| Método | Rota | Permissão |
+|--------|------|-----------|
+| GET | `/api/v1/admin/site/settings` | `site.update` |
+| PUT | `/api/v1/admin/site/settings` | `site.update` |
+
+Corpo parcial: `nav`, `footer`, `social`, `branding`, `seo` (ex.: `site_name`, `default_meta_description`, `default_og_image_id`, `locale`).
+
+**Permissões seed adicionais:** `pages.view`, `pages.create`, `pages.update`, `pages.delete`, `pages.publish`, `site.update` (papéis `admin` e `manager`).
 
 ---
 
