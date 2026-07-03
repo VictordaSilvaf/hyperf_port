@@ -1,0 +1,59 @@
+name: Quality
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+      - 'release/**'
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+
+jobs:
+  php-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: json, pdo, pdo_mysql, redis, pcntl, openssl
+          coverage: none
+          tools: composer:v2
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: PHP-CS-Fixer (dry-run)
+        run: composer lint
+
+      - name: PHPStan
+        run: composer analyse
+
+      - name: Pest
+        run: ./vendor/bin/pest --no-coverage
+
+  commit-messages:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Validate PR commits
+        run: bash scripts/validate-pr-commits.sh "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"

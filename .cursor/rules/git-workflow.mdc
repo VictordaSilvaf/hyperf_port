@@ -1,0 +1,35 @@
+---
+description: Git Flow, Conventional Commits e Git hooks — branches e mensagens de commit
+alwaysApply: false
+---
+
+# Git Flow e commits
+
+Consulte `CONTRIBUTING.md` para o guia completo.
+
+## Branches (validadas no pre-push)
+
+```
+main | develop
+feature/<slug>   bugfix/<slug>   hotfix/<slug>   release/<version>
+```
+
+## Conventional Commits (validados no commit-msg)
+
+```
+<type>(<scope>): <subject>
+```
+
+Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
+
+## Hooks locais (PHP/bash — sem Node)
+
+Setup: `composer setup:hooks`
+
+- **pre-commit**: PHP-CS-Fixer em ficheiros staged
+- **commit-msg**: `scripts/validate-commit-msg.php`
+- **pre-push**: branch + `composer quality`
+
+Não commitar `.env` nem alterar git config. Commits só quando o utilizador pedir explicitamente.
+
+Ao gerar commit messages, seguir `.cursor/rules/commit-messages.mdc` (mesmas regras que `scripts/validate-commit-msg.php`).

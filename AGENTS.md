@@ -11,6 +11,7 @@ API REST em **Hyperf 3.x** (PHP ≥ 8.1) com camadas **Domain → Application �
 | [README.md](README.md) | Setup, Docker, variáveis de ambiente |
 | [docs/PROJECT.md](docs/PROJECT.md) | Arquitetura, dependências entre camadas, convenções |
 | [docs/API.md](docs/API.md) | Rotas, payloads, códigos HTTP, exemplos |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Git Flow, Conventional Commits, hooks e PR |
 
 ## Comandos essenciais
 
@@ -26,9 +27,19 @@ docker compose exec hyperf-skeleton php bin/hyperf.php migrate
 docker compose run --rm --entrypoint php hyperf-skeleton /opt/www/vendor/bin/pest --no-coverage
 
 # Qualidade
-composer cs-fix
-composer analyse
+composer lint && composer analyse && composer test:pest
+composer quality
+
+# Hooks (após composer setup:hooks)
+# pre-commit: cs-fixer | commit-msg: conventional commits | pre-push: branch + quality
 ```
+
+## Git Flow e commits
+
+- Branches: `main`, `develop`, `feature/*`, `bugfix/*`, `hotfix/*`, `release/*`
+- Commits: **Conventional Commits** — ver regra `.cursor/rules/commit-messages.mdc` e `CONTRIBUTING.md`
+- Formato: `type(scope): subject` — subject minúsculo, sem ponto, máx. 100 chars
+- Ver [CONTRIBUTING.md](CONTRIBUTING.md); não commitar sem pedido explícito do utilizador
 
 ## Regras de arquitetura (resumo)
 

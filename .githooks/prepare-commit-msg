@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+case "${2:-}" in
+  merge|squash) exit 0 ;;
+esac
+
+php scripts/format-commit-msg.php "$1"

@@ -1,0 +1,41 @@
+# Cursor — geração de commit message (Source Control ✨)
+
+O botão "Generate commit message" do Cursor **não lê** `.cursor/rules/`; este ficheiro existe para esse fluxo.
+
+Ao gerar uma commit message para este repositório, escreve **apenas uma linha** neste formato:
+
+```
+<type>(<scope>): <subject>
+```
+
+## Obrigatório
+
+- **type** (minúsculas): `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
+- **scope** (opcional, minúsculas): `auth`, `user`, `acl`, `admin`, `api`, `hooks`, `cursor`, `docs`, `ci`
+- **subject**: imperativo, **primeira letra minúscula**, **sem ponto final**
+- Máximo **100 caracteres** na linha inteira
+- **Nunca** frases soltas como "Add configuration files..." ou "Update README"
+
+## Exemplos correctos
+
+```
+feat(auth): add refresh token endpoint
+fix(user): prevent duplicate email on register
+docs: update contribution guidelines
+chore(cursor): add project rules and git hooks
+ci: add quality workflow on pull request
+```
+
+## Exemplo do erro comum (NÃO fazer)
+
+```
+Add configuration files and enhance contribution guidelines
+```
+
+## Formato correcto para o mesmo change
+
+```
+chore(cursor): add configuration files and contribution guidelines
+```
+
+Output: só a linha da mensagem, sem aspas, markdown ou explicação.

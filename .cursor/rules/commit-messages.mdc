@@ -1,0 +1,85 @@
+---
+description: Formato obrigatório de commit messages — Conventional Commits validados pelo hook commit-msg
+alwaysApply: true
+---
+
+# Commit messages (Conventional Commits)
+
+Quando **gerar**, **sugerir** ou **escrever** mensagens de commit, usar **exactamente** este formato — validado por `scripts/validate-commit-msg.php`.
+
+## Cursor Source Control (✨)
+
+O botão "Generate commit message" **não lê** `.cursor/rules/`. Usa **`.cursorrules`** na raiz do repo (workaround oficial Cursor). Recarrega a janela após mudanças.
+
+Se ainda gerar frase solta, o hook `prepare-commit-msg` auto-formata antes de validar.
+
+## Formato da primeira linha (obrigatório)
+
+```
+<type>(<scope>): <subject>
+```
+
+Ou sem scope:
+
+```
+<type>: <subject>
+```
+
+## Regras estritas (o hook rejeita se falhar)
+
+1. **type** — só estes, minúsculas: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
+2. **scope** — opcional; se presente: minúsculas, `[a-z0-9._-]+` (ex.: `auth`, `user`, `acl`, `admin`, `api`, `hooks`, `cursor`)
+3. **subject** — imperativo, **primeira letra minúscula**, **sem ponto final**
+4. **header** — máximo **100 caracteres** (conta a linha inteira)
+5. Output = **só a mensagem**, sem markdown, aspas, explicação ou prefixo "Commit message:"
+
+## Escolher o type
+
+| Diff | type |
+|------|------|
+| Nova funcionalidade / endpoint / caso de uso | `feat` |
+| Correção de bug | `fix` |
+| README, CONTRIBUTING, docs/, AGENTS.md, API.md | `docs` |
+| Só formatação (Pint, cs-fixer) | `style` |
+| Refactor sem mudar comportamento | `refactor` |
+| Testes | `test` |
+| composer.json, Dockerfile, deps | `build` ou `chore` |
+| .github/workflows, .githooks, scripts de CI | `ci` |
+| .cursor/, regras do agente | `chore` ou `ci` |
+
+## Exemplos válidos
+
+```
+feat(auth): add refresh token endpoint
+fix(user): prevent duplicate email on register
+docs(api): document admin user routes
+test(acl): cover role permission sync
+ci: add quality workflow on pull request
+chore(cursor): add commit message rules
+chore(hooks): replace husky with githooks
+```
+
+## Exemplos inválidos (NÃO usar)
+
+```
+Feat(auth): Add login          ← type maiúsculo, subject maiúsculo
+feat(auth): add login.         ← ponto final
+add login endpoint             ← sem type
+feat(Auth): add login           ← scope maiúsculo
+feat: Add login                  ← subject começa maiúsculo
+```
+
+## Corpo (opcional)
+
+Só usar se o utilizador pedir commit com corpo. Linha em branco após o header; footer opcional (`Closes #123`, `BREAKING CHANGE:`).
+
+## Ao executar git commit pelo agente
+
+Usar HEREDOC e mensagem numa única linha no header, por exemplo:
+
+```bash
+git commit -m "$(cat <<'EOF'
+feat(auth): add refresh token endpoint
+EOF
+)"
+```

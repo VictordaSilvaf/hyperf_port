@@ -80,8 +80,17 @@
             "rm -rf runtime/container"
         ],
         "test": "co-phpunit --prepend test/bootstrap.php --colors=always",
-        "cs-fix": "php-cs-fixer fix $1",
-        "analyse": "phpstan analyse --memory-limit 300M",
+        "test:pest": "pest --no-coverage",
+        "lint": "php-cs-fixer fix --dry-run --diff --config=.php-cs-fixer.php",
+        "lint:fix": "php-cs-fixer fix --config=.php-cs-fixer.php",
+        "cs-fix": "@lint:fix",
+        "analyse": "phpstan analyse --memory-limit 300M -c phpstan.neon.dist",
+        "quality": [
+            "@lint",
+            "@analyse",
+            "@test:pest"
+        ],
+        "setup:hooks": "git config core.hooksPath .githooks",
         "start": [
             "Composer\\Config::disableProcessTimeout",
             "php ./bin/hyperf.php start"

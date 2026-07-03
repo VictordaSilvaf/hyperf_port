@@ -205,6 +205,44 @@ docker compose run --rm --entrypoint php hyperf-skeleton /opt/www/vendor/bin/pes
 
 Sem Swoole no host, o exemplo de integração pode aparecer como _skipped_; no container Hyperf deve passar na íntegra.
 
+### Lint e qualidade
+
+```bash
+composer lint          # PHP-CS-Fixer (dry-run)
+composer lint:fix      # Corrigir estilo
+composer analyse       # PHPStan
+composer test:pest     # Pest
+composer quality       # lint + analyse + test:pest
+```
+
+---
+
+## Git Flow, commits e hooks
+
+O projeto usa **Git Flow**, **Conventional Commits** e **Git hooks** (PHP/bash) para validar branches, mensagens e qualidade antes do push.
+
+**Setup (uma vez por clone):**
+
+```bash
+composer install
+composer setup:hooks
+```
+
+O Cursor **não lê** `.cursor/rules/` ao gerar commits — usa **`.cursorrules`** na raiz. Se ainda gerar frase solta, o hook `prepare-commit-msg` corrige automaticamente.
+
+| Hook | Validação |
+|------|-----------|
+| `pre-commit` | PHP-CS-Fixer nos ficheiros PHP em staging |
+| `prepare-commit-msg` | Auto-formata mensagens inválidas (ex.: Cursor ✨) |
+| `commit-msg` | Formato Conventional Commits |
+| `pre-push` | Nome da branch (Git Flow) + lint + PHPStan + Pest |
+
+**Branches:** `main`, `develop`, `feature/*`, `bugfix/*`, `hotfix/*`, `release/*`
+
+**Commits:** `feat(auth): add login endpoint`, `fix(api): handle 404 on user`, etc.
+
+Guia completo: [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ---
 
 ## Documentação

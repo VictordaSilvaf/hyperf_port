@@ -25,6 +25,6 @@ API REST Hyperf 3.x (PHP ≥ 8.1) com DDD/hexagonal, auth Bearer, RBAC e Pest.
 
 ```bash
 docker compose exec hyperf-skeleton php bin/hyperf.php migrate
-./vendor/bin/pest --no-coverage
-composer cs-fix && composer analyse
+composer quality
+composer setup:hooks   # activa .githooks (pre-commit, commit-msg, pre-push)
 ```
