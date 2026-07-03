@@ -4,7 +4,7 @@ Instruções para agentes de código (Cursor, Copilot, Claude Code, etc.) neste 
 
 ## Visão geral
 
-API REST em **Hyperf 3.x** (PHP ≥ 8.1) com camadas **Domain → Application → Infrastructure**, autenticação Bearer (HMAC), RBAC e testes com **Pest**.
+API REST em **Hyperf 3.x** (PHP ≥ 8.4) com camadas **Domain → Application → Infrastructure**, autenticação Bearer (HMAC), RBAC e testes com **Pest**.
 
 | Documento | Conteúdo |
 |-----------|----------|

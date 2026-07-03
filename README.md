@@ -38,7 +38,7 @@ API REST em **[Hyperf 3.x](https://hyperf.io)** com organização em camadas (**
 
 | Tecnologia     | Uso                                                |
 | -------------- | -------------------------------------------------- |
-| PHP ≥ 8.1      | Runtime                                            |
+| PHP ≥ 8.4      | Runtime                                            |
 | Hyperf ~3.1    | HTTP server, DI, DB, Redis, validação, comandos    |
 | Swoole / Swow  | Motor de corrutinas (ambiente Hyperf)              |
 | MySQL 8.x      | Persistência opcional                              |
@@ -59,7 +59,7 @@ API REST em **[Hyperf 3.x](https://hyperf.io)** com organização em camadas (**
 ### Sem Docker
 
 - Linux ou macOS (ou WSL2 no Windows)
-- PHP ≥ 8.1 com extensões adequadas ao Hyperf (**Swoole** ≥ 5 ou **Swow** ≥ 1.3, JSON, Pcntl, OpenSSL, PDO MySQL se usar DB, Redis se usar cliente Redis)
+- PHP ≥ 8.4 com extensões adequadas ao Hyperf (**Swoole** ≥ 5 ou **Swow** ≥ 1.3, JSON, Pcntl, OpenSSL, PDO MySQL se usar DB, Redis se usar cliente Redis)
 - Composer
 
 Detalhes oficiais: [documentação Hyperf](https://hyperf.wiki).

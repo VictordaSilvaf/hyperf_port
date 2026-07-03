@@ -1,6 +1,6 @@
 # Estrutura do projeto e regras
 
-Este repositório é uma API **Hyperf 3.x** (PHP ≥ 8.1) organizada em camadas inspiradas em **DDD** e **arquitectura hexagonal**: o domínio e a aplicação definem o comportamento e portas; a infraestrutura fornece adaptadores (base de dados, Redis, mail, HTTP).
+Este repositório é uma API **Hyperf 3.x** (PHP ≥ 8.4) organizada em camadas inspiradas em **DDD** e **arquitectura hexagonal**: o domínio e a aplicação definem o comportamento e portas; a infraestrutura fornece adaptadores (base de dados, Redis, mail, HTTP).
 
 A documentação oficial do framework não é substituída por este ficheiro — consulte [hyperf.wiki](https://hyperf.wiki) para comandos, servidor, DI e extensões.
 

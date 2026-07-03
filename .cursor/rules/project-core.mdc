@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Hyperf API — contexto do projeto
 
-API REST Hyperf 3.x (PHP ≥ 8.1) com DDD/hexagonal, auth Bearer, RBAC e Pest.
+API REST Hyperf 3.x (PHP ≥ 8.4) com DDD/hexagonal, auth Bearer, RBAC e Pest.
 
 ## Documentação de referência
 
