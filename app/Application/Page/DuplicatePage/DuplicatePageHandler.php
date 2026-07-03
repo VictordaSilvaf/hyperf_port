@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace App\Application\Page\DuplicatePage;
 
+use App\Application\Page\PagePublicCacheInterface;
 use App\Application\Page\Shared\PagePresenter;
 use App\Domain\Page\Exception\PageNotFoundException;
 use App\Domain\Page\Exception\PageSlugTakenException;
@@ -23,6 +24,7 @@ final class DuplicatePageHandler
 {
     public function __construct(
         private readonly PageRepositoryInterface $pages,
+        private readonly PagePublicCacheInterface $cache,
         private readonly PagePresenter $presenter,
     ) {
     }
@@ -60,6 +62,8 @@ final class DuplicatePageHandler
         if ($blocks !== []) {
             $this->pages->syncBlocks($copy->id(), $blocks);
         }
+
+        $this->cache->bump();
 
         return ['data' => $this->presenter->toDetail($copy)];
     }

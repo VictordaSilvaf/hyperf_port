@@ -92,7 +92,7 @@ function pageFixtures(): array
     $restore = new RestorePageHandler($repo, $cache, $presenter);
     $archive = new ArchivePageHandler($repo, $cache, $presenter);
     $draft = new DraftPageHandler($repo, $cache, $presenter);
-    $duplicate = new DuplicatePageHandler($repo, $presenter);
+    $duplicate = new DuplicatePageHandler($repo, $cache, $presenter);
     $syncBlocks = new SyncPageBlocksHandler($repo, $registry, $cache, $presenter);
 
     return compact(

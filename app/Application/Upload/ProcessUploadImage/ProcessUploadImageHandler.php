@@ -84,6 +84,7 @@ final class ProcessUploadImageHandler
 
             $this->uploads->save($processed);
             $this->cacheInvalidator->invalidatePages();
+            $this->cacheInvalidator->invalidateProjects();
         } catch (Throwable $exception) {
             $this->logger->error('Upload image processing failed: ' . $exception->getMessage(), [
                 'upload_id' => $uploadId,
