@@ -25,6 +25,7 @@ API REST em **[Hyperf 3.x](https://hyperf.io)** com organização em camadas (**
 ## Funcionalidades
 
 - **HTTP** — Prefixo global `/api/v1`; respostas em JSON; erros de validação e HTTP tratados de forma previsível (`APP_DEBUG` controla detalhe em 500).
+- **Health** — `GET /api/v1/health/live` (liveness), `/health/ready` e `/health` (readiness); verifica DB/Redis conforme `.env`.
 - **Utilizadores** — Registo, consulta por ID, perfil autenticado (`GET /api/v1/users/me`).
 - **Auth** — Login, logout (stateless no servidor), refresh de token (enquanto o token actual for válido), alteração de palavra-passe autenticada.
 - **Reset de palavra-passe** — `forgot-password` + `reset-password` com código de 6 dígitos; armazenamento em memória (`array`) ou **Redis**; e-mail via **Symfony Mailer** (SMTP).
@@ -106,6 +107,8 @@ Detalhes oficiais: [documentação Hyperf](https://hyperf.wiki).
 5. **Verificar a API**
 
    ```bash
+   curl -s http://127.0.0.1:9501/api/v1/health/live
+   curl -s http://127.0.0.1:9501/api/v1/health/ready
    curl -s http://127.0.0.1:9501/api/v1/
    ```
 

@@ -18,6 +18,12 @@ $auth = [AuthenticateMiddleware::class, RequirePermissionsMiddleware::class];
 Router::addGroup('/api/v1', function () use ($auth) {
     Router::addRoute(['GET', 'POST', 'HEAD'], '/', 'App\Controller\IndexController@index');
 
+    Router::addGroup('/health', function () {
+        Router::get('', 'App\Controller\HealthController@index');
+        Router::get('/live', 'App\Controller\HealthController@live');
+        Router::get('/ready', 'App\Controller\HealthController@ready');
+    });
+
     Router::addGroup('/auth', function () {
         Router::post('/register', 'App\Controller\AuthController@register');
         Router::post('/login', 'App\Controller\AuthController@login');

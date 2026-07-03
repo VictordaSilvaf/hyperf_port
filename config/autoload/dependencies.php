@@ -13,6 +13,7 @@ use App\Application\Acl\EffectivePermissionsProviderInterface;
 use App\Application\Auth\AccessTokenIssuerInterface;
 use App\Application\Auth\PasswordReset\PasswordResetNotifierInterface;
 use App\Application\Auth\PasswordReset\PasswordResetTokenStoreInterface;
+use App\Application\Health\GetHealth\GetHealthHandler;
 use App\Application\Shared\Security\PasswordHasherInterface;
 use App\Domain\Acl\Repository\PermissionRepositoryInterface;
 use App\Domain\Acl\Repository\RolePermissionWriterInterface;
@@ -35,6 +36,9 @@ use App\Infrastructure\Auth\ArrayPasswordResetTokenStore;
 use App\Infrastructure\Auth\RedisPasswordResetTokenStore;
 use App\Infrastructure\Auth\SignedAccessTokenIssuer;
 use App\Infrastructure\Event\NoOpDomainEventPublisher;
+use App\Infrastructure\Health\ApplicationHealthProbe;
+use App\Infrastructure\Health\DatabaseHealthProbe;
+use App\Infrastructure\Health\RedisHealthProbe;
 use App\Infrastructure\Mail\SmtpPasswordResetNotifier;
 use App\Infrastructure\Persistence\User\DbUserRepository;
 use App\Infrastructure\Persistence\User\InMemoryUserRepository;
@@ -117,4 +121,20 @@ return [
     },
 
     PasswordResetNotifierInterface::class => SmtpPasswordResetNotifier::class,
+
+    GetHealthHandler::class => static function (ContainerInterface $container): GetHealthHandler {
+        $probes = [
+            $container->get(ApplicationHealthProbe::class),
+        ];
+
+        if (env('APP_USER_REPOSITORY', 'memory') === 'db') {
+            $probes[] = $container->get(DatabaseHealthProbe::class);
+        }
+
+        if (env('APP_AUTH_RESET_STORE', 'array') === 'redis') {
+            $probes[] = $container->get(RedisHealthProbe::class);
+        }
+
+        return new GetHealthHandler($probes, $container->get(ConfigInterface::class));
+    },
 ];

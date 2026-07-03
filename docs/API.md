@@ -74,6 +74,76 @@ Controlador: `app/Controller/IndexController.php`.
 
 ---
 
+## Health checks (observabilidade)
+
+Rotas **públicas** (sem autenticação), pensadas para Kubernetes, Docker Compose e monitorização.
+
+| Rota | Uso |
+|------|-----|
+| `GET /api/v1/health/live` | **Liveness** — processo HTTP activo (não verifica DB/Redis) |
+| `GET /api/v1/health/ready` | **Readiness** — pronto para receber tráfego |
+| `GET /api/v1/health` | Alias de readiness (monitorização / load balancer) |
+
+### Dependências verificadas em `/ready` e `/health`
+
+| Componente | Quando é verificado |
+|------------|---------------------|
+| `app` | Sempre |
+| `database` | `APP_USER_REPOSITORY=db` |
+| `redis` | `APP_AUTH_RESET_STORE=redis` |
+
+Com `APP_USER_REPOSITORY=memory` e `APP_AUTH_RESET_STORE=array` (padrão dev), readiness valida apenas `app`.
+
+### `GET` — `/api/v1/health/live`
+
+**Resposta 200** (sempre que o servidor responder)
+
+```json
+{
+  "status": "pass",
+  "service": "VictorDev",
+  "environment": "dev",
+  "timestamp": "2026-07-02T21:00:00+00:00",
+  "checks": {
+    "app": { "status": "pass" }
+  }
+}
+```
+
+### `GET` — `/api/v1/health/ready` e `/api/v1/health`
+
+**Resposta 200** — todas as dependências configuradas OK.
+
+**Resposta 503** — alguma dependência falhou.
+
+```json
+{
+  "status": "fail",
+  "service": "VictorDev",
+  "environment": "dev",
+  "timestamp": "2026-07-02T21:00:00+00:00",
+  "checks": {
+    "app": { "status": "pass" },
+    "database": {
+      "status": "fail",
+      "message": "Database connection failed.",
+      "latency_ms": 12.34
+    }
+  }
+}
+```
+
+Controlador: `app/Controller/HealthController.php`. Caso de uso: `app/Application/Health/GetHealth/`.
+
+Exemplos:
+
+```bash
+curl -s http://127.0.0.1:9501/api/v1/health/live
+curl -s http://127.0.0.1:9501/api/v1/health/ready
+```
+
+---
+
 ### `POST` — `/api/v1/auth/register`
 
 Registo de utilizador.
