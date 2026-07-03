@@ -29,7 +29,7 @@ Ou sem scope:
 
 1. **type** — só estes, minúsculas: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
 2. **scope** — opcional; se presente: minúsculas, `[a-z0-9._-]+` (ex.: `auth`, `user`, `acl`, `admin`, `api`, `hooks`, `cursor`)
-3. **subject** — imperativo, **primeira letra minúscula**, **sem ponto final**
+3. **subject** — imperativo, **primeira letra minúscula**, **sem ponto final** (pontos no meio, ex. `8.4`, são permitidos)
 4. **header** — máximo **100 caracteres** (conta a linha inteira)
 5. Output = **só a mensagem**, sem markdown, aspas, explicação ou prefixo "Commit message:"
 

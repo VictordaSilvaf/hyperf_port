@@ -2,19 +2,33 @@
 
 declare(strict_types=1);
 /**
- * This file is part of Hyperf.
+ * Hyperf API — DDD / Hexagonal
  *
- * @link     https://www.hyperf.io
- * @document https://hyperf.wiki
- * @contact  group@hyperf.io
- * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ * @link     https://github.com/VictordaSilvaf/hyperf_port
+ * @document https://github.com/VictordaSilvaf/hyperf_port/doc
+ * @contact  victordasilvafernandes@gmail.com
+ * @see      https://github.com/VictordaSilvaf/hyperf_port.git
  */
 const COMMIT_HEADER_PATTERN = '/^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)'
-    . '(\([a-z0-9._-]+\))?!?: [a-z][^\n.]{0,98}$/';
+    . '(\([a-z0-9._-]+\))?!?: .+$/';
 
 function commit_header_is_valid(string $header): bool
 {
-    return $header !== '' && preg_match(COMMIT_HEADER_PATTERN, $header) === 1 && strlen($header) <= 100;
+    if ($header === '' || strlen($header) > 100) {
+        return false;
+    }
+
+    if (! preg_match(COMMIT_HEADER_PATTERN, $header, $matches)) {
+        return false;
+    }
+
+    $subject = preg_replace('/^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9._-]+\))?!?: /', '', $header) ?? '';
+
+    if ($subject === '' || str_ends_with($subject, '.')) {
+        return false;
+    }
+
+    return preg_match('/^[a-z]/', $subject) === 1;
 }
 
 function commit_header_should_skip(string $header): bool
