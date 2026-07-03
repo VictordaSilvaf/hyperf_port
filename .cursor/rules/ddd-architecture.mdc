@@ -4,7 +4,23 @@ globs: app/**/*.php
 alwaysApply: false
 ---
 
-# Arquitectura em camadas
+# Arquitectura em camadas (feature-first)
+
+## Estrutura
+
+```
+app/
+├── Domain/{Contexto}/          # Entidades, VOs, excepções, ports
+├── Application/{Contexto}/     # Um caso de uso = uma pasta
+├── Infrastructure/
+│   ├── Persistence/{Contexto}/
+│   ├── Storage/, Cache/, Mail/, Queue/, Health/, Auth/, Security/
+└── Presentation/Http/
+    ├── Controllers/{Admin,Public}/
+    ├── Requests/{Admin,Public}/
+    ├── Resources/
+    └── Middleware/
+```
 
 ## Dependências permitidas
 
@@ -13,38 +29,29 @@ alwaysApply: false
 | `Domain/` | Apenas `Domain` e PHP |
 | `Application/` | `Domain` + interfaces (ports) |
 | `Infrastructure/` | `Domain`, `Application`, Hyperf, drivers |
-| `Controller/` | `Application`, `Http`, infra transversal (auth) |
+| `Presentation/` | `Application`, `Domain` (excepções), infra transversal (auth) |
 
 ## Padrão de caso de uso
 
 ```
 Application/<Contexto>/<NomeDoCaso>/
-  RegisterUserCommand.php   # ou *Query
-  RegisterUserHandler.php
+  CreateProjectCommand.php   # ou *Query
+  CreateProjectHandler.php
 ```
 
-Handler recebe dependências por construtor (interfaces). Exemplo:
-
-```php
-final class RegisterUserHandler
-{
-    public function __construct(
-        private readonly UserRepositoryInterface $users,
-        private readonly PasswordHasherInterface $passwordHasher,
-    ) {}
-}
-```
+Handler recebe dependências por construtor (interfaces).
 
 ## Checklist para nova funcionalidade
 
 1. Entidade/VO/excepção em `Domain/`
 2. Command/Query + Handler em `Application/`
-3. Implementação em `Infrastructure/` + registo em `config/autoload/dependencies.php`
-4. Rota + controller + `FormRequest` se exposto via HTTP
-5. Testes unitários do handler; integração HTTP se aplicável
+3. Implementação em `Infrastructure/Persistence/` + registo em `config/autoload/dependencies.php`
+4. Rota + controller (`Presentation/Http/Controllers`) + `FormRequest` + `Resource` se exposto via HTTP
+5. Permissões RBAC (migration) se endpoint admin
+6. Testes unitários do handler
 
 ## Evitar
 
-- `Domain` importando `Hyperf\Db`, Redis ou mail
-- `Application` instanciando `DbUserRepository` directamente
+- `Domain` importando Hyperf, Redis ou mail
+- `Application` instanciando repositórios concretos
 - Lógica de negócio extensa em controllers

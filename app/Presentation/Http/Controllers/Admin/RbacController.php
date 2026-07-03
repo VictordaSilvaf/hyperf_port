@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @see      https://github.com/VictordaSilvaf/hyperf_port.git
  */
 
-namespace App\Controller\Admin;
+namespace App\Presentation\Http\Controllers\Admin;
 
 use App\Application\Acl\CreateRole\CreateRoleCommand;
 use App\Application\Acl\CreateRole\CreateRoleHandler;
@@ -19,12 +19,12 @@ use App\Application\Acl\SyncRolePermissions\SyncRolePermissionsCommand;
 use App\Application\Acl\SyncRolePermissions\SyncRolePermissionsHandler;
 use App\Application\Acl\SyncUserRoles\SyncUserRolesCommand;
 use App\Application\Acl\SyncUserRoles\SyncUserRolesHandler;
-use App\Controller\AbstractController;
 use App\Domain\Acl\Repository\PermissionRepositoryInterface;
 use App\Domain\Acl\Repository\RoleRepositoryInterface;
-use App\Http\Request\Admin\CreateRoleRequest;
-use App\Http\Request\Admin\SyncRolePermissionsRequest;
-use App\Http\Request\Admin\SyncUserRolesRequest;
+use App\Presentation\Http\Controllers\AbstractController;
+use App\Presentation\Http\Requests\Admin\CreateRoleRequest;
+use App\Presentation\Http\Requests\Admin\SyncRolePermissionsRequest;
+use App\Presentation\Http\Requests\Admin\SyncUserRolesRequest;
 use Hyperf\Di\Annotation\Inject;
 use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface as PsrResponseInterface;

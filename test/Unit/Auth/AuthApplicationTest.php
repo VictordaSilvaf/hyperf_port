@@ -20,13 +20,13 @@ use App\Application\Auth\ResetPassword\ResetPasswordHandler;
 use App\Application\User\RegisterUser\RegisterUserCommand;
 use App\Application\User\RegisterUser\RegisterUserHandler;
 use App\Domain\User\Exception\EmailAlreadyRegisteredException;
-use App\Infrastructure\Acl\InMemoryAclStore;
-use App\Infrastructure\Acl\InMemoryEffectivePermissionsProvider;
-use App\Infrastructure\Acl\InMemoryRoleRepository;
-use App\Infrastructure\Acl\InMemoryUserRoleRepository;
-use App\Infrastructure\Auth\ArrayPasswordResetTokenStore;
 use App\Infrastructure\Auth\SignedAccessTokenIssuer;
+use App\Infrastructure\Cache\ArrayPasswordResetTokenStore;
 use App\Infrastructure\Event\NoOpDomainEventPublisher;
+use App\Infrastructure\Persistence\Acl\InMemoryAclStore;
+use App\Infrastructure\Persistence\Acl\InMemoryEffectivePermissionsProvider;
+use App\Infrastructure\Persistence\Acl\InMemoryRoleRepository;
+use App\Infrastructure\Persistence\Acl\InMemoryUserRoleRepository;
 use App\Infrastructure\Persistence\User\InMemoryUserRepository;
 use App\Infrastructure\Security\NativePasswordHasher;
 

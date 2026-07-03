@@ -10,7 +10,9 @@ declare(strict_types=1);
  * @see      https://github.com/VictordaSilvaf/hyperf_port.git
  */
 
-namespace App\Controller;
+namespace App\Presentation\Http\Controllers\Public;
+
+use App\Presentation\Http\Controllers\AbstractController;
 
 class IndexController extends AbstractController
 {

@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @see      https://github.com/VictordaSilvaf/hyperf_port.git
  */
 
-namespace App\Controller\Admin;
+namespace App\Presentation\Http\Controllers\Admin;
 
 use App\Application\Acl\EffectivePermissionsProviderInterface;
 use App\Application\User\GetUser\GetUserHandler;
@@ -21,12 +21,12 @@ use App\Application\User\RegisterUser\RegisterUserCommand;
 use App\Application\User\RegisterUser\RegisterUserHandler;
 use App\Application\User\UpdateUser\UpdateUserCommand;
 use App\Application\User\UpdateUser\UpdateUserHandler;
-use App\Controller\AbstractController;
 use App\Domain\User\Exception\EmailAlreadyRegisteredException;
 use App\Domain\User\Exception\UserNotFoundException;
-use App\Http\Request\Admin\CreateAdminUserRequest;
-use App\Http\Request\Admin\ListAdminUsersRequest;
-use App\Http\Request\Admin\UpdateAdminUserRequest;
+use App\Presentation\Http\Controllers\AbstractController;
+use App\Presentation\Http\Requests\Admin\CreateAdminUserRequest;
+use App\Presentation\Http\Requests\Admin\ListAdminUsersRequest;
+use App\Presentation\Http\Requests\Admin\UpdateAdminUserRequest;
 use Hyperf\Di\Annotation\Inject;
 use Psr\Http\Message\ResponseInterface as PsrResponseInterface;
 

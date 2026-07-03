@@ -10,9 +10,10 @@ declare(strict_types=1);
  * @see      https://github.com/VictordaSilvaf/hyperf_port.git
  */
 
-namespace App\Infrastructure\Auth;
+namespace App\Infrastructure\Cache;
 
 use App\Application\Auth\PasswordReset\PasswordResetTokenStoreInterface;
+use App\Infrastructure\Auth\PasswordResetCodeGenerator;
 use Hyperf\Redis\Redis;
 use RuntimeException;
 

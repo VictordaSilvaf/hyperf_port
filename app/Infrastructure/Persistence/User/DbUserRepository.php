@@ -66,7 +66,7 @@ final class DbUserRepository implements UserRepositoryInterface
         if ($trimmedSearch !== '') {
             $term = '%' . addcslashes($trimmedSearch, '%_\\') . '%';
             $builder->where(static function ($q) use ($term): void {
-                $q->where('name', 'like', $term)->orWhere('email', 'like', $term);
+                $q->where('name', 'ilike', $term)->orWhere('email', 'ilike', $term);
             });
         }
 

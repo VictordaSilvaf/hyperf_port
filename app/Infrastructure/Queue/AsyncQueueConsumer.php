@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @see      https://github.com/VictordaSilvaf/hyperf_port.git
  */
 
-namespace App\Process;
+namespace App\Infrastructure\Queue;
 
 use Hyperf\AsyncQueue\Process\ConsumerProcess;
 use Hyperf\Process\Annotation\Process;

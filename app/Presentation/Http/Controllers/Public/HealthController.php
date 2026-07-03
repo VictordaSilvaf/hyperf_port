@@ -10,10 +10,11 @@ declare(strict_types=1);
  * @see      https://github.com/VictordaSilvaf/hyperf_port.git
  */
 
-namespace App\Controller;
+namespace App\Presentation\Http\Controllers\Public;
 
 use App\Application\Health\GetHealth\GetHealthHandler;
 use App\Application\Health\GetHealth\GetHealthQuery;
+use App\Presentation\Http\Controllers\AbstractController;
 use Hyperf\Di\Annotation\Inject;
 use Psr\Http\Message\ResponseInterface as PsrResponseInterface;
 

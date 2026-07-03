@@ -24,7 +24,7 @@ O código HTTP segue o definido pela excepção de validação do Hyperf (tipica
 
 ### Erros 500 e modo debug
 
-A configuração `debug` em `config/config.php` reflecte `APP_DEBUG`. Quando `APP_DEBUG=true`, respostas **500** podem incluir `message` detalhada, `exception`, `file`, `line` e `trace`. Em produção, mantém-se uma mensagem genérica (`Internal Server Error.`). Ver `app/Exception/Handler/AppExceptionHandler.php`.
+A configuração `debug` em `config/config.php` reflecte `APP_DEBUG`. Quando `APP_DEBUG=true`, respostas **500** podem incluir `message` detalhada, `exception`, `file`, `line` e `trace`. Em produção, mantém-se uma mensagem genérica (`Internal Server Error.`). Ver `app/Presentation/Http/Exception/Handler/AppExceptionHandler.php`.
 
 ### Autenticação Bearer
 
@@ -361,6 +361,66 @@ Perfil público por ID (UUID).
 ```json
 { "message": "User not found" }
 ```
+
+---
+
+## Projetos (público)
+
+### `GET` — `/api/v1/projects`
+
+Lista projetos **publicados**, ordenados por `sort_order`.
+
+Query: `page`, `per_page`.
+
+### `GET` — `/api/v1/projects/{slug}`
+
+Detalhe de um projeto publicado pelo slug.
+
+### `GET` — `/api/v1/projects/{projectId}/posts`
+
+Posts **publicados** de um projecto.
+
+---
+
+## Posts (público)
+
+### `GET` — `/api/v1/posts/{id}`
+
+Detalhe de um post publicado.
+
+---
+
+## Projetos (admin)
+
+Requer autenticação + permissões RBAC (`projects.*`).
+
+| Método | Rota | Permissão |
+|--------|------|-----------|
+| GET | `/api/v1/admin/projects` | `projects.view` |
+| POST | `/api/v1/admin/projects` | `projects.create` |
+| GET | `/api/v1/admin/projects/{id}` | `projects.view` |
+| PUT | `/api/v1/admin/projects/{id}` | `projects.update` |
+| DELETE | `/api/v1/admin/projects/{id}` | `projects.delete` |
+| POST | `/api/v1/admin/projects/{id}/publish` | `projects.publish` |
+| POST | `/api/v1/admin/projects/{id}/archive` | `projects.publish` |
+| PUT | `/api/v1/admin/projects/reorder` | `projects.update` |
+
+Corpo de criação: `title`, `slug?`, `description?`, `image_path?`, `owner_id?`.
+
+---
+
+## Posts (admin)
+
+Requer autenticação + permissões RBAC (`posts.*`).
+
+| Método | Rota | Permissão |
+|--------|------|-----------|
+| GET | `/api/v1/admin/projects/{projectId}/posts` | `posts.view` |
+| POST | `/api/v1/admin/posts` | `posts.create` |
+| GET | `/api/v1/admin/posts/{id}` | `posts.view` |
+| PUT | `/api/v1/admin/posts/{id}` | `posts.update` |
+| DELETE | `/api/v1/admin/posts/{id}` | `posts.delete` |
+| POST | `/api/v1/admin/posts/{id}/publish` | `posts.publish` |
 
 ---
 

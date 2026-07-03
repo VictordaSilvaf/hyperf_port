@@ -10,17 +10,17 @@ A documentação oficial do framework não é substituída por este ficheiro —
 
 ```mermaid
 flowchart LR
-  HTTP[HttpServer_Routes] --> Ctrl[Controller]
+  HTTP[HttpServer_Routes] --> Ctrl[Presentation_Controllers]
   Ctrl --> Req[FormRequest_validation]
   Ctrl --> App[Application_Handlers]
   App --> Dom[Domain_Entities_VO]
   App --> Ports[Ports_interfaces]
   Ports --> Infra[Infrastructure]
-  Infra --> Ext[DB_Redis_Mail]
+  Infra --> Ext[PostgreSQL_Redis_Mail_Storage]
 ```
 
-1. `config/routes.php` encaminha o pedido para um método de `app/Controller/`.
-2. O Hyperf resolve argumentos; `FormRequest` em `app/Http/Request/` valida entrada.
+1. `config/routes.php` encaminha o pedido para um método em `app/Presentation/Http/Controllers/`.
+2. O Hyperf resolve argumentos; `FormRequest` em `app/Presentation/Http/Requests/` valida entrada.
 3. O controller invoca um `*Handler` em `app/Application/` com um `*Command` ou `*Query`.
 4. O handler usa o **domínio** (entidades, VOs, regras) e **portas** (interfaces de repositório, token store, mail, etc.).
 5. Implementações concretas vivem em `app/Infrastructure/` e são ligadas no container em `config/autoload/dependencies.php`.
@@ -45,21 +45,28 @@ flowchart LR
 ### `Infrastructure/`
 
 - **Responsabilidade:** adaptadores — persistência, auth (tokens assinados, stores), envio de email, `AuthContext` para o ciclo do pedido, publishers de eventos no-op ou reais.
-- **Exemplos:** `Infrastructure/Persistence/User/DbUserRepository.php`, `Infrastructure/Auth/SignedAccessTokenIssuer.php`, `Infrastructure/Mail/SmtpPasswordResetNotifier.php`.
+- **Exemplos:** `Infrastructure/Persistence/User/DbUserRepository.php`, `Infrastructure/Persistence/Project/`, `Infrastructure/Cache/`, `Infrastructure/Queue/`, `Infrastructure/Auth/SignedAccessTokenIssuer.php`, `Infrastructure/Mail/SmtpPasswordResetNotifier.php`.
 - **Regra:** implementa interfaces declaradas em `Domain/` ou `Application/`.
 
-### `Controller/`
+### `Presentation/Http/`
 
-- **Responsabilidade:** camada fina HTTP — validação delegada a `FormRequest`, mapeamento de erros HTTP (401, 404, 409, 422), chamada a handlers.
-- **Regra:** evitar lógica de negócio extensa; preferir testar handlers em `test/Unit/`.
+- **Controllers:** `Controllers/Admin/` (backoffice com RBAC), `Controllers/Public/` (API pública).
+- **Requests:** validação por endpoint (`Requests/Admin/`, `Requests/Public/`).
+- **Resources:** transformação de DTOs de aplicação para JSON.
+- **Middleware / Exception:** autenticação Bearer, permissões, respostas JSON de erro.
 
-### `Http/Request/`
+### Contextos de domínio
 
-- **Responsabilidade:** regras de validação Hyperf (`FormRequest`) por endpoint ou grupo de endpoints.
+| Contexto | Domain | Application | Persistência |
+|----------|--------|-------------|--------------|
+| User | `Domain/User/` | `Application/User/` | `Persistence/User/` |
+| Acl | `Domain/Acl/` | `Application/Acl/` | `Persistence/Acl/` |
+| Project | `Domain/Project/` | `Application/Project/` | `Persistence/Project/` |
+| Post | `Domain/Post/` | `Application/Post/` | `Persistence/Post/` |
 
-### `Middleware/`, `Exception/Handler/`, `Listener/`, `Process/`
+### `Listener/`
 
-- Infra transversal ao ciclo de vida Hyperf: autenticação Bearer, respostas JSON para validação e erros, listeners de arranque, filas, etc.
+- Infra transversal ao ciclo de vida Hyperf: listeners de arranque, filas, etc.
 
 ---
 
@@ -70,7 +77,7 @@ flowchart LR
 | `Domain` | Apenas `Domain` (e PHP) |
 | `Application` | `Domain` + interfaces (ports) |
 | `Infrastructure` | `Domain`, `Application` (para implementar ports), Hyperf, drivers externos |
-| `Controller` | `Application`, `Http`, `Infrastructure` só onde já exista padrão (ex.: contexto de auth) |
+| `Presentation` | `Application`, `Domain` (excepções), infra transversal (auth) |
 
 Violações típicas a evitar: `Domain` que importa `Hyperf\Db`; `Application` que instancia `DbUserRepository` em vez de receber `UserRepositoryInterface` por construtor.
 

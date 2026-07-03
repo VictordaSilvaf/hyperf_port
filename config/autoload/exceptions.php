@@ -9,9 +9,9 @@ declare(strict_types=1);
  * @contact  victordasilvafernandes@gmail.com
  * @see      https://github.com/VictordaSilvaf/hyperf_port.git
  */
-use App\Exception\Handler\AppExceptionHandler;
-use App\Exception\Handler\JsonHttpExceptionHandler;
-use App\Exception\Handler\JsonValidationExceptionHandler;
+use App\Presentation\Http\Exception\Handler\AppExceptionHandler;
+use App\Presentation\Http\Exception\Handler\JsonHttpExceptionHandler;
+use App\Presentation\Http\Exception\Handler\JsonValidationExceptionHandler;
 
 /*
  * This file is part of Hyperf.

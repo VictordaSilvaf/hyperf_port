@@ -59,7 +59,7 @@ Infrastructure implementa ports; Domain não importa Hyperf/DB/Redis.
 
 - Locale da API: `APP_LOCALE=pt_BR` (fallback `en`)
 - Testes PHPUnit usam `APP_LOCALE=en` (`phpunit.xml.dist`)
-- `APP_USER_REPOSITORY`: `memory` (dev) ou `db` (MySQL)
+- `APP_USER_REPOSITORY`: `memory` (dev) ou `db` (PostgreSQL)
 - Object storage: `FILESYSTEM_DRIVER=minio` (dev) / `r2` (produção); porta `ObjectStorageInterface`
 - Prefixo global da API: `/api/v1`
 

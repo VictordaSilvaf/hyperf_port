@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @see      https://github.com/VictordaSilvaf/hyperf_port.git
  */
 
-namespace App\Controller;
+namespace App\Presentation\Http\Controllers\Public;
 
 use App\Application\Acl\EffectivePermissionsProviderInterface;
 use App\Application\Auth\AccessTokenIssuerInterface;
@@ -28,12 +28,13 @@ use App\Application\Auth\ResetPassword\ResetPasswordHandler;
 use App\Application\User\RegisterUser\RegisterUserCommand;
 use App\Application\User\RegisterUser\RegisterUserHandler;
 use App\Domain\User\Exception\EmailAlreadyRegisteredException;
-use App\Http\Request\Auth\ChangePasswordRequest;
-use App\Http\Request\Auth\ForgotPasswordRequest;
-use App\Http\Request\Auth\LoginRequest;
-use App\Http\Request\Auth\RegisterRequest;
-use App\Http\Request\Auth\ResetPasswordRequest;
 use App\Infrastructure\Auth\AuthContext;
+use App\Presentation\Http\Controllers\AbstractController;
+use App\Presentation\Http\Requests\Public\Auth\ChangePasswordRequest;
+use App\Presentation\Http\Requests\Public\Auth\ForgotPasswordRequest;
+use App\Presentation\Http\Requests\Public\Auth\LoginRequest;
+use App\Presentation\Http\Requests\Public\Auth\RegisterRequest;
+use App\Presentation\Http\Requests\Public\Auth\ResetPasswordRequest;
 use Hyperf\Di\Annotation\Inject;
 use Psr\Http\Message\ResponseInterface as PsrResponseInterface;
 

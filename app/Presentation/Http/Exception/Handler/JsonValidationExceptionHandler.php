@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @see      https://github.com/VictordaSilvaf/hyperf_port.git
  */
 
-namespace App\Exception\Handler;
+namespace App\Presentation\Http\Exception\Handler;
 
 use Hyperf\Codec\Json;
 use Hyperf\ExceptionHandler\ExceptionHandler;

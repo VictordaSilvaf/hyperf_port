@@ -20,28 +20,34 @@ use App\Domain\Acl\Repository\PermissionRepositoryInterface;
 use App\Domain\Acl\Repository\RolePermissionWriterInterface;
 use App\Domain\Acl\Repository\RoleRepositoryInterface;
 use App\Domain\Acl\Repository\UserRoleRepositoryInterface;
+use App\Domain\Post\Repository\PostRepositoryInterface;
+use App\Domain\Project\Repository\ProjectRepositoryInterface;
 use App\Domain\Shared\Event\DomainEventPublisherInterface;
 use App\Domain\User\Repository\UserRepositoryInterface;
-use App\Infrastructure\Acl\DbEffectivePermissionsProvider;
-use App\Infrastructure\Acl\DbPermissionRepository;
-use App\Infrastructure\Acl\DbRolePermissionRepository;
-use App\Infrastructure\Acl\DbRoleRepository;
-use App\Infrastructure\Acl\DbUserRoleRepository;
-use App\Infrastructure\Acl\InMemoryAclStore;
-use App\Infrastructure\Acl\InMemoryEffectivePermissionsProvider;
-use App\Infrastructure\Acl\InMemoryPermissionRepository;
-use App\Infrastructure\Acl\InMemoryRolePermissionWriter;
-use App\Infrastructure\Acl\InMemoryRoleRepository;
-use App\Infrastructure\Acl\InMemoryUserRoleRepository;
-use App\Infrastructure\Auth\ArrayPasswordResetTokenStore;
-use App\Infrastructure\Auth\RedisPasswordResetTokenStore;
 use App\Infrastructure\Auth\SignedAccessTokenIssuer;
+use App\Infrastructure\Cache\ArrayPasswordResetTokenStore;
+use App\Infrastructure\Cache\RedisPasswordResetTokenStore;
 use App\Infrastructure\Event\NoOpDomainEventPublisher;
 use App\Infrastructure\Health\ApplicationHealthProbe;
 use App\Infrastructure\Health\DatabaseHealthProbe;
 use App\Infrastructure\Health\RedisHealthProbe;
 use App\Infrastructure\Health\StorageHealthProbe;
 use App\Infrastructure\Mail\SmtpPasswordResetNotifier;
+use App\Infrastructure\Persistence\Acl\DbEffectivePermissionsProvider;
+use App\Infrastructure\Persistence\Acl\DbPermissionRepository;
+use App\Infrastructure\Persistence\Acl\DbRolePermissionRepository;
+use App\Infrastructure\Persistence\Acl\DbRoleRepository;
+use App\Infrastructure\Persistence\Acl\DbUserRoleRepository;
+use App\Infrastructure\Persistence\Acl\InMemoryAclStore;
+use App\Infrastructure\Persistence\Acl\InMemoryEffectivePermissionsProvider;
+use App\Infrastructure\Persistence\Acl\InMemoryPermissionRepository;
+use App\Infrastructure\Persistence\Acl\InMemoryRolePermissionWriter;
+use App\Infrastructure\Persistence\Acl\InMemoryRoleRepository;
+use App\Infrastructure\Persistence\Acl\InMemoryUserRoleRepository;
+use App\Infrastructure\Persistence\Post\DbPostRepository;
+use App\Infrastructure\Persistence\Post\InMemoryPostRepository;
+use App\Infrastructure\Persistence\Project\DbProjectRepository;
+use App\Infrastructure\Persistence\Project\InMemoryProjectRepository;
 use App\Infrastructure\Persistence\User\DbUserRepository;
 use App\Infrastructure\Persistence\User\InMemoryUserRepository;
 use App\Infrastructure\Security\NativePasswordHasher;
@@ -57,7 +63,7 @@ use function Hyperf\Support\env;
 return [
     /*
      * Hexagonal (driven) adapters: troque para DbUserRepository quando a tabela
-     * `users` existir (após migrate) e o MySQL estiver configurado.
+     * `users` existir (após migrate) e o PostgreSQL estiver configurado.
      */
     InMemoryAclStore::class => static function (): InMemoryAclStore {
         static $store = null;
@@ -68,6 +74,14 @@ return [
     UserRepositoryInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
         ? DbUserRepository::class
         : InMemoryUserRepository::class,
+
+    ProjectRepositoryInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
+        ? DbProjectRepository::class
+        : InMemoryProjectRepository::class,
+
+    PostRepositoryInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
+        ? DbPostRepository::class
+        : InMemoryPostRepository::class,
 
     RoleRepositoryInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
         ? DbRoleRepository::class

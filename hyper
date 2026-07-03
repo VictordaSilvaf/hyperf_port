@@ -37,8 +37,8 @@ env_get() {
   echo "${default}"
 }
 
-DB_USERNAME="$(env_get DB_USERNAME root)"
-DB_PASSWORD="$(env_get DB_PASSWORD root)"
+DB_USERNAME="$(env_get DB_USERNAME postgres)"
+DB_PASSWORD="$(env_get DB_PASSWORD postgres)"
 DB_DATABASE="$(env_get DB_DATABASE victordev)"
 API_PORT="$(env_get API_PORT 9501)"
 
@@ -62,16 +62,16 @@ hyperf_cmd() {
   php_cmd "${APP_PATH}/bin/hyperf.php" "$@"
 }
 
-wait_for_mysql() {
-  echo "→ Aguardando MySQL..."
+wait_for_postgres() {
+  echo "→ Aguardando PostgreSQL..."
   local i
   for i in $(seq 1 30); do
-    if "${COMPOSE[@]}" exec -T mysql mysqladmin ping -h localhost -u"${DB_USERNAME}" -p"${DB_PASSWORD}" --silent 2>/dev/null; then
+    if "${COMPOSE[@]}" exec -T postgres pg_isready -U "${DB_USERNAME}" -d "${DB_DATABASE}" >/dev/null 2>&1; then
       return 0
     fi
     sleep 1
   done
-  echo "Aviso: MySQL não respondeu a tempo; migrate pode falhar." >&2
+  echo "Aviso: PostgreSQL não respondeu a tempo; migrate pode falhar." >&2
   return 1
 }
 
@@ -108,7 +108,8 @@ Qualidade:
   quality              composer quality
 
 Serviços:
-  mysql                Cliente MySQL (credenciais do .env)
+  postgres|psql          psql (credenciais do .env)
+  pgadmin              URL e credenciais do pgAdmin
   redis                redis-cli
   minio                Info do MinIO (dev)
 
@@ -215,12 +216,8 @@ case "${cmd}" in
     compose_exec composer quality "$@"
     ;;
 
-  mysql)
-    "${COMPOSE[@]}" exec mysql mysql \
-      -u"${DB_USERNAME}" \
-      -p"${DB_PASSWORD}" \
-      "${DB_DATABASE}" \
-      "$@"
+  postgres|psql)
+    "${COMPOSE[@]}" exec postgres psql -U "${DB_USERNAME}" -d "${DB_DATABASE}" "$@"
     ;;
 
   redis)
@@ -228,7 +225,6 @@ case "${cmd}" in
     ;;
 
   minio)
-    local console_port prefix
     console_port="$(env_get MINIO_CONSOLE_PUBLISH_PORT 9001)"
     prefix="$(env_get FILESYSTEM_PREFIX development)"
     echo "MinIO Console: http://127.0.0.1:${console_port}"
@@ -236,11 +232,22 @@ case "${cmd}" in
     echo "API S3: $(env_get MINIO_ENDPOINT http://minio:9000) (rede Docker)"
     ;;
 
+  pgadmin)
+    pgadmin_port="$(env_get PGADMIN_PUBLISH_PORT 5050)"
+    echo "pgAdmin: http://127.0.0.1:${pgadmin_port}"
+    echo "Login pgAdmin: $(env_get PGADMIN_DEFAULT_EMAIL admin@victordev.com)"
+    echo "Password pgAdmin: $(env_get PGADMIN_DEFAULT_PASSWORD admin)"
+    echo ""
+    echo "Servidor PostgreSQL (pré-configurado: Hyperf Docker):"
+    echo "  Host: postgres | Port: 5432 | Database: ${DB_DATABASE} | User: ${DB_USERNAME}"
+    echo "  Password: (DB_PASSWORD no .env)"
+    ;;
+
   install)
     "${COMPOSE[@]}" build
     "${COMPOSE[@]}" run --rm --entrypoint "" "${SERVICE}" composer install --no-interaction
     "${COMPOSE[@]}" up -d
-    wait_for_mysql || true
+    wait_for_postgres || true
     hyperf_cmd migrate
     echo ""
     echo "Pronto. API: http://127.0.0.1:${API_PORT}/api/v1/health/live"

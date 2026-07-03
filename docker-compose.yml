@@ -18,11 +18,16 @@ services:
       # Garante leitura do .env montado; sobrescreve só se definido no compose
       SCAN_CACHEABLE: ${SCAN_CACHEABLE:-false}
     depends_on:
-      - redis
-      - mysql
-      - mailpit
-      - minio
-      - minio-init
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      mailpit:
+        condition: service_started
+      minio:
+        condition: service_started
+      minio-init:
+        condition: service_completed_successfully
     networks:
       - hyperf-net
 
@@ -68,16 +73,22 @@ services:
     networks:
       - hyperf-net
 
-  mysql:
-    container_name: hyperf-mysql
-    image: mysql:8.4
+  postgres:
+    container_name: hyperf-postgres
+    image: postgres:16-alpine
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
-      MYSQL_DATABASE: ${DB_DATABASE:-victordev}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_DATABASE:-victordev}
     volumes:
-      - mysql-data:/var/lib/mysql
+      - postgres-data:/var/lib/postgresql/data
     ports:
-      - "${DB_PUBLISH_PORT:-3306}:3306"
+      - "${DB_PUBLISH_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres} -d ${DB_DATABASE:-victordev}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     networks:
       - hyperf-net
 
@@ -90,9 +101,30 @@ services:
     networks:
       - hyperf-net
 
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: hyperf-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@victordev.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+      PGADMIN_SERVER_JSON_FILE: /pgadmin4/servers.json
+    ports:
+      - "${PGADMIN_PUBLISH_PORT:-5050}:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+      - ./docker/pgadmin/servers.json:/pgadmin4/servers.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - hyperf-net
+
 networks:
   hyperf-net:
     driver: bridge
 volumes:
-  mysql-data:
+  postgres-data:
   minio-data:
+  pgadmin-data:

@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Hyperf (Docker)",
+      "Group": "Development",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "victordev",
+      "Username": "postgres",
+      "SSLMode": "prefer",
+      "Comment": "Servidor PostgreSQL do docker-compose (rede hyperf-net)"
+    }
+  }
+}

@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @see      https://github.com/VictordaSilvaf/hyperf_port.git
  */
 
-namespace App\Http\Request\Admin;
+namespace App\Presentation\Http\Requests\Admin;
 
 use Hyperf\Validation\Request\FormRequest;
 

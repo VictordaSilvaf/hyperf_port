@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "11d6c1e5fad7b983eba72ccb0ebc2aab",
+    "content-hash": "596f1f42f44e03c6e83bff1dd1ec758e",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -2154,6 +2154,73 @@
                 }
             ],
             "time": "2026-04-19T02:39:39+00:00"
+        },
+        {
+            "name": "hyperf/database-pgsql",
+            "version": "v3.1.69",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/hyperf/database-pgsql.git",
+                "reference": "babc7b6a660d4f8633a9d0e0b73ca73b459e22b7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/hyperf/database-pgsql/zipball/babc7b6a660d4f8633a9d0e0b73ca73b459e22b7",
+                "reference": "babc7b6a660d4f8633a9d0e0b73ca73b459e22b7",
+                "shasum": ""
+            },
+            "require": {
+                "hyperf/collection": "~3.1.0",
+                "hyperf/database": "~3.1.0",
+                "hyperf/stringable": "~3.1.0",
+                "hyperf/support": "~3.1.0",
+                "hyperf/tappable": "~3.1.0",
+                "php": ">=8.1"
+            },
+            "type": "library",
+            "extra": {
+                "hyperf": {
+                    "config": "Hyperf\\Database\\PgSQL\\ConfigProvider"
+                },
+                "branch-alias": {
+                    "dev-master": "3.1-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Hyperf\\Database\\PgSQL\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "A pgsql handler for hyperf/database.",
+            "homepage": "https://hyperf.io",
+            "keywords": [
+                "database",
+                "hyperf",
+                "pgsql",
+                "php",
+                "swoole"
+            ],
+            "support": {
+                "docs": "https://hyperf.wiki",
+                "issues": "https://github.com/hyperf/hyperf/issues",
+                "pull-request": "https://github.com/hyperf/hyperf/pulls",
+                "source": "https://github.com/hyperf/hyperf"
+            },
+            "funding": [
+                {
+                    "url": "https://hyperf.wiki/#/zh-cn/donate",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://opencollective.com/hyperf",
+                    "type": "open_collective"
+                }
+            ],
+            "time": "2026-05-08T09:27:55+00:00"
         },
         {
             "name": "hyperf/db-connection",

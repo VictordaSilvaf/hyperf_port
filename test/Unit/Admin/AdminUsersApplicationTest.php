@@ -18,10 +18,10 @@ use App\Application\User\UpdateUser\UpdateUserHandler;
 use App\Domain\User\Exception\EmailAlreadyRegisteredException;
 use App\Domain\User\Exception\UserNotFoundException;
 use App\Domain\User\ValueObject\UserId;
-use App\Infrastructure\Acl\InMemoryAclStore;
-use App\Infrastructure\Acl\InMemoryRoleRepository;
-use App\Infrastructure\Acl\InMemoryUserRoleRepository;
 use App\Infrastructure\Event\NoOpDomainEventPublisher;
+use App\Infrastructure\Persistence\Acl\InMemoryAclStore;
+use App\Infrastructure\Persistence\Acl\InMemoryRoleRepository;
+use App\Infrastructure\Persistence\Acl\InMemoryUserRoleRepository;
 use App\Infrastructure\Persistence\User\InMemoryUserRepository;
 use App\Infrastructure\Security\NativePasswordHasher;
 

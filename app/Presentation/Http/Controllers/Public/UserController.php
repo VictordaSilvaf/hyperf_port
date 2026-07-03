@@ -10,13 +10,14 @@ declare(strict_types=1);
  * @see      https://github.com/VictordaSilvaf/hyperf_port.git
  */
 
-namespace App\Controller;
+namespace App\Presentation\Http\Controllers\Public;
 
 use App\Application\Acl\EffectivePermissionsProviderInterface;
 use App\Application\User\GetUser\GetUserHandler;
 use App\Application\User\GetUser\GetUserQuery;
 use App\Domain\User\Exception\UserNotFoundException;
 use App\Infrastructure\Auth\AuthContext;
+use App\Presentation\Http\Controllers\AbstractController;
 use Hyperf\Di\Annotation\Inject;
 use Psr\Http\Message\ResponseInterface as PsrResponseInterface;
 

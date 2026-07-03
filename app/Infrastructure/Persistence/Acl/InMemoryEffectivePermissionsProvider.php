@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @see      https://github.com/VictordaSilvaf/hyperf_port.git
  */
 
-namespace App\Infrastructure\Acl;
+namespace App\Infrastructure\Persistence\Acl;
 
 use App\Application\Acl\EffectivePermissionsProviderInterface;
 

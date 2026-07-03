@@ -33,8 +33,8 @@ O fluxo de desenvolvimento **recomendado** é **100% via Docker**, usando a CLI 
 - **Utilizadores** — Registo, consulta por ID, perfil autenticado (`GET /api/v1/users/me`).
 - **Auth** — Login, logout (stateless no servidor), refresh de token (enquanto o token actual for válido), alteração de palavra-passe autenticada.
 - **Reset de palavra-passe** — `forgot-password` + `reset-password` com código de 6 dígitos; armazenamento em memória (`array`) ou **Redis**; e-mail via **Symfony Mailer** (SMTP).
-- **Persistência** — Repositório de utilizadores em **memória** ou **MySQL** (`APP_USER_REPOSITORY`), configurável por `.env`.
-- **RBAC** — Papéis `admin`, `manager`, `user` (seed na migração); permissões granulares; criação de novos papéis; atribuição de permissões a papéis e de papéis a utilizadores (`/api/v1/admin/...`). Após `migrate`, todos os utilizadores existentes recebem o papel `user`. São criados dois utilizadores de desenvolvimento (apenas com MySQL): `admin@victordev.com` (papel `admin`) e `manager@victordev.com` (papel `manager`), ambos com palavra-passe inicial **`VictorDev123!`** — altere ou elimine em produção.
+- **Persistência** — Repositório de utilizadores em **memória** ou **PostgreSQL** (`APP_USER_REPOSITORY`), configurável por `.env`.
+- **RBAC** — Papéis `admin`, `manager`, `user` (seed na migração); permissões granulares; criação de novos papéis; atribuição de permissões a papéis e de papéis a utilizadores (`/api/v1/admin/...`). Após `migrate`, todos os utilizadores existentes recebem o papel `user`. São criados dois utilizadores de desenvolvimento (com PostgreSQL): `admin@victordev.com` (papel `admin`) e `manager@victordev.com` (papel `manager`), ambos com palavra-passe inicial **`VictorDev123!`** — altere ou elimine em produção.
 - **Admin — utilizadores** — Listagem, detalhe, criação e edição em `/api/v1/admin/users` (permissões `users.view`, `users.create`, `users.update`; ver `docs/API.md`). Migração `2026_05_23_000000_add_users_create_update_permissions.php` adiciona as permissões e associa-as a `admin` e `manager`.
 
 ---
@@ -46,7 +46,7 @@ O fluxo de desenvolvimento **recomendado** é **100% via Docker**, usando a CLI 
 | PHP ≥ 8.4      | Runtime (container `hyperf-skeleton`)              |
 | Hyperf ~3.1    | HTTP server, DI, DB, Redis, validação, comandos    |
 | Swoole / Swow  | Motor de corrutinas (ambiente Hyperf)              |
-| MySQL 8.x      | Persistência opcional                              |
+| PostgreSQL 16  | Persistência opcional                              |
 | Redis 7        | Opcional: tokens de reset em produção multi-worker |
 | Symfony Mailer | Envio de e-mail (ex.: Mailpit)                     |
 | Pest / PHPUnit | Testes                                             |
@@ -85,7 +85,7 @@ cp .env.example .env
 chmod +x hyper
 ```
 
-Edite `.env` se necessário. Para MySQL + RBAC + seeds de dev:
+Edite `.env` se necessário. Para PostgreSQL + RBAC + seeds de dev:
 
 ```bash
 # .env
@@ -104,7 +104,7 @@ O `install` faz, **dentro do Docker**:
 
 1. `docker compose build`
 2. `composer install` → popula `vendor/` no host (volume montado)
-3. `docker compose up -d` → API, MySQL, Redis, Mailpit
+3. `docker compose up -d` → API, PostgreSQL, Redis, Mailpit, MinIO
 4. `migrate` → esquema e seeds (se aplicável)
 
 ### 3. Activar CLI `hyper` sem `./`
@@ -192,8 +192,10 @@ Script **[hyper](hyper)** na raiz — encapsula `docker compose exec` / `run`, c
 | `hyper routes` | Lista rotas |
 | `hyper test` | Pest (Swoole — suíte completa) |
 | `hyper lint` / `lint:fix` / `analyse` / `quality` | Qualidade no container |
-| `hyper mysql` / `redis` | Clientes dos serviços |
-| `hyper minio` | Console web MinIO (dev) |
+| `hyper postgres` / `psql` | Cliente PostgreSQL |
+| `hyper pgadmin` | URL e credenciais do pgAdmin |
+| `hyper redis` | `redis-cli` |
+| `hyper minio` | Info MinIO (dev) |
 | `hyper composer …` | Composer no container |
 | `hyper php …` | PHP no container |
 | `hyper hyperf …` | `bin/hyperf.php` (alias `hf`, `artisan`) |
@@ -228,7 +230,8 @@ hyper composer update
 ```bash
 hyper migrate
 hyper migrate:status
-hyper mysql        # cliente interactivo
+hyper psql           # cliente interactivo PostgreSQL
+hyper pgadmin        # URL do pgAdmin (UI web)
 ```
 
 ### E-mail (dev)
@@ -263,12 +266,12 @@ Referência completa: **[.env.example](.env.example)**.
 | `APP_DEBUG`                | Se `true`, erros 500 em JSON podem incluir trace (desligar em produção)                                          |
 | `APP_LOCALE`               | Idioma da API (`pt_BR` por omissão; ficheiros em `storage/languages/{locale}/`). Nos testes PHPUnit usa-se `en`. |
 | `APP_FALLBACK_LOCALE`      | Idioma de recurso se faltar chave no locale principal (`en` por omissão)                                         |
-| `APP_USER_REPOSITORY`      | `memory` ou `db` — use `db` com Docker para MySQL + RBAC                                                         |
+| `APP_USER_REPOSITORY`      | `memory` ou `db` — use `db` com Docker para PostgreSQL + RBAC                                                    |
 | `APP_AUTH_SECRET`          | Segredo HMAC para tokens Bearer (obrigatório trocar em produção)                                                 |
 | `APP_AUTH_TOKEN_TTL`       | TTL do access token em segundos                                                                                  |
 | `APP_AUTH_RESET_STORE`     | `array` (dev) ou `redis`                                                                                         |
 | `APP_AUTH_RESET_TOKEN_TTL` | TTL do código de reset                                                                                           |
-| `DB_*`                     | Ligação MySQL — no Docker use `DB_HOST=mysql`                                                                    |
+| `DB_*`                     | Ligação PostgreSQL — no Docker use `DB_HOST=postgres`, `DB_PORT=5432`                                          |
 | `REDIS_*`                  | Redis — no Docker use `REDIS_HOST=redis`                                                                         |
 | `MAIL_*` / `MAILER_DSN`    | E-mail (`MAIL_HOST=mailpit`, `MAIL_PORT=1025`)                                                                   |
 | `FILESYSTEM_DRIVER`        | `minio` (dev) ou `r2` (Cloudflare produção)                                                                    |
@@ -281,12 +284,12 @@ Referência completa: **[.env.example](.env.example)**.
 
 | Camada | O que lê o `.env` |
 |--------|-------------------|
-| **Hyperf** (app) | `config/autoload/*.php` — hosts **internos** da rede Docker (`mysql`, `redis`, `mailpit`) |
+| **Hyperf** (app) | `config/autoload/*.php` — hosts **internos** da rede Docker (`postgres`, `redis`, `mailpit`, `minio`) |
 | **Docker Compose** | `env_file` + substituição de portas publicadas (`API_PORT`, `DB_PUBLISH_PORT`, …) |
 
 **Importante:**
 
-- `REDIS_PORT` / `DB_PORT` = portas **dentro** da rede Docker (`6379` / `3306`).
+- `REDIS_PORT` / `DB_PORT` = portas **dentro** da rede Docker (`6379` / `5432`).
 - Para mudar portas no **host**, use `REDIS_PUBLISH_PORT`, `DB_PUBLISH_PORT`, etc.
 - Após alterar `.env`: `hyper up -d` e `hyper restart`.
 
@@ -294,14 +297,19 @@ Referência completa: **[.env.example](.env.example)**.
 
 ## Base de dados e migrações
 
-Migrações em `migrations/` (tabela `users`, RBAC e contas de _staff_ de desenvolvimento).
+**PostgreSQL 16** via `hyperf/database-pgsql`. Migrações em `migrations/` (tabela `users`, RBAC e contas de _staff_ de desenvolvimento).
 
 ```bash
 hyper migrate
 hyper migrate:status
+hyper psql           # cliente interactivo
 ```
 
-`DB_DATABASE`, `DB_USERNAME` e `DB_PASSWORD` no `.env` devem coincidir com o serviço `mysql` no compose (`DB_PASSWORD` → `MYSQL_ROOT_PASSWORD`).
+`DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` e `DB_CHARSET=utf8` no `.env` devem coincidir com o serviço `postgres` no compose. **Não use** `utf8mb4` — PostgreSQL usa `utf8`.
+
+Se actualizou de MySQL: copie a secção `DB_*` de `.env.example`, remova o volume antigo (`docker compose down -v` ou apague `mysql-data`) e corra `hyper up -d` + `hyper migrate`.
+
+**pgAdmin (dev):** [http://127.0.0.1:5050](http://127.0.0.1:5050) — login `PGADMIN_DEFAULT_EMAIL` / `PGADMIN_DEFAULT_PASSWORD`. O servidor **Hyperf (Docker)** já vem pré-configurado; use `DB_PASSWORD` ao ligar ao Postgres.
 
 **Contas seed** (após `migrate` com `APP_USER_REPOSITORY=db`): `admin@victordev.com` e `manager@victordev.com`, palavra-passe **`VictorDev123!`**. Não use em produção.
 
@@ -312,7 +320,8 @@ hyper migrate:status
 | Serviço           | Porta no host (omissão)    | Função                                |
 | ----------------- | -------------------------- | ------------------------------------- |
 | `hyperf-skeleton` | `9501` (`API_PORT`)        | API Hyperf                            |
-| `mysql`           | `3306` (`DB_PUBLISH_PORT`) | MySQL 8.4                             |
+| `postgres`        | `5432` (`DB_PUBLISH_PORT`) | PostgreSQL 16                         |
+| `pgadmin`         | `5050` (`PGADMIN_PUBLISH_PORT`) | UI web para PostgreSQL (dev)     |
 | `redis`           | `6379` (`REDIS_PUBLISH_PORT`) | Redis                              |
 | `mailpit`         | `8025` / `1025`            | UI web + SMTP (dev)                   |
 | `minio`           | `9000` / `9001`            | Object storage S3 (dev/testes)        |

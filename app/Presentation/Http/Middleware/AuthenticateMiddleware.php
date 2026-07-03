@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @see      https://github.com/VictordaSilvaf/hyperf_port.git
  */
 
-namespace App\Middleware;
+namespace App\Presentation\Http\Middleware;
 
 use App\Application\Acl\EffectivePermissionsProviderInterface;
 use App\Infrastructure\Auth\AuthContext;

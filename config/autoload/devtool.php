@@ -26,7 +26,7 @@ return [
             'namespace' => 'App\Command',
         ],
         'controller' => [
-            'namespace' => 'App\Controller',
+            'namespace' => 'App\Presentation\Http\Controllers\Admin',
         ],
         'job' => [
             'namespace' => 'App\Job',
@@ -35,10 +35,10 @@ return [
             'namespace' => 'App\Listener',
         ],
         'middleware' => [
-            'namespace' => 'App\Middleware',
+            'namespace' => 'App\Presentation\Http\Middleware',
         ],
         'Process' => [
-            'namespace' => 'App\Processes',
+            'namespace' => 'App\Infrastructure\Queue',
         ],
     ],
 ];
