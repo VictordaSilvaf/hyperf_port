@@ -1,6 +1,14 @@
 <?php
 
 declare(strict_types=1);
+/**
+ * Hyperf API — DDD / Hexagonal
+ *
+ * @link     https://github.com/VictordaSilvaf/hyperf_port
+ * @document https://github.com/VictordaSilvaf/hyperf_port/doc
+ * @contact  victordasilvafernandes@gmail.com
+ * @see      https://github.com/VictordaSilvaf/hyperf_port.git
+ */
 
 namespace App\Controller\Admin;
 
@@ -18,6 +26,7 @@ use App\Http\Request\Admin\CreateRoleRequest;
 use App\Http\Request\Admin\SyncRolePermissionsRequest;
 use App\Http\Request\Admin\SyncUserRolesRequest;
 use Hyperf\Di\Annotation\Inject;
+use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface as PsrResponseInterface;
 
 use function Hyperf\Translation\trans;
@@ -62,7 +71,7 @@ final class RbacController extends AbstractController
         $data = $request->validated();
         try {
             $id = $this->createRoleHandler->handle(new CreateRoleCommand((string) $data['name'], (string) $data['slug']));
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             return $this->response->json(['message' => $e->getMessage()])->withStatus(409);
         }
 
@@ -73,7 +82,7 @@ final class RbacController extends AbstractController
     {
         try {
             $this->deleteRoleHandler->handle($id);
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             $status = str_contains($e->getMessage(), 'not found') ? 404 : 422;
 
             return $this->response->json(['message' => $e->getMessage()])->withStatus($status);
@@ -87,7 +96,7 @@ final class RbacController extends AbstractController
         $data = $request->validated();
         try {
             $this->syncRolePermissionsHandler->handle(new SyncRolePermissionsCommand($id, array_values($data['permission_slugs'])));
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             $status = str_contains($e->getMessage(), 'not found') ? 404 : 422;
 
             return $this->response->json(['message' => $e->getMessage()])->withStatus($status);
@@ -106,7 +115,7 @@ final class RbacController extends AbstractController
         $data = $request->validated();
         try {
             $this->syncUserRolesHandler->handle(new SyncUserRolesCommand($userId, array_values($data['role_slugs'])));
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             $status = str_contains($e->getMessage(), 'not found') ? 404 : 422;
 
             return $this->response->json(['message' => $e->getMessage()])->withStatus($status);

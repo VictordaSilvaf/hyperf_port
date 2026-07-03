@@ -1,12 +1,20 @@
 <?php
 
 declare(strict_types=1);
+/**
+ * Hyperf API — DDD / Hexagonal
+ *
+ * @link     https://github.com/VictordaSilvaf/hyperf_port
+ * @document https://github.com/VictordaSilvaf/hyperf_port/doc
+ * @contact  victordasilvafernandes@gmail.com
+ * @see      https://github.com/VictordaSilvaf/hyperf_port.git
+ */
 
 namespace App\Application\User\RegisterUser;
 
 use App\Application\Shared\Security\PasswordHasherInterface;
-use App\Domain\Shared\Event\DomainEventPublisherInterface;
 use App\Domain\Acl\Repository\UserRoleRepositoryInterface;
+use App\Domain\Shared\Event\DomainEventPublisherInterface;
 use App\Domain\User\Entity\User;
 use App\Domain\User\Event\UserRegistered;
 use App\Domain\User\Exception\EmailAlreadyRegisteredException;

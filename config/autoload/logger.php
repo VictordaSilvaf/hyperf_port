@@ -2,9 +2,21 @@
 
 declare(strict_types=1);
 /**
+ * Hyperf API — DDD / Hexagonal
+ *
+ * @link     https://github.com/VictordaSilvaf/hyperf_port
+ * @document https://github.com/VictordaSilvaf/hyperf_port/doc
+ * @contact  victordasilvafernandes@gmail.com
+ * @see      https://github.com/VictordaSilvaf/hyperf_port.git
+ */
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
+
+/*
  * This file is part of Hyperf.
  *
- * @link     https://www.hyperf.io
+ * @see     https://www.hyperf.io
  * @document https://hyperf.wiki
  * @contact  group@hyperf.io
  * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
@@ -12,14 +24,14 @@ declare(strict_types=1);
 return [
     'default' => [
         'handler' => [
-            'class' => Monolog\Handler\StreamHandler::class,
+            'class' => StreamHandler::class,
             'constructor' => [
                 'stream' => BASE_PATH . '/runtime/logs/hyperf.log',
-                'level' => Monolog\Logger::DEBUG,
+                'level' => Logger::DEBUG,
             ],
         ],
         'formatter' => [
-            'class' => Monolog\Formatter\LineFormatter::class,
+            'class' => LineFormatter::class,
             'constructor' => [
                 'format' => null,
                 'dateFormat' => 'Y-m-d H:i:s',

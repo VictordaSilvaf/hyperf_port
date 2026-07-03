@@ -1,6 +1,14 @@
 <?php
 
 declare(strict_types=1);
+/**
+ * Hyperf API — DDD / Hexagonal
+ *
+ * @link     https://github.com/VictordaSilvaf/hyperf_port
+ * @document https://github.com/VictordaSilvaf/hyperf_port/doc
+ * @contact  victordasilvafernandes@gmail.com
+ * @see      https://github.com/VictordaSilvaf/hyperf_port.git
+ */
 
 namespace App\Domain\Acl\Entity;
 
@@ -74,8 +82,8 @@ final class Role
     private static function newUuid(): string
     {
         $bytes = random_bytes(16);
-        $bytes[6] = chr((ord($bytes[6]) & 0x0f) | 0x40);
-        $bytes[8] = chr((ord($bytes[8]) & 0x3f) | 0x80);
+        $bytes[6] = chr((ord($bytes[6]) & 0x0F) | 0x40);
+        $bytes[8] = chr((ord($bytes[8]) & 0x3F) | 0x80);
         $hex = bin2hex($bytes);
 
         return sprintf(

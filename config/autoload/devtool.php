@@ -2,43 +2,43 @@
 
 declare(strict_types=1);
 /**
- * This file is part of Hyperf.
+ * Hyperf API — DDD / Hexagonal
  *
- * @link     https://www.hyperf.io
- * @document https://hyperf.wiki
- * @contact  group@hyperf.io
- * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ * @link     https://github.com/VictordaSilvaf/hyperf_port
+ * @document https://github.com/VictordaSilvaf/hyperf_port/doc
+ * @contact  victordasilvafernandes@gmail.com
+ * @see      https://github.com/VictordaSilvaf/hyperf_port.git
  */
 return [
     'generator' => [
         'amqp' => [
             'consumer' => [
-                'namespace' => 'App\\Amqp\\Consumer',
+                'namespace' => 'App\Amqp\Consumer',
             ],
             'producer' => [
-                'namespace' => 'App\\Amqp\\Producer',
+                'namespace' => 'App\Amqp\Producer',
             ],
         ],
         'aspect' => [
-            'namespace' => 'App\\Aspect',
+            'namespace' => 'App\Aspect',
         ],
         'command' => [
-            'namespace' => 'App\\Command',
+            'namespace' => 'App\Command',
         ],
         'controller' => [
-            'namespace' => 'App\\Controller',
+            'namespace' => 'App\Controller',
         ],
         'job' => [
-            'namespace' => 'App\\Job',
+            'namespace' => 'App\Job',
         ],
         'listener' => [
-            'namespace' => 'App\\Listener',
+            'namespace' => 'App\Listener',
         ],
         'middleware' => [
-            'namespace' => 'App\\Middleware',
+            'namespace' => 'App\Middleware',
         ],
         'Process' => [
-            'namespace' => 'App\\Processes',
+            'namespace' => 'App\Processes',
         ],
     ],
 ];

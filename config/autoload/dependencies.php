@@ -2,14 +2,13 @@
 
 declare(strict_types=1);
 /**
- * This file is part of Hyperf.
+ * Hyperf API — DDD / Hexagonal
  *
- * @link     https://www.hyperf.io
- * @document https://hyperf.wiki
- * @contact  group@hyperf.io
- * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ * @link     https://github.com/VictordaSilvaf/hyperf_port
+ * @document https://github.com/VictordaSilvaf/hyperf_port/doc
+ * @contact  victordasilvafernandes@gmail.com
+ * @see      https://github.com/VictordaSilvaf/hyperf_port.git
  */
-
 use App\Application\Acl\EffectivePermissionsProviderInterface;
 use App\Application\Auth\AccessTokenIssuerInterface;
 use App\Application\Auth\PasswordReset\PasswordResetNotifierInterface;
@@ -21,11 +20,6 @@ use App\Domain\Acl\Repository\RoleRepositoryInterface;
 use App\Domain\Acl\Repository\UserRoleRepositoryInterface;
 use App\Domain\Shared\Event\DomainEventPublisherInterface;
 use App\Domain\User\Repository\UserRepositoryInterface;
-use App\Infrastructure\Auth\ArrayPasswordResetTokenStore;
-use App\Infrastructure\Auth\RedisPasswordResetTokenStore;
-use App\Infrastructure\Auth\SignedAccessTokenIssuer;
-use App\Infrastructure\Event\NoOpDomainEventPublisher;
-use App\Infrastructure\Mail\SmtpPasswordResetNotifier;
 use App\Infrastructure\Acl\DbEffectivePermissionsProvider;
 use App\Infrastructure\Acl\DbPermissionRepository;
 use App\Infrastructure\Acl\DbRolePermissionRepository;
@@ -37,6 +31,11 @@ use App\Infrastructure\Acl\InMemoryPermissionRepository;
 use App\Infrastructure\Acl\InMemoryRolePermissionWriter;
 use App\Infrastructure\Acl\InMemoryRoleRepository;
 use App\Infrastructure\Acl\InMemoryUserRoleRepository;
+use App\Infrastructure\Auth\ArrayPasswordResetTokenStore;
+use App\Infrastructure\Auth\RedisPasswordResetTokenStore;
+use App\Infrastructure\Auth\SignedAccessTokenIssuer;
+use App\Infrastructure\Event\NoOpDomainEventPublisher;
+use App\Infrastructure\Mail\SmtpPasswordResetNotifier;
 use App\Infrastructure\Persistence\User\DbUserRepository;
 use App\Infrastructure\Persistence\User\InMemoryUserRepository;
 use App\Infrastructure\Security\NativePasswordHasher;
@@ -45,6 +44,7 @@ use Psr\Container\ContainerInterface;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mailer\Transport;
+
 use function Hyperf\Support\env;
 
 return [

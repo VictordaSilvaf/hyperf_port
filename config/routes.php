@@ -2,14 +2,13 @@
 
 declare(strict_types=1);
 /**
- * This file is part of Hyperf.
+ * Hyperf API — DDD / Hexagonal
  *
- * @link     https://www.hyperf.io
- * @document https://hyperf.wiki
- * @contact  group@hyperf.io
- * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ * @link     https://github.com/VictordaSilvaf/hyperf_port
+ * @document https://github.com/VictordaSilvaf/hyperf_port/doc
+ * @contact  victordasilvafernandes@gmail.com
+ * @see      https://github.com/VictordaSilvaf/hyperf_port.git
  */
-
 use App\Middleware\AuthenticateMiddleware;
 use App\Middleware\RequirePermissionsMiddleware;
 use Hyperf\HttpServer\Router\Router;

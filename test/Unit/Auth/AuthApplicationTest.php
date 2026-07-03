@@ -1,7 +1,14 @@
 <?php
 
 declare(strict_types=1);
-
+/**
+ * Hyperf API — DDD / Hexagonal
+ *
+ * @link     https://github.com/VictordaSilvaf/hyperf_port
+ * @document https://github.com/VictordaSilvaf/hyperf_port/doc
+ * @contact  victordasilvafernandes@gmail.com
+ * @see      https://github.com/VictordaSilvaf/hyperf_port.git
+ */
 use App\Application\Auth\ChangePassword\ChangePasswordCommand;
 use App\Application\Auth\ChangePassword\ChangePasswordHandler;
 use App\Application\Auth\InvalidCredentialsException;
@@ -49,7 +56,7 @@ test('register login and password reset flow', function () {
     $result = $login->handle(new LoginUserCommand('jane@example.com', 'Secret1a'));
     expect($result->accessToken)->toContain('.');
 
-    expect(fn() => $login->handle(new LoginUserCommand('jane@example.com', 'WrongPass1')))->toThrow(InvalidCredentialsException::class);
+    expect(fn () => $login->handle(new LoginUserCommand('jane@example.com', 'WrongPass1')))->toThrow(InvalidCredentialsException::class);
 
     $code = $store->issue($userId);
     expect($code)->toMatch('/^\d{6}$/');
@@ -66,7 +73,7 @@ test('register rejects duplicate email', function () {
 
     $register->handle(new RegisterUserCommand('A', 'dup@example.com', 'Secret1a'));
 
-    expect(fn() => $register->handle(new RegisterUserCommand('B', 'dup@example.com', 'Secret1a')))
+    expect(fn () => $register->handle(new RegisterUserCommand('B', 'dup@example.com', 'Secret1a')))
         ->toThrow(EmailAlreadyRegisteredException::class);
 });
 
@@ -83,7 +90,7 @@ test('change password requires current password', function () {
 
     $change = new ChangePasswordHandler($repo, $hasher);
 
-    expect(fn() => $change->handle(new ChangePasswordCommand(
+    expect(fn () => $change->handle(new ChangePasswordCommand(
         $userId,
         'wrong',
         'OtherSecret1b',
@@ -117,6 +124,6 @@ test('reset password rejects invalid code', function () {
 
     $reset = new ResetPasswordHandler($store, $repo, new NativePasswordHasher());
 
-    expect(fn() => $reset->handle(new ResetPasswordCommand('000000', 'Secret1b')))
+    expect(fn () => $reset->handle(new ResetPasswordCommand('000000', 'Secret1b')))
         ->toThrow(InvalidCredentialsException::class);
 });

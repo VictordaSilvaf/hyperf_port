@@ -81,7 +81,7 @@
         ],
         "test": "co-phpunit --prepend test/bootstrap.php --colors=always",
         "test:pest": "pest --no-coverage",
-        "lint": "php-cs-fixer fix --dry-run --diff --config=.php-cs-fixer.php",
+        "lint": "php-cs-fixer fix --dry-run --config=.php-cs-fixer.php --quiet",
         "lint:fix": "php-cs-fixer fix --config=.php-cs-fixer.php",
         "cs-fix": "@lint:fix",
         "analyse": "phpstan analyse --memory-limit 300M -c phpstan.neon.dist",

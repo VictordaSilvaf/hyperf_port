@@ -1,6 +1,14 @@
 <?php
 
 declare(strict_types=1);
+/**
+ * Hyperf API — DDD / Hexagonal
+ *
+ * @link     https://github.com/VictordaSilvaf/hyperf_port
+ * @document https://github.com/VictordaSilvaf/hyperf_port/doc
+ * @contact  victordasilvafernandes@gmail.com
+ * @see      https://github.com/VictordaSilvaf/hyperf_port.git
+ */
 
 namespace App\Exception\Handler;
 
@@ -24,7 +32,7 @@ final class JsonHttpExceptionHandler extends ExceptionHandler
     public function handle(Throwable $throwable, ResponsePlusInterface $response)
     {
         $this->stopPropagation();
-        /** @var HttpException $throwable */
+        /* @var HttpException $throwable */
         $this->logger->debug($this->formatter->format($throwable));
 
         $payload = Json::encode([

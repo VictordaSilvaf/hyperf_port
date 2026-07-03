@@ -2,23 +2,34 @@
 
 declare(strict_types=1);
 /**
- * This file is part of Hyperf.
+ * Hyperf API — DDD / Hexagonal
  *
- * @link     https://www.hyperf.io
- * @document https://hyperf.wiki
- * @contact  group@hyperf.io
- * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ * @link     https://github.com/VictordaSilvaf/hyperf_port
+ * @document https://github.com/VictordaSilvaf/hyperf_port/doc
+ * @contact  victordasilvafernandes@gmail.com
+ * @see      https://github.com/VictordaSilvaf/hyperf_port.git
+ */
+use PhpCsFixer\Config;
+use PhpCsFixer\Finder;
+
+/**
+ * Hyperf API — DDD / Hexagonal.
+ *
+ * @see     https://github.com/VictordaSilvaf/hyperf_port
+ * @document https://github.com/VictordaSilvaf/hyperf_port/doc
+ * @contact  victordasilvafernandes@gmail.com
+ * @see      https://github.com/VictordaSilvaf/hyperf_port.git
  */
 $header = <<<'EOF'
-This file is part of Hyperf.
+Hyperf API — DDD / Hexagonal
 
-@link     https://www.hyperf.io
-@document https://hyperf.wiki
-@contact  group@hyperf.io
-@license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+@link     https://github.com/VictordaSilvaf/hyperf_port
+@document https://github.com/VictordaSilvaf/hyperf_port/doc
+@contact  victordasilvafernandes@gmail.com
+@see      https://github.com/VictordaSilvaf/hyperf_port.git
 EOF;
 
-return (new PhpCsFixer\Config())
+return (new Config())
     ->setRiskyAllowed(true)
     ->setRules([
         '@PSR2' => true,
@@ -62,8 +73,7 @@ return (new PhpCsFixer\Config())
             'sort_algorithm' => 'alpha',
         ],
         'single_line_comment_style' => [
-            'comment_types' => [
-            ],
+            'comment_types' => [],
         ],
         'yoda_style' => [
             'always_move_variable' => false,
@@ -97,10 +107,11 @@ return (new PhpCsFixer\Config())
         'single_line_empty_body' => false,
     ])
     ->setFinder(
-        PhpCsFixer\Finder::create()
+        Finder::create()
             ->exclude('public')
             ->exclude('runtime')
             ->exclude('vendor')
+            ->exclude('scripts')
             ->in(__DIR__)
     )
     ->setUsingCache(false);

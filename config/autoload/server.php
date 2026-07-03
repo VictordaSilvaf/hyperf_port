@@ -2,13 +2,16 @@
 
 declare(strict_types=1);
 /**
- * This file is part of Hyperf.
+ * Hyperf API — DDD / Hexagonal
  *
- * @link     https://www.hyperf.io
- * @document https://hyperf.wiki
- * @contact  group@hyperf.io
- * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ * @link     https://github.com/VictordaSilvaf/hyperf_port
+ * @document https://github.com/VictordaSilvaf/hyperf_port/doc
+ * @contact  victordasilvafernandes@gmail.com
+ * @see      https://github.com/VictordaSilvaf/hyperf_port.git
  */
+use Hyperf\Framework\Bootstrap\PipeMessageCallback;
+use Hyperf\Framework\Bootstrap\WorkerExitCallback;
+use Hyperf\Framework\Bootstrap\WorkerStartCallback;
 use Hyperf\Server\Event;
 use Hyperf\Server\Server;
 use Swoole\Constant;
@@ -43,8 +46,8 @@ return [
         Constant::OPTION_BUFFER_OUTPUT_SIZE => 2 * 1024 * 1024,
     ],
     'callbacks' => [
-        Event::ON_WORKER_START => [Hyperf\Framework\Bootstrap\WorkerStartCallback::class, 'onWorkerStart'],
-        Event::ON_PIPE_MESSAGE => [Hyperf\Framework\Bootstrap\PipeMessageCallback::class, 'onPipeMessage'],
-        Event::ON_WORKER_EXIT => [Hyperf\Framework\Bootstrap\WorkerExitCallback::class, 'onWorkerExit'],
+        Event::ON_WORKER_START => [WorkerStartCallback::class, 'onWorkerStart'],
+        Event::ON_PIPE_MESSAGE => [PipeMessageCallback::class, 'onPipeMessage'],
+        Event::ON_WORKER_EXIT => [WorkerExitCallback::class, 'onWorkerExit'],
     ],
 ];

@@ -1,7 +1,14 @@
 <?php
 
 declare(strict_types=1);
-
+/**
+ * Hyperf API — DDD / Hexagonal
+ *
+ * @link     https://github.com/VictordaSilvaf/hyperf_port
+ * @document https://github.com/VictordaSilvaf/hyperf_port/doc
+ * @contact  victordasilvafernandes@gmail.com
+ * @see      https://github.com/VictordaSilvaf/hyperf_port.git
+ */
 use App\Application\User\ListUsers\ListUsersHandler;
 use App\Application\User\ListUsers\ListUsersQuery;
 use App\Application\User\RegisterUser\RegisterUserCommand;
@@ -10,6 +17,7 @@ use App\Application\User\UpdateUser\UpdateUserCommand;
 use App\Application\User\UpdateUser\UpdateUserHandler;
 use App\Domain\User\Exception\EmailAlreadyRegisteredException;
 use App\Domain\User\Exception\UserNotFoundException;
+use App\Domain\User\ValueObject\UserId;
 use App\Infrastructure\Acl\InMemoryAclStore;
 use App\Infrastructure\Acl\InMemoryRoleRepository;
 use App\Infrastructure\Acl\InMemoryUserRoleRepository;
@@ -50,7 +58,7 @@ test('update user profile and email conflict', function () {
     $update = new UpdateUserHandler($repo);
     $update->handle(new UpdateUserCommand($a, 'Alice X', 'alice@example.com'));
 
-    $u = $repo->findById(\App\Domain\User\ValueObject\UserId::fromString($a));
+    $u = $repo->findById(UserId::fromString($a));
     expect($u->name())->toBe('Alice X')
         ->and($u->email()->value())->toBe('alice@example.com');
 
