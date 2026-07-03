@@ -43,6 +43,7 @@ use App\Infrastructure\Event\NoOpDomainEventPublisher;
 use App\Infrastructure\Health\ApplicationHealthProbe;
 use App\Infrastructure\Health\DatabaseHealthProbe;
 use App\Infrastructure\Health\RedisHealthProbe;
+use App\Infrastructure\Health\StorageHealthProbe;
 use App\Infrastructure\Image\GdImageProcessor;
 use App\Infrastructure\Mail\SmtpPasswordResetNotifier;
 use App\Infrastructure\Persistence\Acl\DbEffectivePermissionsProvider;

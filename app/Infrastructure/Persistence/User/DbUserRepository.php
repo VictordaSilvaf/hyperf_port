@@ -72,7 +72,7 @@ final class DbUserRepository implements UserRepositoryInterface
 
         if ($trimmedSearch !== '') {
             PostgresUserSearch::applyRelevanceOrder($builder, $trimmedSearch);
-            $builder->orderByDesc('created_at')->orderBy('id');
+            $builder->orderBy('id');
         } else {
             $builder->orderByDesc('created_at')->orderBy('id');
         }

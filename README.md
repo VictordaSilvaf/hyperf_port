@@ -547,6 +547,7 @@ Detalhes: [documentação Hyperf](https://hyperf.wiki).
 | Documento                          | Conteúdo                                                                      |
 | ---------------------------------- | ----------------------------------------------------------------------------- |
 | [docs/ROUTES.md](docs/ROUTES.md)   | Referência completa de rotas (auth, RBAC, **projetos**, **uploads**, taxonomias), bodies JSON e permissões |
+| [docs/postman/README.md](docs/postman/README.md) | **Postman** — collection, environments, Runner e Newman |
 | [docs/API.md](docs/API.md)         | Rotas `/api`, corpos, validações, códigos HTTP, exemplos `curl`, autenticação |
 | [docs/PROJECT.md](docs/PROJECT.md) | Camadas DDD/hexagonal, regras de dependência, convenções, fluxo de pedidos    |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Git Flow, commits, hooks, checklist de PR                                     |

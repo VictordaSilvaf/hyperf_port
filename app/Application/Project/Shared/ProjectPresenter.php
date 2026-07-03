@@ -45,7 +45,7 @@ final class ProjectPresenter
                 'url' => $upload?->displayUrl(),
                 'thumbnail_url' => $upload?->displayThumbnailUrl(),
                 'path' => $upload?->path(),
-                'processing_status' => $upload?->processingStatus()->value,
+                'processing_status' => $upload?->processingStatus()?->value,
             ];
         }
 

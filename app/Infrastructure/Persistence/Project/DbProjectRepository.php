@@ -134,7 +134,7 @@ final class DbProjectRepository implements ProjectRepositoryInterface
 
         if ($filter->search !== null && trim($filter->search) !== '') {
             PostgresProjectSearch::applyRelevanceOrder($builder, trim($filter->search));
-            $builder->orderBy('p.' . $sort, $direction);
+            $builder->orderBy('p.id');
         } else {
             $builder->orderBy('p.' . $sort, $direction);
         }
