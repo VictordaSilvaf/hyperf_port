@@ -9,6 +9,14 @@
     <env name="APP_ENV" value="testing" force="true"/>
     <env name="APP_LOCALE" value="en" force="true"/>
     <env name="APP_FALLBACK_LOCALE" value="en" force="true"/>
+    <env name="FILESYSTEM_DRIVER" value="minio" force="true"/>
+    <env name="MINIO_ACCESS_KEY_ID" value="minioadmin" force="true"/>
+    <env name="MINIO_SECRET_ACCESS_KEY" value="minioadmin" force="true"/>
+    <env name="MINIO_BUCKET" value="victorsf" force="true"/>
+    <env name="MINIO_ENDPOINT" value="http://minio:9000" force="true"/>
+    <env name="MINIO_REGION" value="us-east-1" force="true"/>
+    <env name="FILESYSTEM_PREFIX" value="development" force="true"/>
+    <env name="APP_STORAGE_HEALTH_REQUIRED" value="false" force="true"/>
   </php>
   <source>
     <include>

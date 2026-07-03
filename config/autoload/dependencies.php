@@ -15,6 +15,7 @@ use App\Application\Auth\PasswordReset\PasswordResetNotifierInterface;
 use App\Application\Auth\PasswordReset\PasswordResetTokenStoreInterface;
 use App\Application\Health\GetHealth\GetHealthHandler;
 use App\Application\Shared\Security\PasswordHasherInterface;
+use App\Application\Storage\ObjectStorageInterface;
 use App\Domain\Acl\Repository\PermissionRepositoryInterface;
 use App\Domain\Acl\Repository\RolePermissionWriterInterface;
 use App\Domain\Acl\Repository\RoleRepositoryInterface;
@@ -39,10 +40,12 @@ use App\Infrastructure\Event\NoOpDomainEventPublisher;
 use App\Infrastructure\Health\ApplicationHealthProbe;
 use App\Infrastructure\Health\DatabaseHealthProbe;
 use App\Infrastructure\Health\RedisHealthProbe;
+use App\Infrastructure\Health\StorageHealthProbe;
 use App\Infrastructure\Mail\SmtpPasswordResetNotifier;
 use App\Infrastructure\Persistence\User\DbUserRepository;
 use App\Infrastructure\Persistence\User\InMemoryUserRepository;
 use App\Infrastructure\Security\NativePasswordHasher;
+use App\Infrastructure\Storage\FlysystemObjectStorage;
 use Hyperf\Contract\ConfigInterface;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Mailer\Mailer;
@@ -122,6 +125,8 @@ return [
 
     PasswordResetNotifierInterface::class => SmtpPasswordResetNotifier::class,
 
+    ObjectStorageInterface::class => FlysystemObjectStorage::class,
+
     GetHealthHandler::class => static function (ContainerInterface $container): GetHealthHandler {
         $probes = [
             $container->get(ApplicationHealthProbe::class),
@@ -133,6 +138,11 @@ return [
 
         if (env('APP_AUTH_RESET_STORE', 'array') === 'redis') {
             $probes[] = $container->get(RedisHealthProbe::class);
+        }
+
+        $filesystemDriver = env('FILESYSTEM_DRIVER', 'minio');
+        if (in_array($filesystemDriver, ['minio', 'r2'], true)) {
+            $probes[] = $container->get(StorageHealthProbe::class);
         }
 
         return new GetHealthHandler($probes, $container->get(ConfigInterface::class));

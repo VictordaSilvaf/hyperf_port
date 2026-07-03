@@ -110,6 +110,7 @@ Qualidade:
 Serviços:
   mysql                Cliente MySQL (credenciais do .env)
   redis                redis-cli
+  minio                Info do MinIO (dev)
 
 Setup:
   install              build + composer install + up -d + migrate
@@ -224,6 +225,15 @@ case "${cmd}" in
 
   redis)
     "${COMPOSE[@]}" exec redis redis-cli "$@"
+    ;;
+
+  minio)
+    local console_port prefix
+    console_port="$(env_get MINIO_CONSOLE_PUBLISH_PORT 9001)"
+    prefix="$(env_get FILESYSTEM_PREFIX development)"
+    echo "MinIO Console: http://127.0.0.1:${console_port}"
+    echo "Bucket/prefix: $(env_get MINIO_BUCKET victorsf)/${prefix}"
+    echo "API S3: $(env_get MINIO_ENDPOINT http://minio:9000) (rede Docker)"
     ;;
 
   install)

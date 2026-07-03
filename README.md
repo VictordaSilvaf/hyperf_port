@@ -193,6 +193,7 @@ Script **[hyper](hyper)** na raiz — encapsula `docker compose exec` / `run`, c
 | `hyper test` | Pest (Swoole — suíte completa) |
 | `hyper lint` / `lint:fix` / `analyse` / `quality` | Qualidade no container |
 | `hyper mysql` / `redis` | Clientes dos serviços |
+| `hyper minio` | Console web MinIO (dev) |
 | `hyper composer …` | Composer no container |
 | `hyper php …` | PHP no container |
 | `hyper hyperf …` | `bin/hyperf.php` (alias `hf`, `artisan`) |
@@ -270,6 +271,9 @@ Referência completa: **[.env.example](.env.example)**.
 | `DB_*`                     | Ligação MySQL — no Docker use `DB_HOST=mysql`                                                                    |
 | `REDIS_*`                  | Redis — no Docker use `REDIS_HOST=redis`                                                                         |
 | `MAIL_*` / `MAILER_DSN`    | E-mail (`MAIL_HOST=mailpit`, `MAIL_PORT=1025`)                                                                   |
+| `FILESYSTEM_DRIVER`        | `minio` (dev) ou `r2` (Cloudflare produção)                                                                    |
+| `FILESYSTEM_PREFIX`        | `development` (dev) ou `production` (R2 prod) — pasta dentro do bucket `victorsf`                              |
+| `R2_*` / `MINIO_*`         | Credenciais e endpoint do object storage                                                                         |
 | `API_PORT`                 | Porta da API no host (omissão `9501`)                                                                            |
 | `UID` / `GID`              | Utilizador no container (permissões do volume)                                                                   |
 
@@ -311,10 +315,80 @@ hyper migrate:status
 | `mysql`           | `3306` (`DB_PUBLISH_PORT`) | MySQL 8.4                             |
 | `redis`           | `6379` (`REDIS_PUBLISH_PORT`) | Redis                              |
 | `mailpit`         | `8025` / `1025`            | UI web + SMTP (dev)                   |
+| `minio`           | `9000` / `9001`            | Object storage S3 (dev/testes)        |
 
 ---
 
-## Testes e qualidade
+## Object storage (R2 / MinIO)
+
+Armazenamento de ficheiros via **S3-compatible API** (`hyperf/filesystem` + Flysystem).
+
+| Ambiente | Driver | Prefixo | Caminho no bucket |
+| -------- | ------ | ------- | ----------------- |
+| **Dev / testes (Docker)** | `minio` | `development` | `victorsf/development/` |
+| **Produção (R2)** | `r2` | `production` | `victorsf/production/` |
+
+Estrutura partilhada no bucket **`victorsf`**:
+
+```
+victorsf/
+├── development/    ← MinIO (dev, testes)
+└── production/     ← Cloudflare R2 (prod)
+```
+
+### Variáveis (`.env`)
+
+```bash
+FILESYSTEM_DRIVER=minio          # dev: minio | produção: r2
+FILESYSTEM_PREFIX=development    # dev: development | R2 prod: production
+
+# Cloudflare R2 (produção)
+R2_ACCESS_KEY_ID=
+R2_SECRET_ACCESS_KEY=
+R2_BUCKET=victorsf
+R2_ENDPOINT=https://b702d6c53f8aed6df35d42c2db93fb89.r2.cloudflarestorage.com
+R2_REGION=auto
+R2_PUBLIC_URL=
+
+# MinIO (dev / testes)
+MINIO_ACCESS_KEY_ID=minioadmin
+MINIO_SECRET_ACCESS_KEY=minioadmin
+MINIO_BUCKET=victorsf
+MINIO_ENDPOINT=http://minio:9000
+MINIO_PUBLIC_URL=http://127.0.0.1:9000/victorsf
+# URLs públicas ficam: {MINIO_PUBLIC_URL}/{FILESYSTEM_PREFIX}/uploads/...
+```
+
+**Produção R2:** `FILESYSTEM_DRIVER=r2`, `FILESYSTEM_PREFIX=production` + credenciais R2. Nunca commite secrets.
+
+**Dev:** MinIO console em [http://127.0.0.1:9001](http://127.0.0.1:9001) (user/pass = `MINIO_ACCESS_KEY_ID` / `MINIO_SECRET_ACCESS_KEY`).
+
+### Uso no código
+
+Injete a porta `App\Application\Storage\ObjectStorageInterface`:
+
+```php
+public function __construct(private ObjectStorageInterface $storage) {}
+
+$this->storage->write('uploads/file.txt', $contents);
+// Grava em victorsf/development/uploads/file.txt (ou production/ em prod)
+$url = $this->storage->publicUrl('uploads/file.txt');
+```
+
+### Health check
+
+Com `FILESYSTEM_DRIVER=minio` ou `r2`, `/api/v1/health/ready` inclui probe `storage` (write/read/delete de teste). Para torná-lo obrigatório na readiness: `APP_STORAGE_HEALTH_REQUIRED=true`.
+
+### Testes
+
+PHPUnit usa MinIO automaticamente (`phpunit.xml.dist`). Corra a suíte completa no container:
+
+```bash
+hyper up -d
+hyper test
+```
+
+---
 
 Execute **no container** para Swoole e suíte completa:
 

@@ -91,6 +91,7 @@ Rotas **públicas** (sem autenticação), pensadas para Kubernetes, Docker Compo
 | `app` | Sempre |
 | `database` | `APP_USER_REPOSITORY=db` |
 | `redis` | `APP_AUTH_RESET_STORE=redis` |
+| `storage` | `FILESYSTEM_DRIVER=minio` ou `r2` (opcional na readiness; ver `APP_STORAGE_HEALTH_REQUIRED`) |
 
 Com `APP_USER_REPOSITORY=memory` e `APP_AUTH_RESET_STORE=array` (padrão dev), readiness valida apenas `app`.
 
