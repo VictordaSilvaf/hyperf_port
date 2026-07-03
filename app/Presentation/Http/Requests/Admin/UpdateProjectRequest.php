@@ -23,6 +23,6 @@ class UpdateProjectRequest extends FormRequest
 
     public function rules(): array
     {
-        return (new CreateProjectRequest())->rules();
+        return CreateProjectRequest::validationRules();
     }
 }

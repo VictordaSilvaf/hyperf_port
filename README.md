@@ -462,6 +462,7 @@ Detalhes: [documentação Hyperf](https://hyperf.wiki).
 
 | Documento                          | Conteúdo                                                                      |
 | ---------------------------------- | ----------------------------------------------------------------------------- |
+| [docs/ROUTES.md](docs/ROUTES.md)   | Referência completa de rotas, bodies JSON e permissões RBAC |
 | [docs/API.md](docs/API.md)         | Rotas `/api`, corpos, validações, códigos HTTP, exemplos `curl`, autenticação |
 | [docs/PROJECT.md](docs/PROJECT.md) | Camadas DDD/hexagonal, regras de dependência, convenções, fluxo de pedidos    |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Git Flow, commits, hooks, checklist de PR                                     |

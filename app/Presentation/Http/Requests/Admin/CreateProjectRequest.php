@@ -23,6 +23,14 @@ class CreateProjectRequest extends FormRequest
 
     public function rules(): array
     {
+        return self::validationRules();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function validationRules(): array
+    {
         return [
             'title' => 'required|string|min:2|max:200',
             'slug' => 'nullable|string|min:2|max:200|regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
