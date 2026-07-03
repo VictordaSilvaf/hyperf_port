@@ -8,7 +8,7 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${root}"
 
 if [[ ! -f vendor/bin/php-cs-fixer ]]; then
-  echo "Run composer install before pushing."
+  echo "Run hyper composer install (or ./hyper bootstrap) before pushing."
   exit 1
 fi
 
@@ -23,7 +23,7 @@ if php -r 'exit(class_exists("DOMDocument") ? 0 : 1);'; then
   ./vendor/bin/pest --no-coverage
 else
   echo "→ Pest skipped (install php-xml for DOMDocument — ex.: sudo apt install php8.4-xml)"
-  echo "  Run full suite in Docker: docker compose run --rm --entrypoint php hyperf-skeleton /opt/www/vendor/bin/pest --no-coverage"
+  echo "  Run full suite in Docker: hyper test"
 fi
 
 echo "Quality checks passed."

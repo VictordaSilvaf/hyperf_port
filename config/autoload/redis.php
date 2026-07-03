@@ -11,10 +11,15 @@ declare(strict_types=1);
  */
 use function Hyperf\Support\env;
 
+$redisAuth = env('REDIS_AUTH');
+if ($redisAuth === '' || $redisAuth === 'null') {
+    $redisAuth = null;
+}
+
 return [
     'default' => [
         'host' => env('REDIS_HOST', 'localhost'),
-        'auth' => env('REDIS_AUTH', null),
+        'auth' => $redisAuth,
         'port' => (int) env('REDIS_PORT', 6379),
         'db' => (int) env('REDIS_DB', 0),
         'pool' => [

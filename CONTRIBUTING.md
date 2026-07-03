@@ -154,19 +154,21 @@ BREAKING CHANGE: reset endpoint requires code field
 
 ### Ferramentas
 
-| Ferramenta | Comando | Quando |
-|------------|---------|--------|
-| PHP-CS-Fixer | `composer lint` / `composer lint:fix` | Estilo PSR-12 |
-| PHPStan | `composer analyse` | Análise estática |
-| Pest | `composer test:pest` | Testes |
-| Tudo | `composer quality` | Antes de abrir PR |
+| Ferramenta | Comando (container) | Comando (host) | Quando |
+|------------|---------------------|----------------|--------|
+| PHP-CS-Fixer | `hyper lint` / `hyper lint:fix` | `composer lint` / `lint:fix` | Estilo PSR-12 |
+| PHPStan | `hyper analyse` | `composer analyse` | Análise estática |
+| Pest | `hyper test` | `composer test:pest` | Testes (Swoole no container) |
+| Tudo | `hyper quality` | `composer quality` | Antes de abrir PR |
+
+**Recomendado:** `hyper quality` — não precisa de PHP/Swoole no host.
 
 ### Git hooks
 
 Instalação (uma vez por clone):
 
 ```bash
-composer install
+./hyper install          # ou ./hyper bootstrap — cria vendor/ via Docker
 composer setup:hooks
 ```
 
@@ -175,7 +177,7 @@ composer setup:hooks
 | `pre-commit` | PHP-CS-Fixer nos ficheiros PHP staged |
 | `prepare-commit-msg` | Auto-formata mensagens inválidas (ex.: output do Cursor) |
 | `commit-msg` | Valida formato Conventional Commits (script PHP) |
-| `pre-push` | Valida branch Git Flow + `composer lint` + `composer analyse` + Pest |
+| `pre-push` | Valida branch Git Flow + lint + PHPStan + Pest (host; use `hyper test` se Pest skipped) |
 
 Se o `pre-commit` corrigir ficheiros, faça `git add` novamente antes de commitar.
 
@@ -194,7 +196,7 @@ O workflow `.github/workflows/quality.yml` executa em push/PR para `main`, `mast
 
 - [ ] Branch segue Git Flow
 - [ ] Commits em Conventional Commits
-- [ ] `composer quality` passa localmente
+- [ ] `hyper quality` passa no container (ou `composer quality` no host)
 - [ ] Testes adicionados/actualizados quando aplicável
 - [ ] `docs/API.md` actualizado se mudou contrato HTTP
 - [ ] Sem `.env`, segredos ou credenciais no diff

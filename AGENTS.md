@@ -15,23 +15,16 @@ API REST em **Hyperf 3.x** (PHP ≥ 8.4) com camadas **Domain → Application �
 
 ## Comandos essenciais
 
+Tudo no **container** via CLI `hyper` (ver README). Primeira vez: `./hyper install`.
+
 ```bash
-# Desenvolvimento
-docker compose up -d
-docker compose exec hyperf-skeleton php bin/hyperf.php migrate
-
-# Testes (host)
-./vendor/bin/pest --no-coverage
-
-# Testes completos (Swoole no container)
-docker compose run --rm --entrypoint php hyperf-skeleton /opt/www/vendor/bin/pest --no-coverage
-
-# Qualidade
-composer lint && composer analyse && composer test:pest
-composer quality
-
-# Hooks (após composer setup:hooks)
-# pre-commit: cs-fixer | commit-msg: conventional commits | pre-push: branch + quality
+hyper up -d
+hyper migrate
+hyper restart          # após alterar rotas/config/.env
+hyper shell
+hyper test             # Pest + Swoole (suíte completa)
+hyper quality          # lint + PHPStan + Pest
+composer setup:hooks   # Git hooks (corre no host)
 ```
 
 ## Git Flow e commits

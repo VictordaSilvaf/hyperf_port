@@ -1,0 +1,250 @@
+#!/usr/bin/env bash
+#
+# Hyper — CLI estilo Laravel Sail para este projecto Hyperf + Docker Compose.
+# Uso: hyper migrate | hyper test | hyper shell  (via vendor/bin ou direnv)
+#
+set -euo pipefail
+
+hyper_script_dir() {
+  local source="${BASH_SOURCE[0]}"
+  while [[ -L "${source}" ]]; do
+    local dir
+    dir="$(cd -P "$(dirname "${source}")" && pwd)"
+    source="$(readlink "${source}")"
+    [[ "${source}" != /* ]] && source="${dir}/${source}"
+  done
+  cd -P "$(dirname "${source}")" && pwd
+}
+
+ROOT="$(hyper_script_dir)"
+cd "${ROOT}"
+
+SERVICE="${HYPER_SERVICE:-hyperf-skeleton}"
+COMPOSE=(docker compose)
+APP_PATH="/opt/www"
+
+env_get() {
+  local key="$1"
+  local default="${2:-}"
+  if [[ -f .env ]]; then
+    local line
+    line="$(grep -E "^${key}=" .env | tail -1 || true)"
+    if [[ -n "${line}" ]]; then
+      echo "${line#*=}" | sed -e 's/^["'\'' ]*//' -e 's/["'\'' ]*$//'
+      return
+    fi
+  fi
+  echo "${default}"
+}
+
+DB_USERNAME="$(env_get DB_USERNAME root)"
+DB_PASSWORD="$(env_get DB_PASSWORD root)"
+DB_DATABASE="$(env_get DB_DATABASE victordev)"
+API_PORT="$(env_get API_PORT 9501)"
+
+is_running() {
+  "${COMPOSE[@]}" ps --status running --services 2>/dev/null | grep -qx "${SERVICE}"
+}
+
+compose_exec() {
+  if is_running; then
+    "${COMPOSE[@]}" exec -T "${SERVICE}" "$@"
+  else
+    "${COMPOSE[@]}" run --rm --entrypoint "" "${SERVICE}" "$@"
+  fi
+}
+
+php_cmd() {
+  compose_exec php "$@"
+}
+
+hyperf_cmd() {
+  php_cmd "${APP_PATH}/bin/hyperf.php" "$@"
+}
+
+wait_for_mysql() {
+  echo "→ Aguardando MySQL..."
+  local i
+  for i in $(seq 1 30); do
+    if "${COMPOSE[@]}" exec -T mysql mysqladmin ping -h localhost -u"${DB_USERNAME}" -p"${DB_PASSWORD}" --silent 2>/dev/null; then
+      return 0
+    fi
+    sleep 1
+  done
+  echo "Aviso: MySQL não respondeu a tempo; migrate pode falhar." >&2
+  return 1
+}
+
+usage() {
+  cat <<'EOF'
+Hyper — Docker CLI para Hyperf (estilo Sail)
+
+Uso: hyper <comando> [argumentos]
+
+Docker:
+  up [-d]              Sobe os serviços (docker compose up)
+  down [-v]            Para os serviços
+  build                Reconstrói imagens
+  restart              Reinicia o container da API (recarrega rotas/config)
+  logs [-f]            Logs do serviço Hyperf
+  ps                   Estado dos containers
+  shell                Shell no container da API
+  exec <cmd...>        Executa comando arbitrário no container
+
+Hyperf / PHP:
+  hyperf <cmd...>      bin/hyperf.php (alias: hf)
+  migrate              php bin/hyperf.php migrate
+  migrate:status       php bin/hyperf.php migrate:status
+  migrate:rollback     php bin/hyperf.php migrate:rollback
+  routes               php bin/hyperf.php describe:routes
+  php <args...>        PHP no container
+  composer <args...>   Composer no container
+
+Qualidade:
+  test                 vendor/bin/pest --no-coverage
+  lint                 composer lint
+  lint:fix             composer lint:fix
+  analyse              composer analyse
+  quality              composer quality
+
+Serviços:
+  mysql                Cliente MySQL (credenciais do .env)
+  redis                redis-cli
+
+Setup:
+  install              build + composer install + up -d + migrate
+  bootstrap            composer install no container (vendor/ no host)
+
+Qualquer outro argumento é repassado a bin/hyperf.php (ex.: hyper gen:model User).
+
+Variáveis:
+  HYPER_SERVICE        Nome do serviço no compose (padrão: hyperf-skeleton)
+EOF
+}
+
+cmd="${1:-}"
+shift || true
+
+case "${cmd}" in
+  ''|help|-h|--help)
+    usage
+    ;;
+
+  up)
+    "${COMPOSE[@]}" up "$@"
+    ;;
+
+  down)
+    "${COMPOSE[@]}" down "$@"
+    ;;
+
+  build)
+    "${COMPOSE[@]}" build "$@"
+    ;;
+
+  restart)
+    "${COMPOSE[@]}" restart "${SERVICE}"
+    ;;
+
+  logs)
+    "${COMPOSE[@]}" logs "$@" "${SERVICE}"
+    ;;
+
+  ps)
+    "${COMPOSE[@]}" ps "$@"
+    ;;
+
+  shell|bash|sh)
+    if is_running; then
+      "${COMPOSE[@]}" exec "${SERVICE}" sh
+    else
+      "${COMPOSE[@]}" run --rm --entrypoint sh "${SERVICE}"
+    fi
+    ;;
+
+  exec)
+    compose_exec "$@"
+    ;;
+
+  hyperf|hf|artisan)
+    hyperf_cmd "$@"
+    ;;
+
+  migrate)
+    hyperf_cmd migrate "$@"
+    ;;
+
+  migrate:status)
+    hyperf_cmd migrate:status "$@"
+    ;;
+
+  migrate:rollback)
+    hyperf_cmd migrate:rollback "$@"
+    ;;
+
+  routes)
+    hyperf_cmd describe:routes "$@"
+    ;;
+
+  php)
+    php_cmd "$@"
+    ;;
+
+  composer)
+    compose_exec composer "$@"
+    ;;
+
+  test|pest)
+    php_cmd "${APP_PATH}/vendor/bin/pest" --no-coverage "$@"
+    ;;
+
+  lint)
+    compose_exec composer lint "$@"
+    ;;
+
+  lint:fix)
+    compose_exec composer lint:fix "$@"
+    ;;
+
+  analyse|phpstan)
+    compose_exec composer analyse "$@"
+    ;;
+
+  quality)
+    compose_exec composer quality "$@"
+    ;;
+
+  mysql)
+    "${COMPOSE[@]}" exec mysql mysql \
+      -u"${DB_USERNAME}" \
+      -p"${DB_PASSWORD}" \
+      "${DB_DATABASE}" \
+      "$@"
+    ;;
+
+  redis)
+    "${COMPOSE[@]}" exec redis redis-cli "$@"
+    ;;
+
+  install)
+    "${COMPOSE[@]}" build
+    "${COMPOSE[@]}" run --rm --entrypoint "" "${SERVICE}" composer install --no-interaction
+    "${COMPOSE[@]}" up -d
+    wait_for_mysql || true
+    hyperf_cmd migrate
+    echo ""
+    echo "Pronto. API: http://127.0.0.1:${API_PORT}/api/v1/health/live"
+    echo "CLI: direnv allow  (ou vendor/bin/hyper help)"
+    ;;
+
+  bootstrap)
+    "${COMPOSE[@]}" build
+    "${COMPOSE[@]}" run --rm --entrypoint "" "${SERVICE}" composer install --no-interaction
+    echo ""
+    echo "Dependências instaladas em vendor/. Use: hyper up -d"
+    ;;
+
+  *)
+    hyperf_cmd "${cmd}" "$@"
+    ;;
+esac
