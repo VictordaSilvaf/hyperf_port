@@ -16,6 +16,7 @@ use App\Domain\User\Entity\User;
 use App\Domain\User\Repository\UserRepositoryInterface;
 use App\Domain\User\ValueObject\Email;
 use App\Domain\User\ValueObject\UserId;
+use App\Infrastructure\Persistence\Search\PostgresUserSearch;
 use Hyperf\DbConnection\Db;
 
 final class DbUserRepository implements UserRepositoryInterface
@@ -64,14 +65,19 @@ final class DbUserRepository implements UserRepositoryInterface
         $builder = Db::table(self::TABLE)->select(['id', 'name', 'email', 'created_at', 'updated_at']);
         $trimmedSearch = $search !== null ? trim($search) : '';
         if ($trimmedSearch !== '') {
-            $term = '%' . addcslashes($trimmedSearch, '%_\\') . '%';
-            $builder->where(static function ($q) use ($term): void {
-                $q->where('name', 'ilike', $term)->orWhere('email', 'ilike', $term);
-            });
+            PostgresUserSearch::apply($builder, $trimmedSearch);
         }
 
         $total = (clone $builder)->count();
-        $rows = $builder->orderByDesc('created_at')->orderBy('id')->forPage($page, $perPage)->get();
+
+        if ($trimmedSearch !== '') {
+            PostgresUserSearch::applyRelevanceOrder($builder, $trimmedSearch);
+            $builder->orderByDesc('created_at')->orderBy('id');
+        } else {
+            $builder->orderByDesc('created_at')->orderBy('id');
+        }
+
+        $rows = $builder->forPage($page, $perPage)->get();
 
         $items = [];
         foreach ($rows as $row) {

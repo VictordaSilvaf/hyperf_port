@@ -15,6 +15,7 @@ namespace App\Infrastructure\Persistence\Upload;
 use App\Domain\Upload\Entity\Upload;
 use App\Domain\Upload\Repository\UploadRepositoryInterface;
 use App\Domain\Upload\ValueObject\UploadId;
+use App\Domain\Upload\ValueObject\UploadProcessingStatus;
 use Hyperf\DbConnection\Db;
 
 final class DbUploadRepository implements UploadRepositoryInterface
@@ -29,6 +30,13 @@ final class DbUploadRepository implements UploadRepositoryInterface
             'mime_type' => $upload->mimeType(),
             'size' => $upload->size(),
             'original_name' => $upload->originalName(),
+            'processing_status' => $upload->processingStatus()->value,
+            'webp_path' => $upload->webpPath(),
+            'webp_url' => $upload->webpUrl(),
+            'thumbnail_path' => $upload->thumbnailPath(),
+            'thumbnail_url' => $upload->thumbnailUrl(),
+            'width' => $upload->width(),
+            'height' => $upload->height(),
             'updated_at' => date('Y-m-d H:i:s'),
         ];
         if ($exists) {
@@ -45,8 +53,20 @@ final class DbUploadRepository implements UploadRepositoryInterface
         if ($row === null) {
             return null;
         }
-        $data = (array) $row;
 
+        return $this->toDomain((array) $row);
+    }
+
+    public function delete(UploadId $id): void
+    {
+        Db::table('uploads')->where('id', $id->value())->delete();
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function toDomain(array $data): Upload
+    {
         return Upload::restore(
             UploadId::fromString((string) $data['id']),
             (string) $data['path'],
@@ -54,11 +74,13 @@ final class DbUploadRepository implements UploadRepositoryInterface
             isset($data['mime_type']) ? (string) $data['mime_type'] : null,
             (int) ($data['size'] ?? 0),
             isset($data['original_name']) ? (string) $data['original_name'] : null,
+            UploadProcessingStatus::from((string) ($data['processing_status'] ?? UploadProcessingStatus::Skipped->value)),
+            isset($data['webp_path']) ? (string) $data['webp_path'] : null,
+            isset($data['webp_url']) ? (string) $data['webp_url'] : null,
+            isset($data['thumbnail_path']) ? (string) $data['thumbnail_path'] : null,
+            isset($data['thumbnail_url']) ? (string) $data['thumbnail_url'] : null,
+            isset($data['width']) ? (int) $data['width'] : null,
+            isset($data['height']) ? (int) $data['height'] : null,
         );
-    }
-
-    public function delete(UploadId $id): void
-    {
-        Db::table('uploads')->where('id', $id->value())->delete();
     }
 }

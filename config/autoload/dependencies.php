@@ -18,6 +18,8 @@ use App\Application\Project\ProjectPublicCacheInterface;
 use App\Application\Project\ProjectViewCounterInterface;
 use App\Application\Shared\Security\PasswordHasherInterface;
 use App\Application\Storage\ObjectStorageInterface;
+use App\Application\Upload\ImageProcessorInterface;
+use App\Application\Upload\UploadJobDispatcherInterface;
 use App\Domain\Acl\Repository\PermissionRepositoryInterface;
 use App\Domain\Acl\Repository\RolePermissionWriterInterface;
 use App\Domain\Acl\Repository\RoleRepositoryInterface;
@@ -41,7 +43,7 @@ use App\Infrastructure\Event\NoOpDomainEventPublisher;
 use App\Infrastructure\Health\ApplicationHealthProbe;
 use App\Infrastructure\Health\DatabaseHealthProbe;
 use App\Infrastructure\Health\RedisHealthProbe;
-use App\Infrastructure\Health\StorageHealthProbe;
+use App\Infrastructure\Image\GdImageProcessor;
 use App\Infrastructure\Mail\SmtpPasswordResetNotifier;
 use App\Infrastructure\Persistence\Acl\DbEffectivePermissionsProvider;
 use App\Infrastructure\Persistence\Acl\DbPermissionRepository;
@@ -68,6 +70,8 @@ use App\Infrastructure\Persistence\Upload\DbUploadRepository;
 use App\Infrastructure\Persistence\Upload\InMemoryUploadRepository;
 use App\Infrastructure\Persistence\User\DbUserRepository;
 use App\Infrastructure\Persistence\User\InMemoryUserRepository;
+use App\Infrastructure\Queue\AsyncQueueUploadJobDispatcher;
+use App\Infrastructure\Queue\SyncUploadJobDispatcher;
 use App\Infrastructure\Security\NativePasswordHasher;
 use App\Infrastructure\Storage\FlysystemObjectStorage;
 use Hyperf\Contract\ConfigInterface;
@@ -182,6 +186,19 @@ return [
     PasswordResetNotifierInterface::class => SmtpPasswordResetNotifier::class,
 
     ObjectStorageInterface::class => FlysystemObjectStorage::class,
+
+    ImageProcessorInterface::class => GdImageProcessor::class,
+
+    UploadJobDispatcherInterface::class => static function (ContainerInterface $container): UploadJobDispatcherInterface {
+        $useQueue = (bool) \Hyperf\Config\config('upload.queue_processing', true);
+        $isDb = env('APP_USER_REPOSITORY', 'memory') === 'db';
+
+        if ($isDb && $useQueue) {
+            return $container->get(AsyncQueueUploadJobDispatcher::class);
+        }
+
+        return $container->get(SyncUploadJobDispatcher::class);
+    },
 
     GetHealthHandler::class => static function (ContainerInterface $container): GetHealthHandler {
         $probes = [

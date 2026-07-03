@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace App\Application\Upload\StoreUpload;
 
 use App\Application\Storage\ObjectStorageInterface;
+use App\Application\Upload\UploadJobDispatcherInterface;
 use App\Domain\Upload\Entity\Upload;
 use App\Domain\Upload\Repository\UploadRepositoryInterface;
 
@@ -21,6 +22,7 @@ final class StoreUploadHandler
     public function __construct(
         private readonly UploadRepositoryInterface $uploads,
         private readonly ObjectStorageInterface $storage,
+        private readonly UploadJobDispatcherInterface $uploadJobs,
     ) {
     }
 
@@ -42,10 +44,21 @@ final class StoreUploadHandler
         );
         $this->uploads->save($upload);
 
+        if ($upload->isImage()) {
+            $this->uploadJobs->dispatchProcessUpload($upload->id()->value());
+        }
+
+        $current = $this->uploads->findById($upload->id()) ?? $upload;
+
         return [
-            'id' => $upload->id()->value(),
-            'url' => $url,
-            'path' => $path,
+            'id' => $current->id()->value(),
+            'url' => $current->url(),
+            'path' => $current->path(),
+            'processing_status' => $current->processingStatus()->value,
+            'display_url' => $current->displayUrl(),
+            'thumbnail_url' => $current->displayThumbnailUrl(),
+            'width' => $current->width(),
+            'height' => $current->height(),
         ];
     }
 }

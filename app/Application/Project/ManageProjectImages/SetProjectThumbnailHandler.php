@@ -16,6 +16,7 @@ use App\Application\Project\ProjectPublicCacheInterface;
 use App\Domain\Project\Exception\ProjectNotFoundException;
 use App\Domain\Project\Repository\ProjectRepositoryInterface;
 use App\Domain\Project\ValueObject\ProjectId;
+use App\Domain\Upload\Entity\Upload;
 use App\Domain\Upload\Repository\UploadRepositoryInterface;
 use App\Domain\Upload\ValueObject\UploadId;
 
@@ -50,8 +51,17 @@ final class SetProjectThumbnailHandler
             throw new ProjectNotFoundException('Upload not found: ' . $uploadId);
         }
 
-        $updated = $project->replace([$field => $upload->path()]);
+        $updated = $project->replace([$field => $this->resolveStoragePath($upload, $field)]);
         $this->projects->save($updated);
         $this->cache->bump();
+    }
+
+    private function resolveStoragePath(Upload $upload, string $field): string
+    {
+        if ($field === 'thumbnail') {
+            return $upload->thumbnailPath() ?? $upload->webpPath() ?? $upload->path();
+        }
+
+        return $upload->webpPath() ?? $upload->path();
     }
 }

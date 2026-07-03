@@ -20,6 +20,7 @@ use App\Domain\Project\ValueObject\ProjectImageId;
 use App\Domain\Project\ValueObject\ProjectListFilter;
 use App\Domain\Project\ValueObject\ProjectSlug;
 use App\Domain\Project\ValueObject\ProjectStatus;
+use App\Infrastructure\Persistence\Search\PostgresProjectSearch;
 use Hyperf\DbConnection\Db;
 
 final class DbProjectRepository implements ProjectRepositoryInterface
@@ -106,13 +107,7 @@ final class DbProjectRepository implements ProjectRepositoryInterface
             $builder->where('p.featured', $filter->featured);
         }
         if ($filter->search !== null && trim($filter->search) !== '') {
-            $term = '%' . addcslashes(trim($filter->search), '%_\\') . '%';
-            $builder->where(static function ($q) use ($term): void {
-                $q->where('p.title', 'ilike', $term)
-                    ->orWhere('p.slug', 'ilike', $term)
-                    ->orWhere('p.description', 'ilike', $term)
-                    ->orWhere('p.content', 'ilike', $term);
-            });
+            PostgresProjectSearch::apply($builder, trim($filter->search));
         }
         if ($filter->categorySlug !== null) {
             $builder->join('category_project as cp', 'cp.project_id', '=', 'p.id')
@@ -136,8 +131,15 @@ final class DbProjectRepository implements ProjectRepositoryInterface
         $direction = strtolower($filter->direction) === 'desc' ? 'desc' : 'asc';
 
         $total = (clone $builder)->distinct()->count('p.id');
+
+        if ($filter->search !== null && trim($filter->search) !== '') {
+            PostgresProjectSearch::applyRelevanceOrder($builder, trim($filter->search));
+            $builder->orderBy('p.' . $sort, $direction);
+        } else {
+            $builder->orderBy('p.' . $sort, $direction);
+        }
+
         $rows = $builder->distinct()
-            ->orderBy('p.' . $sort, $direction)
             ->forPage($filter->page, $filter->perPage)
             ->get();
 

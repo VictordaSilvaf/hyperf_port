@@ -20,6 +20,7 @@ ENV TIMEZONE=${timezone:-"Asia/Shanghai"} \
 
 # update
 RUN set -ex \
+    && apk add --no-cache php84-gd \
     # show php version and extensions
     && php -v \
     && php -m \

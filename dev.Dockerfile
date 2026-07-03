@@ -26,6 +26,7 @@ RUN addgroup -g ${GID} application && \
 
 # update
 RUN set -ex \
+    && apk add --no-cache php84-gd \
     # show php version and extensions
     && php -v \
     && php -m \

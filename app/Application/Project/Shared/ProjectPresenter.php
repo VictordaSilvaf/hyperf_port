@@ -42,8 +42,10 @@ final class ProjectPresenter
                 'upload_id' => $image->uploadId()->value(),
                 'caption' => $image->caption(),
                 'order' => $image->sortOrder(),
-                'url' => $upload?->url(),
+                'url' => $upload?->displayUrl(),
+                'thumbnail_url' => $upload?->displayThumbnailUrl(),
                 'path' => $upload?->path(),
+                'processing_status' => $upload?->processingStatus()->value,
             ];
         }
 

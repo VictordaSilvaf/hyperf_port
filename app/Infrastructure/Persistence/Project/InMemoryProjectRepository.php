@@ -125,6 +125,13 @@ final class InMemoryProjectRepository implements ProjectRepositoryInterface
             if ($filter->featured !== null && $project->featured() !== $filter->featured) {
                 continue;
             }
+            if ($filter->search !== null && trim($filter->search) !== '') {
+                $needle = strtolower(trim($filter->search));
+                $haystack = strtolower($project->title() . ' ' . $project->slug()->value() . ' ' . ($project->description() ?? '') . ' ' . ($project->content() ?? ''));
+                if (! str_contains($haystack, $needle)) {
+                    continue;
+                }
+            }
             $list[] = $project;
         }
 
