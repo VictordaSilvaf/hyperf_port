@@ -49,6 +49,8 @@ return [
     'page_blocks_synced' => 'Blocos da página atualizados.',
     'invalid_block_payload' => 'Payload de bloco inválido.',
     'site_settings_updated' => 'Configurações do site atualizadas.',
+    'contact_submitted' => 'Obrigado pela sua mensagem. Entraremos em contacto em breve.',
+    'contact_message_not_found' => 'Mensagem de contacto não encontrada.',
     'post_not_found' => 'Post não encontrado.',
     'post_created' => 'Post criado.',
     'post_updated' => 'Post atualizado.',

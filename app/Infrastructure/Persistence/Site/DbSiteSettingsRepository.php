@@ -58,6 +58,7 @@ final class DbSiteSettingsRepository implements SiteSettingsRepositoryInterface
             'social' => $this->decodeJson($row['social'] ?? null),
             'branding' => $this->decodeJson($row['branding'] ?? null),
             'seo' => $this->decodeJson($row['seo'] ?? null),
+            'contact' => $this->decodeJson($row['contact'] ?? null),
             'updated_at' => $updatedAt,
         ]);
     }
@@ -74,6 +75,7 @@ final class DbSiteSettingsRepository implements SiteSettingsRepositoryInterface
             'social' => $this->encodeJson($settings->social()),
             'branding' => $this->encodeJson($settings->branding()),
             'seo' => $this->encodeJson($settings->seo()->toArray()),
+            'contact' => $this->encodeJson($settings->contact()->toArray()),
             'updated_at' => ($settings->updatedAt() ?? new DateTimeImmutable())->format('Y-m-d H:i:s'),
         ];
     }

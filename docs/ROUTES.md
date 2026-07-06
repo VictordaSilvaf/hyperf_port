@@ -202,7 +202,7 @@ Admin: blocos com `payload` bruto; SEO como objecto editável. Público: blocos 
 }
 ```
 
-Tipos suportados: `hero`, `markdown`, `image`, `gallery`, `featured_projects`, `project_list`, `tech_stack`, `cta`, `embed`, `spacer`.
+Tipos suportados: `hero`, `markdown`, `image`, `gallery`, `featured_projects`, `project_list`, `tech_stack`, `cta`, `contact_form`, `embed`, `spacer`.
 
 ### `SiteSettings` — configurações globais do site
 
@@ -219,6 +219,13 @@ Tipos suportados: `hero`, `markdown`, `image`, `gallery`, `featured_projects`, `
     "twitter_site": "@victordev",
     "google_site_verification": null,
     "locale": "pt_BR"
+  },
+  "contact": {
+    "email": "hello@victordev.com",
+    "phone": "+351 900 000 000",
+    "whatsapp": "https://wa.me/351900000000",
+    "address": { "line1": "Rua Exemplo", "city": "Lisboa", "country": "PT" },
+    "notification_email": "admin@victordev.com"
   },
   "updated_at": "2026-07-04T15:00:00+00:00"
 }
@@ -1875,6 +1882,7 @@ Papéis seed: `admin` (todas), `manager` (subset), `user` (básico).
 | GET | `/api/v1/pages/{slug}` | — |
 | GET | `/api/v1/block-types` | — |
 | GET | `/api/v1/site/settings` | — |
+| POST | `/api/v1/contact` | — |
 | GET | `/api/v1/projects` | — |
 | GET | `/api/v1/projects/{slug}` | — |
 | GET | `/api/v1/projects/{slug}/related` | — |
@@ -1931,6 +1939,9 @@ Papéis seed: `admin` (todas), `manager` (subset), `user` (básico).
 | PUT | `/api/v1/admin/pages/{id}/blocks` | Admin |
 | GET | `/api/v1/admin/site/settings` | Admin |
 | PUT | `/api/v1/admin/site/settings` | Admin |
+| GET | `/api/v1/admin/contact/messages` | Admin |
+| GET | `/api/v1/admin/contact/messages/{id}` | Admin |
+| PATCH | `/api/v1/admin/contact/messages/{id}` | Admin |
 
 ---
 

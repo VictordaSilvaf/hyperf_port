@@ -13,6 +13,8 @@ use App\Application\Acl\EffectivePermissionsProviderInterface;
 use App\Application\Auth\AccessTokenIssuerInterface;
 use App\Application\Auth\PasswordReset\PasswordResetNotifierInterface;
 use App\Application\Auth\PasswordReset\PasswordResetTokenStoreInterface;
+use App\Application\Contact\ContactCaptchaVerifierInterface;
+use App\Application\Contact\ContactMessageNotifierInterface;
 use App\Application\Health\GetHealth\GetHealthHandler;
 use App\Application\Page\BlockRegistryInterface;
 use App\Application\Page\PagePublicCacheInterface;
@@ -29,6 +31,7 @@ use App\Domain\Acl\Repository\RolePermissionWriterInterface;
 use App\Domain\Acl\Repository\RoleRepositoryInterface;
 use App\Domain\Acl\Repository\UserRoleRepositoryInterface;
 use App\Domain\Category\Repository\CategoryRepositoryInterface;
+use App\Domain\Contact\Repository\ContactMessageRepositoryInterface;
 use App\Domain\Page\Repository\PageRepositoryInterface;
 use App\Domain\Post\Repository\PostRepositoryInterface;
 use App\Domain\Project\Repository\ProjectRepositoryInterface;
@@ -56,6 +59,8 @@ use App\Infrastructure\Health\DatabaseHealthProbe;
 use App\Infrastructure\Health\RedisHealthProbe;
 use App\Infrastructure\Health\StorageHealthProbe;
 use App\Infrastructure\Image\GdImageProcessor;
+use App\Infrastructure\Mail\NoOpContactMessageNotifier;
+use App\Infrastructure\Mail\SmtpContactMessageNotifier;
 use App\Infrastructure\Mail\SmtpPasswordResetNotifier;
 use App\Infrastructure\Page\BlockRegistry;
 use App\Infrastructure\Persistence\Acl\DbEffectivePermissionsProvider;
@@ -71,6 +76,8 @@ use App\Infrastructure\Persistence\Acl\InMemoryRoleRepository;
 use App\Infrastructure\Persistence\Acl\InMemoryUserRoleRepository;
 use App\Infrastructure\Persistence\Category\DbCategoryRepository;
 use App\Infrastructure\Persistence\Category\InMemoryCategoryRepository;
+use App\Infrastructure\Persistence\Contact\DbContactMessageRepository;
+use App\Infrastructure\Persistence\Contact\InMemoryContactMessageRepository;
 use App\Infrastructure\Persistence\Page\DbPageRepository;
 use App\Infrastructure\Persistence\Page\InMemoryPageRepository;
 use App\Infrastructure\Persistence\Post\DbPostRepository;
@@ -89,7 +96,9 @@ use App\Infrastructure\Persistence\User\DbUserRepository;
 use App\Infrastructure\Persistence\User\InMemoryUserRepository;
 use App\Infrastructure\Queue\AsyncQueueUploadJobDispatcher;
 use App\Infrastructure\Queue\SyncUploadJobDispatcher;
+use App\Infrastructure\Security\CloudflareTurnstileVerifier;
 use App\Infrastructure\Security\NativePasswordHasher;
+use App\Infrastructure\Security\NoOpContactCaptchaVerifier;
 use App\Infrastructure\Storage\FlysystemObjectStorage;
 use Hyperf\Contract\ConfigInterface;
 use Psr\Container\ContainerInterface;
@@ -125,6 +134,10 @@ return [
     SiteSettingsRepositoryInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
         ? DbSiteSettingsRepository::class
         : InMemorySiteSettingsRepository::class,
+
+    ContactMessageRepositoryInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
+        ? DbContactMessageRepository::class
+        : InMemoryContactMessageRepository::class,
 
     BlockRegistryInterface::class => BlockRegistry::class,
 
@@ -221,6 +234,19 @@ return [
     },
 
     PasswordResetNotifierInterface::class => SmtpPasswordResetNotifier::class,
+
+    ContactMessageNotifierInterface::class => env('APP_USER_REPOSITORY', 'memory') === 'db'
+        ? SmtpContactMessageNotifier::class
+        : NoOpContactMessageNotifier::class,
+
+    ContactCaptchaVerifierInterface::class => static function (ContainerInterface $container): ContactCaptchaVerifierInterface {
+        $config = $container->get(ConfigInterface::class);
+        if ((bool) $config->get('contact.turnstile.enabled', false)) {
+            return $container->get(CloudflareTurnstileVerifier::class);
+        }
+
+        return $container->get(NoOpContactCaptchaVerifier::class);
+    },
 
     ObjectStorageInterface::class => FlysystemObjectStorage::class,
 

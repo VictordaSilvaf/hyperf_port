@@ -14,6 +14,7 @@ namespace App\Infrastructure\Page;
 
 use App\Application\Page\BlockRegistryInterface;
 use App\Domain\Page\Block\BlockValidatorInterface;
+use App\Domain\Page\Block\ContactFormBlockValidator;
 use App\Domain\Page\Block\CtaBlockValidator;
 use App\Domain\Page\Block\EmbedBlockValidator;
 use App\Domain\Page\Block\FeaturedProjectsBlockValidator;
@@ -82,6 +83,7 @@ final class BlockRegistry implements BlockRegistryInterface
             new ProjectListBlockValidator(),
             new TechStackBlockValidator(),
             new CtaBlockValidator(),
+            new ContactFormBlockValidator(),
             new EmbedBlockValidator(),
             new SpacerBlockValidator(),
         ];

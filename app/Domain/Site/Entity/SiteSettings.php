@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Site\Entity;
 
+use App\Domain\Site\ValueObject\SiteContactInfo;
 use App\Domain\Site\ValueObject\SiteSeoDefaults;
 use DateTimeImmutable;
 
@@ -32,6 +33,7 @@ final class SiteSettings
         private readonly ?array $social,
         private readonly ?array $branding,
         private readonly SiteSeoDefaults $seo,
+        private readonly SiteContactInfo $contact,
         private readonly ?DateTimeImmutable $updatedAt,
     ) {
     }
@@ -43,6 +45,7 @@ final class SiteSettings
      *   social?: null|array<string, mixed>,
      *   branding?: null|array<string, mixed>,
      *   seo?: null|array<string, mixed>,
+     *   contact?: null|array<string, mixed>,
      *   updated_at?: null|DateTimeImmutable,
      * } $data
      */
@@ -55,6 +58,7 @@ final class SiteSettings
             $data['social'] ?? null,
             $data['branding'] ?? null,
             SiteSeoDefaults::fromArray($data['seo'] ?? null),
+            SiteContactInfo::fromArray($data['contact'] ?? null),
             $data['updated_at'] ?? null,
         );
     }
@@ -70,6 +74,9 @@ final class SiteSettings
             'seo' => array_key_exists('seo', $changes)
                 ? ($changes['seo'] instanceof SiteSeoDefaults ? $changes['seo']->toArray() : $changes['seo'])
                 : $this->seo->toArray(),
+            'contact' => array_key_exists('contact', $changes)
+                ? ($changes['contact'] instanceof SiteContactInfo ? $changes['contact']->toArray() : $changes['contact'])
+                : $this->contact->toArray(),
             'updated_at' => $changes['updated_at'] ?? new DateTimeImmutable(),
         ]);
     }
@@ -106,6 +113,11 @@ final class SiteSettings
     public function seo(): SiteSeoDefaults
     {
         return $this->seo;
+    }
+
+    public function contact(): SiteContactInfo
+    {
+        return $this->contact;
     }
 
     public function updatedAt(): ?DateTimeImmutable

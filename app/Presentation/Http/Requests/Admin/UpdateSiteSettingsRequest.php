@@ -35,6 +35,12 @@ class UpdateSiteSettingsRequest extends FormRequest
             'seo.twitter_site' => 'sometimes|nullable|string|max:100',
             'seo.google_site_verification' => 'sometimes|nullable|string|max:200',
             'seo.locale' => 'sometimes|nullable|string|max:10',
+            'contact' => 'sometimes|nullable|array',
+            'contact.email' => 'sometimes|nullable|email|max:255',
+            'contact.phone' => 'sometimes|nullable|string|max:50',
+            'contact.whatsapp' => 'sometimes|nullable|string|max:500',
+            'contact.notification_email' => 'sometimes|nullable|email|max:255',
+            'contact.address' => 'sometimes|nullable|array',
         ];
     }
 }

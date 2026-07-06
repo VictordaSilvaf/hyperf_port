@@ -51,6 +51,7 @@ Router::addGroup('/api/v1', function () use ($auth) {
     Router::get('/pages/{slug}', 'App\Presentation\Http\Controllers\Public\PageController@show');
     Router::get('/block-types', 'App\Presentation\Http\Controllers\Public\BlockTypeController@index');
     Router::get('/site/settings', 'App\Presentation\Http\Controllers\Public\SiteSettingsController@show');
+    Router::post('/contact', 'App\Presentation\Http\Controllers\Public\ContactController@submit');
     Router::get('/projects', 'App\Presentation\Http\Controllers\Public\ProjectController@index');
     Router::get('/projects/{slug}/related', 'App\Presentation\Http\Controllers\Public\ProjectController@related');
     Router::get('/projects/{slug}', 'App\Presentation\Http\Controllers\Public\ProjectController@show');
@@ -218,5 +219,17 @@ Router::addGroup('/api/v1', function () use ($auth) {
         Router::put('/site/settings', 'App\Presentation\Http\Controllers\Admin\AdminSiteSettingsController@update', [
             'middleware' => $auth, 'permissions' => ['site.update'],
         ]);
+
+        Router::addGroup('/contact/messages', function () use ($auth) {
+            Router::get('/', 'App\Presentation\Http\Controllers\Admin\AdminContactMessageController@index', [
+                'middleware' => $auth, 'permissions' => ['contact.view'],
+            ]);
+            Router::get('/{id}', 'App\Presentation\Http\Controllers\Admin\AdminContactMessageController@show', [
+                'middleware' => $auth, 'permissions' => ['contact.view'],
+            ]);
+            Router::patch('/{id}', 'App\Presentation\Http\Controllers\Admin\AdminContactMessageController@update', [
+                'middleware' => $auth, 'permissions' => ['contact.update'],
+            ]);
+        });
     });
 });

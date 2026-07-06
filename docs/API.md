@@ -412,7 +412,34 @@ Catálogo de tipos de bloco disponíveis no editor (`type`, `label`, `schema` JS
 
 ### `GET` — `/api/v1/site/settings`
 
-Configurações globais do site: `nav`, `footer`, `social`, `branding`, `seo` (defaults), `updated_at`.
+Configurações globais do site: `nav`, `footer`, `social`, `branding`, `seo` (defaults), `contact`, `updated_at`.
+
+---
+
+## Contacto (público)
+
+### `POST` — `/api/v1/contact`
+
+Envia mensagem de contacto. Resposta **sempre genérica** (anti-enumeração), mesmo se o captcha falhar.
+
+**Body**
+
+| Campo | Tipo | Regras |
+|-------|------|--------|
+| `name` | string | obrigatório, max 200 |
+| `email` | string | obrigatório, email |
+| `subject` | string | opcional, max 300 |
+| `message` | string | obrigatório, 10–5000 chars |
+| `website` | string | **proibido** (honeypot — campo oculto no frontend) |
+| `cf_turnstile_response` | string | obrigatório se `TURNSTILE_ENABLED=true` |
+
+**Resposta 200**
+
+```json
+{ "message": "Obrigado pela sua mensagem..." }
+```
+
+A mensagem é persistida em `contact_messages` e enviada por email ao destinatário (`site_settings.contact.notification_email` ou `MAIL_CONTACT_TO`).
 
 ---
 
@@ -475,9 +502,25 @@ Sync de blocos (`PUT .../blocks`): `{ "blocks": [{ "type": "hero", "payload": {.
 | GET | `/api/v1/admin/site/settings` | `site.update` |
 | PUT | `/api/v1/admin/site/settings` | `site.update` |
 
-Corpo parcial: `nav`, `footer`, `social`, `branding`, `seo` (ex.: `site_name`, `default_meta_description`, `default_og_image_id`, `locale`).
+Corpo parcial: `nav`, `footer`, `social`, `branding`, `seo`, `contact` (ex.: `email`, `phone`, `whatsapp`, `address`, `notification_email`).
 
-**Permissões seed adicionais:** `pages.view`, `pages.create`, `pages.update`, `pages.delete`, `pages.publish`, `site.update` (papéis `admin` e `manager`).
+**Permissões seed adicionais:** `pages.view`, `pages.create`, `pages.update`, `pages.delete`, `pages.publish`, `site.update`, `contact.view`, `contact.update` (papéis `admin` e `manager`).
+
+---
+
+## Contacto (admin)
+
+| Método | Rota | Permissão |
+|--------|------|-----------|
+| GET | `/api/v1/admin/contact/messages` | `contact.view` |
+| GET | `/api/v1/admin/contact/messages/{id}` | `contact.view` |
+| PATCH | `/api/v1/admin/contact/messages/{id}` | `contact.update` |
+
+**Listagem** — query: `page`, `per_page`, `status` (`new`, `read`, `archived`).
+
+**Detalhe** — marca automaticamente como `read` se estava `new`.
+
+**PATCH** — body: `{ "status": "read" | "archived" }`.
 
 ---
 

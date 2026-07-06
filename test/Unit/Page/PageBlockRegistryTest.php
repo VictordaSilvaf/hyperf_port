@@ -28,6 +28,7 @@ test('block registry exposes all supported block types', function () {
         'project_list',
         'tech_stack',
         'cta',
+        'contact_form',
         'embed',
         'spacer',
     ]);
@@ -119,6 +120,17 @@ test('cta block validator accepts and rejects payloads', function () {
     $registry->validate('cta', ['label' => 'Go', 'href' => 'https://example.com', 'variant' => 'primary']);
 
     $registry->validate('cta', ['label' => 'Go']);
+})->throws(InvalidBlockPayloadException::class);
+
+test('contact form block validator accepts and rejects payloads', function () {
+    $registry = new BlockRegistry();
+
+    $registry->validate('contact_form', [
+        'submit_label' => 'Send',
+        'show_subject' => true,
+    ]);
+
+    $registry->validate('contact_form', []);
 })->throws(InvalidBlockPayloadException::class);
 
 test('embed block validator accepts and rejects payloads', function () {

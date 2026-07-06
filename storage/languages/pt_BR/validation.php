@@ -177,6 +177,10 @@ return [
         'password_confirmation' => 'confirmação da senha',
         'current_password' => 'senha atual',
         'code' => 'código de verificação',
+        'message' => 'mensagem',
+        'subject' => 'assunto',
+        'website' => 'website',
+        'cf_turnstile_response' => 'captcha',
     ],
 
     'phone_number' => 'O campo :attribute deve ser um telefone válido.',

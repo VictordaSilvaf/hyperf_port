@@ -299,6 +299,15 @@ $collection = [
             req('Site Settings — public', 'GET', '/site/settings', null, null, array_merge($statusTest(200), [
                 "pm.test('Has data', () => pm.expect(pm.response.json().data).to.be.an('object'));",
             ])),
+            req('Contact — submit', 'POST', '/contact', [
+                'name' => 'Postman User',
+                'email' => 'postman@example.com',
+                'subject' => 'Test from Postman',
+                'message' => 'Hello from the Postman collection test.',
+            ], null, array_merge($statusTest(200), [
+                "pm.test('Generic success', () => pm.expect(pm.response.json().message).to.be.a('string'));",
+            ])),
+            req('Pages — Contact', 'GET', '/pages/contato', null, null, $statusTest(200)),
             req('Projects — List', 'GET', '/projects', null, [
                 ['key' => 'page', 'value' => '1'],
                 ['key' => 'per_page', 'value' => '15'],
@@ -575,6 +584,23 @@ $collection = [
                 ],
             ], null, $statusTest(200)),
         ], 'Requires Login — Admin. Permission: site.update'),
+
+        folder('10 — Admin — Contact', [
+            req('List contact messages', 'GET', '/admin/contact/messages', null, [
+                ['key' => 'page', 'value' => '1'],
+                ['key' => 'per_page', 'value' => '15'],
+                ['key' => 'status', 'value' => 'new'],
+            ], null, array_merge($statusTest(200), [
+                "const d = pm.response.json().data; if (d?.[0]?.id) pm.environment.set('contactMessageId', d[0].id);",
+            ])),
+            req('Show contact message', 'GET', '/admin/contact/messages/{{contactMessageId}}', null, null, array_merge($statusTest(200), [
+                "pm.test('Marks read', () => pm.expect(['read','archived']).to.include(pm.response.json().data.status));",
+            ])),
+            req('Archive contact message', 'PATCH', '/admin/contact/messages/{{contactMessageId}}', [
+                'status' => 'archived',
+            ], null, $statusTest(200)),
+            req('Show contact message — not found (404)', 'GET', '/admin/contact/messages/a0000001-0000-4000-8000-000000000099', null, null, $statusTest(404)),
+        ], 'Requires Login — Admin. Permissions: contact.view, contact.update'),
 
         folder('99 — Flows (E2E)', [
             req('Flow 1 — Login Admin', 'POST', '/auth/login', [

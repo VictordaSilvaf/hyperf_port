@@ -14,6 +14,7 @@ namespace App\Application\Site\UpdateSiteSettings;
 
 use App\Application\Site\SitePublicCacheInterface;
 use App\Domain\Site\Repository\SiteSettingsRepositoryInterface;
+use App\Domain\Site\ValueObject\SiteContactInfo;
 use App\Domain\Site\ValueObject\SiteSeoDefaults;
 
 final class UpdateSiteSettingsHandler
@@ -40,6 +41,10 @@ final class UpdateSiteSettingsHandler
             $changes['seo'] = SiteSeoDefaults::fromArray($c['seo']);
         }
 
+        if (array_key_exists('contact', $c) && is_array($c['contact'])) {
+            $changes['contact'] = SiteContactInfo::fromArray($c['contact']);
+        }
+
         $updated = $current->replace($changes);
         $this->settings->save($updated);
         $this->cache->bump();
@@ -51,6 +56,7 @@ final class UpdateSiteSettingsHandler
                 'social' => $updated->social(),
                 'branding' => $updated->branding(),
                 'seo' => $updated->seo()->toArray(),
+                'contact' => $updated->contact()->toArray(),
                 'updated_at' => $updated->updatedAt()?->format(DATE_ATOM),
             ],
         ];

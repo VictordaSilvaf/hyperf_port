@@ -203,7 +203,12 @@ return [
     |
     */
 
-    'attributes' => [],
+    'attributes' => [
+        'name' => 'name',
+        'message' => 'message',
+        'website' => 'website',
+        'cf_turnstile_response' => 'captcha',
+    ],
     'phone_number' => 'The :attribute must be a valid phone number',
     'telephone_number' => 'The :attribute must be a valid telephone number',
 

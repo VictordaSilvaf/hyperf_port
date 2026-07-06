@@ -21,6 +21,8 @@ return [
             'name' => env('MAIL_FROM_NAME', 'Hyperf Skeleton'),
         ],
         'reset_subject' => env('MAIL_RESET_SUBJECT', 'Redefinição de senha'),
+        'contact_subject' => env('MAIL_CONTACT_SUBJECT', 'Nova mensagem de contacto'),
+        'contact_to' => env('MAIL_CONTACT_TO', ''),
         /* Opcional: URL com {code}, {token} (igual ao code) ou {email} no link do e-mail. */
         'reset_url_template' => env('APP_PASSWORD_RESET_URL', ''),
     ],

@@ -40,6 +40,7 @@ final class GetSiteSettingsHandler
                 'social' => $site->social(),
                 'branding' => $site->branding(),
                 'seo' => $site->seo()->toArray(),
+                'contact' => $site->contact()->toArray(),
                 'updated_at' => $site->updatedAt()?->format(DATE_ATOM),
             ],
         ];

@@ -49,6 +49,8 @@ return [
     'page_blocks_synced' => 'Page blocks updated.',
     'invalid_block_payload' => 'Invalid block payload.',
     'site_settings_updated' => 'Site settings updated.',
+    'contact_submitted' => 'Thank you for your message. We will get back to you soon.',
+    'contact_message_not_found' => 'Contact message not found.',
     'post_not_found' => 'Post not found.',
     'post_created' => 'Post created.',
     'post_updated' => 'Post updated.',

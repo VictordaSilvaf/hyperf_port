@@ -100,3 +100,21 @@ test('partial update keeps untouched fields', function () {
     expect($result['data']['seo']['site_name'])->toBe('My Site');
     expect($result['data']['social'])->toBe(['linkedin' => 'https://linkedin.com/in/example']);
 });
+
+test('update site settings persists contact info', function () {
+    $fixtures = siteSettingsFixtures();
+
+    $result = $fixtures['update']->handle(new UpdateSiteSettingsCommand([
+        'contact' => [
+            'email' => 'hello@victordev.com',
+            'phone' => '+351 900 000 000',
+            'notification_email' => 'admin@victordev.com',
+        ],
+    ]));
+
+    expect($result['data']['contact']['email'])->toBe('hello@victordev.com');
+    expect($result['data']['contact']['notification_email'])->toBe('admin@victordev.com');
+
+    $fresh = $fixtures['get']->handle();
+    expect($fresh['data']['contact']['phone'])->toBe('+351 900 000 000');
+});
