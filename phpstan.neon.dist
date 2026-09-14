@@ -13,3 +13,5 @@ parameters:
     - '#Static call to instance method Hyperf\\HttpServer\\Router\\Router::[a-zA-Z0-9\\_]+\(\)#'
     - '#Static call to instance method Hyperf\\DbConnection\\Db::[a-zA-Z0-9\\_]+\(\)#'
     - '#Access to constant [A-Z0-9_]+ on an unknown class Swoole\\Constant\.#'
+    # PHP 8.5 host PHPStan false positive: Hyperf Swagger attrs are IS_REPEATABLE but reflection reports otherwise
+    - '#Attribute class Hyperf\\Swagger\\Annotation\\[A-Za-z]+ is not repeatable but is already present#'
