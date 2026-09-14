@@ -6,6 +6,7 @@
 .git/
 runtime/
 vendor/
+storage/swagger/*.json
 .phpintel/
 .env
 .DS_Store

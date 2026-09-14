@@ -41,6 +41,7 @@ use App\Application\Page\UpdatePage\UpdatePageHandler;
 use App\Domain\Page\Exception\PageNotFoundException;
 use App\Domain\Page\Exception\PageSlugTakenException;
 use App\Presentation\Http\Controllers\AbstractController;
+use App\Presentation\Http\OpenApi\OpenApiRefs;
 use App\Presentation\Http\Requests\Admin\CreatePageRequest;
 use App\Presentation\Http\Requests\Admin\ListPagesRequest;
 use App\Presentation\Http\Requests\Admin\PatchPageRequest;
@@ -48,10 +49,12 @@ use App\Presentation\Http\Requests\Admin\ReorderPagesRequest;
 use App\Presentation\Http\Requests\Admin\SyncPageBlocksRequest;
 use App\Presentation\Http\Requests\Admin\UpdatePageRequest;
 use Hyperf\Di\Annotation\Inject;
+use Hyperf\Swagger\Annotation as SA;
 use Psr\Http\Message\ResponseInterface as PsrResponseInterface;
 
 use function Hyperf\Translation\trans;
 
+#[SA\HyperfServer('openapi')]
 final class AdminPageController extends AbstractController
 {
     #[Inject]
@@ -93,6 +96,12 @@ final class AdminPageController extends AbstractController
     #[Inject]
     protected SyncPageBlocksHandler $syncPageBlocks;
 
+    #[SA\Get(path: '/api/v1/admin/pages', summary: 'Listar páginas', description: 'Requires permission: pages.view', security: OpenApiRefs::BEARER, tags: ['Admin Pages'])]
+    #[SA\QueryParameter(name: 'page', required: false, schema: new SA\Schema(type: 'integer', default: 1))]
+    #[SA\QueryParameter(name: 'per_page', required: false, schema: new SA\Schema(type: 'integer', default: 15))]
+    #[SA\Response(response: 200, description: 'Lista', content: new SA\JsonContent(ref: '#/components/schemas/PageListResponse'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function index(ListPagesRequest $request): array
     {
         $data = $request->validated();
@@ -104,6 +113,13 @@ final class AdminPageController extends AbstractController
         ));
     }
 
+    #[SA\Get(path: '/api/v1/admin/pages/{id}', summary: 'Obter página', description: 'Requires permission: pages.view', security: OpenApiRefs::BEARER, tags: ['Admin Pages'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\QueryParameter(name: 'with_trashed', required: false, schema: new SA\Schema(type: 'boolean', default: false))]
+    #[SA\Response(response: 200, description: 'Página', content: new SA\JsonContent(ref: '#/components/schemas/PageDetailEnvelope'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrada', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function show(string $id): array|PsrResponseInterface
     {
         try {
@@ -115,6 +131,13 @@ final class AdminPageController extends AbstractController
         }
     }
 
+    #[SA\Post(path: '/api/v1/admin/pages', summary: 'Criar página', description: 'Requires permission: pages.create', security: OpenApiRefs::BEARER, tags: ['Admin Pages'])]
+    #[SA\RequestBody(required: true, content: new SA\JsonContent(ref: '#/components/schemas/CreatePageRequest'))]
+    #[SA\Response(response: 200, description: 'Página criada', content: new SA\JsonContent(ref: '#/components/schemas/PageDetailEnvelope'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 409, description: 'Slug já existe', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 422, description: 'Validação', content: new SA\JsonContent(ref: OpenApiRefs::VALIDATION))]
     public function store(CreatePageRequest $request): array|PsrResponseInterface
     {
         $data = $request->validated();
@@ -132,6 +155,15 @@ final class AdminPageController extends AbstractController
         }
     }
 
+    #[SA\Put(path: '/api/v1/admin/pages/{id}', summary: 'Actualizar página', description: 'Requires permission: pages.update', security: OpenApiRefs::BEARER, tags: ['Admin Pages'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\RequestBody(required: true, content: new SA\JsonContent(ref: '#/components/schemas/UpdatePageRequest'))]
+    #[SA\Response(response: 200, description: 'Página actualizada', content: new SA\JsonContent(ref: '#/components/schemas/PageDetailEnvelope'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrada', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 409, description: 'Slug já existe', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 422, description: 'Validação', content: new SA\JsonContent(ref: OpenApiRefs::VALIDATION))]
     public function update(string $id, UpdatePageRequest $request): array|PsrResponseInterface
     {
         $data = $request->validated();
@@ -152,6 +184,15 @@ final class AdminPageController extends AbstractController
         }
     }
 
+    #[SA\Patch(path: '/api/v1/admin/pages/{id}', summary: 'Patch página', description: 'Requires permission: pages.update', security: OpenApiRefs::BEARER, tags: ['Admin Pages'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\RequestBody(required: true, content: new SA\JsonContent(ref: '#/components/schemas/PatchPageRequest'))]
+    #[SA\Response(response: 200, description: 'Página actualizada', content: new SA\JsonContent(ref: '#/components/schemas/PageDetailEnvelope'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrada', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 409, description: 'Slug já existe', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 422, description: 'Validação', content: new SA\JsonContent(ref: OpenApiRefs::VALIDATION))]
     public function patch(string $id, PatchPageRequest $request): array|PsrResponseInterface
     {
         try {
@@ -163,6 +204,13 @@ final class AdminPageController extends AbstractController
         }
     }
 
+    #[SA\Patch(path: '/api/v1/admin/pages/{id}/publish', summary: 'Publicar página', description: 'Requires permission: pages.publish', security: OpenApiRefs::BEARER, tags: ['Admin Pages'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\RequestBody(required: false, content: new SA\JsonContent(ref: '#/components/schemas/PublishRequest'))]
+    #[SA\Response(response: 200, description: 'Publicada', content: new SA\JsonContent(ref: '#/components/schemas/PageDetailEnvelope'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrada', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function publish(string $id): array|PsrResponseInterface
     {
         try {
@@ -177,6 +225,12 @@ final class AdminPageController extends AbstractController
         }
     }
 
+    #[SA\Patch(path: '/api/v1/admin/pages/{id}/archive', summary: 'Arquivar página', description: 'Requires permission: pages.publish', security: OpenApiRefs::BEARER, tags: ['Admin Pages'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\Response(response: 200, description: 'Arquivada', content: new SA\JsonContent(ref: '#/components/schemas/PageDetailEnvelope'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrada', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function archive(string $id): array|PsrResponseInterface
     {
         try {
@@ -186,6 +240,12 @@ final class AdminPageController extends AbstractController
         }
     }
 
+    #[SA\Patch(path: '/api/v1/admin/pages/{id}/draft', summary: 'Passar página a rascunho', description: 'Requires permission: pages.publish', security: OpenApiRefs::BEARER, tags: ['Admin Pages'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\Response(response: 200, description: 'Rascunho', content: new SA\JsonContent(ref: '#/components/schemas/PageDetailEnvelope'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrada', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function draft(string $id): array|PsrResponseInterface
     {
         try {
@@ -195,6 +255,12 @@ final class AdminPageController extends AbstractController
         }
     }
 
+    #[SA\Delete(path: '/api/v1/admin/pages/{id}', summary: 'Soft-delete página', description: 'Requires permission: pages.delete', security: OpenApiRefs::BEARER, tags: ['Admin Pages'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\Response(response: 200, description: 'Eliminada', content: new SA\JsonContent(ref: OpenApiRefs::MESSAGE))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrada', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function destroy(string $id): PsrResponseInterface
     {
         try {
@@ -206,6 +272,12 @@ final class AdminPageController extends AbstractController
         }
     }
 
+    #[SA\Patch(path: '/api/v1/admin/pages/{id}/restore', summary: 'Restaurar página', description: 'Requires permission: pages.update', security: OpenApiRefs::BEARER, tags: ['Admin Pages'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\Response(response: 200, description: 'Restaurada', content: new SA\JsonContent(ref: '#/components/schemas/PageDetailEnvelope'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrada', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function restore(string $id): array|PsrResponseInterface
     {
         try {
@@ -215,6 +287,12 @@ final class AdminPageController extends AbstractController
         }
     }
 
+    #[SA\Delete(path: '/api/v1/admin/pages/{id}/force', summary: 'Hard-delete página', description: 'Requires permission: pages.delete', security: OpenApiRefs::BEARER, tags: ['Admin Pages'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\Response(response: 200, description: 'Eliminada permanentemente', content: new SA\JsonContent(ref: OpenApiRefs::MESSAGE))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrada', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function forceDestroy(string $id): PsrResponseInterface
     {
         try {
@@ -226,6 +304,13 @@ final class AdminPageController extends AbstractController
         }
     }
 
+    #[SA\Patch(path: '/api/v1/admin/pages/order', summary: 'Reordenar páginas', description: 'Requires permission: pages.update', security: OpenApiRefs::BEARER, tags: ['Admin Pages'])]
+    #[SA\RequestBody(required: true, content: new SA\JsonContent(ref: '#/components/schemas/ReorderPagesRequest'))]
+    #[SA\Response(response: 200, description: 'Reordenadas', content: new SA\JsonContent(ref: OpenApiRefs::MESSAGE))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrada', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 422, description: 'Validação', content: new SA\JsonContent(ref: OpenApiRefs::VALIDATION))]
     public function reorder(ReorderPagesRequest $request): PsrResponseInterface
     {
         try {
@@ -237,6 +322,13 @@ final class AdminPageController extends AbstractController
         }
     }
 
+    #[SA\Post(path: '/api/v1/admin/pages/{id}/duplicate', summary: 'Duplicar página', description: 'Requires permission: pages.create', security: OpenApiRefs::BEARER, tags: ['Admin Pages'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\Response(response: 200, description: 'Duplicada', content: new SA\JsonContent(ref: '#/components/schemas/PageDetailEnvelope'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrada', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 409, description: 'Slug já existe', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function duplicate(string $id): array|PsrResponseInterface
     {
         try {
@@ -248,6 +340,14 @@ final class AdminPageController extends AbstractController
         }
     }
 
+    #[SA\Put(path: '/api/v1/admin/pages/{id}/blocks', summary: 'Sincronizar blocos', description: 'Requires permission: pages.update', security: OpenApiRefs::BEARER, tags: ['Admin Pages'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\RequestBody(required: true, content: new SA\JsonContent(ref: '#/components/schemas/SyncPageBlocksRequest'))]
+    #[SA\Response(response: 200, description: 'Blocos sincronizados', content: new SA\JsonContent(ref: '#/components/schemas/PageDetailEnvelope'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrada', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 422, description: 'Validação', content: new SA\JsonContent(ref: OpenApiRefs::VALIDATION))]
     public function syncBlocks(string $id, SyncPageBlocksRequest $request): array|PsrResponseInterface
     {
         $data = $request->validated();

@@ -24,14 +24,17 @@ use App\Application\User\UpdateUser\UpdateUserHandler;
 use App\Domain\User\Exception\EmailAlreadyRegisteredException;
 use App\Domain\User\Exception\UserNotFoundException;
 use App\Presentation\Http\Controllers\AbstractController;
+use App\Presentation\Http\OpenApi\OpenApiRefs;
 use App\Presentation\Http\Requests\Admin\CreateAdminUserRequest;
 use App\Presentation\Http\Requests\Admin\ListAdminUsersRequest;
 use App\Presentation\Http\Requests\Admin\UpdateAdminUserRequest;
 use Hyperf\Di\Annotation\Inject;
+use Hyperf\Swagger\Annotation as SA;
 use Psr\Http\Message\ResponseInterface as PsrResponseInterface;
 
 use function Hyperf\Translation\trans;
 
+#[SA\HyperfServer('openapi')]
 final class AdminUserController extends AbstractController
 {
     #[Inject]
@@ -49,6 +52,13 @@ final class AdminUserController extends AbstractController
     #[Inject]
     protected EffectivePermissionsProviderInterface $effectivePermissions;
 
+    #[SA\Get(path: '/api/v1/admin/users', summary: 'Listar utilizadores', description: 'Requires permission: users.view', security: OpenApiRefs::BEARER, tags: ['Admin Users'])]
+    #[SA\QueryParameter(name: 'page', required: false, schema: new SA\Schema(type: 'integer', default: 1))]
+    #[SA\QueryParameter(name: 'per_page', required: false, schema: new SA\Schema(type: 'integer', default: 15))]
+    #[SA\QueryParameter(name: 'search', required: false, schema: new SA\Schema(type: 'string'))]
+    #[SA\Response(response: 200, description: 'Lista', content: new SA\JsonContent(ref: '#/components/schemas/AdminUserList'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function index(ListAdminUsersRequest $request): array
     {
         $data = $request->validated();
@@ -59,6 +69,12 @@ final class AdminUserController extends AbstractController
         return $this->listUsers->handle(new ListUsersQuery($page, $perPage, $search));
     }
 
+    #[SA\Get(path: '/api/v1/admin/users/{id}', summary: 'Obter utilizador', description: 'Requires permission: users.view', security: OpenApiRefs::BEARER, tags: ['Admin Users'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\Response(response: 200, description: 'Perfil com roles e permissions', content: new SA\JsonContent(ref: '#/components/schemas/UserProfile'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function show(string $id): array|PsrResponseInterface
     {
         try {
@@ -76,6 +92,13 @@ final class AdminUserController extends AbstractController
         ];
     }
 
+    #[SA\Post(path: '/api/v1/admin/users', summary: 'Criar utilizador', description: 'Requires permission: users.create', security: OpenApiRefs::BEARER, tags: ['Admin Users'])]
+    #[SA\RequestBody(required: true, content: new SA\JsonContent(ref: '#/components/schemas/CreateAdminUserRequest'))]
+    #[SA\Response(response: 200, description: 'Utilizador criado', content: new SA\JsonContent(ref: OpenApiRefs::MESSAGE))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 409, description: 'E-mail já registado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 422, description: 'Validação', content: new SA\JsonContent(ref: OpenApiRefs::VALIDATION))]
     public function store(CreateAdminUserRequest $request): array|PsrResponseInterface
     {
         $data = $request->validated();
@@ -97,6 +120,15 @@ final class AdminUserController extends AbstractController
         ];
     }
 
+    #[SA\Put(path: '/api/v1/admin/users/{id}', summary: 'Actualizar utilizador', description: 'Requires permission: users.update', security: OpenApiRefs::BEARER, tags: ['Admin Users'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\RequestBody(required: true, content: new SA\JsonContent(ref: '#/components/schemas/UpdateAdminUserRequest'))]
+    #[SA\Response(response: 200, description: 'Actualizado', content: new SA\JsonContent(ref: OpenApiRefs::MESSAGE))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 409, description: 'E-mail já registado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 422, description: 'Validação', content: new SA\JsonContent(ref: OpenApiRefs::VALIDATION))]
     public function update(string $id, UpdateAdminUserRequest $request): array|PsrResponseInterface
     {
         $data = $request->validated();

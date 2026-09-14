@@ -568,11 +568,14 @@ Detalhes: [documentação Hyperf](https://hyperf.wiki).
 
 | Documento                          | Conteúdo                                                                      |
 | ---------------------------------- | ----------------------------------------------------------------------------- |
+| **Swagger UI**                     | http://127.0.0.1:9500/swagger — OpenAPI interactivo (porta `SWAGGER_PORT`)     |
 | [docs/ROUTES.md](docs/ROUTES.md)   | Referência completa de rotas (auth, RBAC, **projetos**, **uploads**, taxonomias), bodies JSON e permissões |
 | [docs/postman/README.md](docs/postman/README.md) | **Postman** — collection, environments, Runner e Newman |
 | [docs/API.md](docs/API.md)         | Rotas `/api`, corpos, validações, códigos HTTP, exemplos `curl`, autenticação |
 | [docs/PROJECT.md](docs/PROJECT.md) | Camadas DDD/hexagonal, regras de dependência, convenções, fluxo de pedidos    |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Git Flow, commits, hooks, checklist de PR                                     |
+
+Após alterar atributos OpenAPI nos controllers: `hyper php bin/hyperf.php gen:swagger` (ou `SWAGGER_AUTO_GENERATE=true` no restart). Desligue em produção com `SWAGGER_ENABLE=false`.
 
 ---
 

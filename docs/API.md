@@ -1,5 +1,7 @@
 # Referência da API HTTP
 
+**Swagger UI (interactivo):** [http://127.0.0.1:9500/swagger](http://127.0.0.1:9500/swagger) — spec OpenAPI gerada a partir dos atributos nos controllers (`SWAGGER_ENABLE`, porta `SWAGGER_PORT`).
+
 Todas as rotas documentadas abaixo estão registadas em `config/routes.php` dentro do grupo com prefixo **`/api/v1`**.
 
 **Base path:** `/api/v1`  

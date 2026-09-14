@@ -100,7 +100,9 @@ use App\Infrastructure\Security\CloudflareTurnstileVerifier;
 use App\Infrastructure\Security\NativePasswordHasher;
 use App\Infrastructure\Security\NoOpContactCaptchaVerifier;
 use App\Infrastructure\Storage\FlysystemObjectStorage;
+use App\Presentation\Http\OpenApi\BootSwaggerDocsListener;
 use Hyperf\Contract\ConfigInterface;
+use Hyperf\Swagger\Listener\BootSwaggerListener;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\MailerInterface;
@@ -109,6 +111,9 @@ use Symfony\Component\Mailer\Transport;
 use function Hyperf\Support\env;
 
 return [
+    // Docs only — do not register OpenAPI path attributes as HTTP routes (see routes.php).
+    BootSwaggerListener::class => BootSwaggerDocsListener::class,
+
     /*
      * Hexagonal (driven) adapters: troque para DbUserRepository quando a tabela
      * `users` existir (após migrate) e o PostgreSQL estiver configurado.

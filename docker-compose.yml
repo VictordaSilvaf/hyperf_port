@@ -12,6 +12,7 @@ services:
       - ./:/opt/www
     ports:
       - "${API_PORT:-9501}:9501"
+      - "${SWAGGER_PORT:-9500}:9500"
     env_file:
       - .env
     environment:
@@ -32,7 +33,7 @@ services:
       - hyperf-net
 
   minio:
-    image: minio/minio:latest
+    image: quay.io/minio/minio:latest
     container_name: hyperf-minio
     command: server /data --console-address ":9001"
     environment:
@@ -47,7 +48,7 @@ services:
       - hyperf-net
 
   minio-init:
-    image: minio/mc:latest
+    image: quay.io/minio/mc:latest
     container_name: hyperf-minio-init
     depends_on:
       - minio

@@ -11,6 +11,7 @@ API REST em **Hyperf 3.x** (PHP ≥ 8.4) com camadas **Domain → Application �
 | [README.md](README.md) | Setup, Docker, variáveis de ambiente |
 | [docs/PROJECT.md](docs/PROJECT.md) | Arquitetura, dependências entre camadas, convenções |
 | [docs/API.md](docs/API.md) | Rotas, payloads, códigos HTTP, exemplos |
+| Swagger UI | `http://127.0.0.1:9500/swagger` (OpenAPI; `SWAGGER_ENABLE`) |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Git Flow, Conventional Commits, hooks e PR |
 
 ## Comandos essenciais
@@ -49,7 +50,7 @@ Infrastructure implementa ports; Domain não importa Hyperf/DB/Redis.
 ## Ao implementar mudanças
 
 1. Respeitar limites de camada — ver [docs/PROJECT.md](docs/PROJECT.md)
-2. Alterou rotas ou contratos → actualizar [docs/API.md](docs/API.md)
+2. Alterou rotas ou contratos → actualizar [docs/API.md](docs/API.md) e atributos OpenAPI nos controllers (Swagger)
 3. Comportamento novo → testes em `test/Unit/` ou `test/Cases/`
 4. Migrações em `migrations/` com timestamp consistente
 5. Não commitar `.env`, credenciais ou segredos

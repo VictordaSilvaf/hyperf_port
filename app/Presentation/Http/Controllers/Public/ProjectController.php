@@ -22,12 +22,15 @@ use App\Application\Technology\ListTechnologies\ListTechnologiesHandler;
 use App\Domain\Project\Exception\ProjectNotFoundException;
 use App\Job\FlushProjectViewsJob;
 use App\Presentation\Http\Controllers\AbstractController;
+use App\Presentation\Http\OpenApi\OpenApiRefs;
 use Hyperf\AsyncQueue\Driver\DriverFactory;
 use Hyperf\Di\Annotation\Inject;
+use Hyperf\Swagger\Annotation as SA;
 use Psr\Http\Message\ResponseInterface as PsrResponseInterface;
 
 use function Hyperf\Translation\trans;
 
+#[SA\HyperfServer('openapi')]
 final class ProjectController extends AbstractController
 {
     #[Inject]
@@ -45,11 +48,23 @@ final class ProjectController extends AbstractController
     #[Inject]
     protected DriverFactory $queue;
 
+    #[SA\Get(path: '/api/v1/projects', summary: 'Listar projetos publicados', tags: ['Portfolio (Public)'])]
+    #[SA\QueryParameter(name: 'page', required: false, schema: new SA\Schema(type: 'integer', default: 1))]
+    #[SA\QueryParameter(name: 'per_page', required: false, schema: new SA\Schema(type: 'integer', default: 15))]
+    #[SA\QueryParameter(name: 'search', required: false, schema: new SA\Schema(type: 'string'))]
+    #[SA\QueryParameter(name: 'category', required: false, schema: new SA\Schema(type: 'string'))]
+    #[SA\QueryParameter(name: 'technology', required: false, schema: new SA\Schema(type: 'string'))]
+    #[SA\QueryParameter(name: 'tag', required: false, schema: new SA\Schema(type: 'string'))]
+    #[SA\Response(response: 200, description: 'Lista', content: new SA\JsonContent(ref: '#/components/schemas/ProjectListResponse'))]
     public function index(): array
     {
         return $this->listProjects->fromQueryParams($this->request->all(), true);
     }
 
+    #[SA\Get(path: '/api/v1/projects/{slug}', summary: 'Projeto por slug', tags: ['Portfolio (Public)'])]
+    #[SA\PathParameter(name: 'slug', required: true, schema: new SA\Schema(type: 'string', example: 'portfolio-3d'))]
+    #[SA\Response(response: 200, description: 'Projeto', content: new SA\JsonContent(ref: '#/components/schemas/ProjectDetail'))]
+    #[SA\Response(response: 404, description: 'Não encontrado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function show(string $slug): array|PsrResponseInterface
     {
         try {
@@ -62,6 +77,19 @@ final class ProjectController extends AbstractController
         }
     }
 
+    #[SA\Get(path: '/api/v1/projects/{slug}/related', summary: 'Projetos relacionados', tags: ['Portfolio (Public)'])]
+    #[SA\PathParameter(name: 'slug', required: true, schema: new SA\Schema(type: 'string'))]
+    #[SA\Response(
+        response: 200,
+        description: 'Relacionados',
+        content: new SA\JsonContent(
+            type: 'object',
+            properties: [
+                new SA\Property(property: 'data', type: 'array', items: new SA\Items(ref: '#/components/schemas/ProjectSummary')),
+            ],
+        ),
+    )]
+    #[SA\Response(response: 404, description: 'Não encontrado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function related(string $slug): array|PsrResponseInterface
     {
         try {
@@ -71,6 +99,11 @@ final class ProjectController extends AbstractController
         }
     }
 
+    #[SA\Get(path: '/api/v1/search', summary: 'Pesquisar projetos', tags: ['Portfolio (Public)'])]
+    #[SA\QueryParameter(name: 'q', required: false, schema: new SA\Schema(type: 'string', example: 'portfolio'))]
+    #[SA\QueryParameter(name: 'page', required: false, schema: new SA\Schema(type: 'integer', default: 1))]
+    #[SA\QueryParameter(name: 'per_page', required: false, schema: new SA\Schema(type: 'integer', default: 15))]
+    #[SA\Response(response: 200, description: 'Resultados', content: new SA\JsonContent(ref: '#/components/schemas/ProjectListResponse'))]
     public function search(): array
     {
         return $this->search->handle(
@@ -81,6 +114,7 @@ final class ProjectController extends AbstractController
     }
 }
 
+#[SA\HyperfServer('openapi')]
 final class TaxonomyController extends AbstractController
 {
     #[Inject]
@@ -92,16 +126,49 @@ final class TaxonomyController extends AbstractController
     #[Inject]
     protected ListTagsHandler $tags;
 
+    #[SA\Get(path: '/api/v1/categories', summary: 'Listar categorias', tags: ['Portfolio (Public)'])]
+    #[SA\Response(
+        response: 200,
+        description: 'Categorias',
+        content: new SA\JsonContent(
+            type: 'object',
+            properties: [
+                new SA\Property(property: 'data', type: 'array', items: new SA\Items(ref: '#/components/schemas/TaxonomyItem')),
+            ],
+        ),
+    )]
     public function categories(): array
     {
         return ['data' => $this->categories->handle()];
     }
 
+    #[SA\Get(path: '/api/v1/technologies', summary: 'Listar tecnologias', tags: ['Portfolio (Public)'])]
+    #[SA\Response(
+        response: 200,
+        description: 'Tecnologias',
+        content: new SA\JsonContent(
+            type: 'object',
+            properties: [
+                new SA\Property(property: 'data', type: 'array', items: new SA\Items(ref: '#/components/schemas/TaxonomyItem')),
+            ],
+        ),
+    )]
     public function technologies(): array
     {
         return ['data' => $this->technologies->handle()];
     }
 
+    #[SA\Get(path: '/api/v1/tags', summary: 'Listar tags', tags: ['Portfolio (Public)'])]
+    #[SA\Response(
+        response: 200,
+        description: 'Tags',
+        content: new SA\JsonContent(
+            type: 'object',
+            properties: [
+                new SA\Property(property: 'data', type: 'array', items: new SA\Items(ref: '#/components/schemas/TaxonomyItem')),
+            ],
+        ),
+    )]
     public function tags(): array
     {
         return ['data' => $this->tags->handle()];

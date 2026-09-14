@@ -34,4 +34,4 @@ alwaysApply: false
 
 ## Documentação
 
-Ao alterar rotas, payloads ou códigos de resposta, actualizar **docs/API.md** na mesma entrega.
+Ao alterar rotas, payloads ou códigos de resposta, actualizar **docs/API.md** e os atributos OpenAPI (`Hyperf\Swagger\Annotation`) no controller na mesma entrega. Regenerar com `hyper php bin/hyperf.php gen:swagger`.

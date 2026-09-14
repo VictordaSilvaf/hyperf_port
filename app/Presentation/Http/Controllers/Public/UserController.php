@@ -18,11 +18,14 @@ use App\Application\User\GetUser\GetUserQuery;
 use App\Domain\User\Exception\UserNotFoundException;
 use App\Infrastructure\Auth\AuthContext;
 use App\Presentation\Http\Controllers\AbstractController;
+use App\Presentation\Http\OpenApi\OpenApiRefs;
 use Hyperf\Di\Annotation\Inject;
+use Hyperf\Swagger\Annotation as SA;
 use Psr\Http\Message\ResponseInterface as PsrResponseInterface;
 
 use function Hyperf\Translation\trans;
 
+#[SA\HyperfServer('openapi')]
 class UserController extends AbstractController
 {
     #[Inject]
@@ -31,6 +34,10 @@ class UserController extends AbstractController
     #[Inject]
     protected EffectivePermissionsProviderInterface $effectivePermissions;
 
+    #[SA\Get(path: '/api/v1/users/me', summary: 'Utilizador autenticado', security: OpenApiRefs::BEARER, tags: ['Users'])]
+    #[SA\Response(response: 200, description: 'Perfil', content: new SA\JsonContent(ref: '#/components/schemas/UserProfile'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Utilizador não encontrado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function me(): array|PsrResponseInterface
     {
         $userId = AuthContext::userId();
@@ -53,6 +60,10 @@ class UserController extends AbstractController
         ];
     }
 
+    #[SA\Get(path: '/api/v1/users/{id}', summary: 'Utilizador por ID (público)', tags: ['Users'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\Response(response: 200, description: 'Utilizador', content: new SA\JsonContent(ref: '#/components/schemas/UserPublic'))]
+    #[SA\Response(response: 404, description: 'Não encontrado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function show(string $id): array|PsrResponseInterface
     {
         try {

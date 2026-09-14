@@ -40,14 +40,17 @@ use App\Application\Upload\StoreUpload\StoreUploadHandler;
 use App\Domain\Project\Exception\ProjectNotFoundException;
 use App\Domain\Project\Exception\ProjectSlugTakenException;
 use App\Presentation\Http\Controllers\AbstractController;
+use App\Presentation\Http\OpenApi\OpenApiRefs;
 use App\Presentation\Http\Requests\Admin\CreateProjectRequest;
 use App\Presentation\Http\Requests\Admin\PatchProjectRequest;
 use App\Presentation\Http\Requests\Admin\UpdateProjectRequest;
 use Hyperf\Di\Annotation\Inject;
+use Hyperf\Swagger\Annotation as SA;
 use Psr\Http\Message\ResponseInterface as PsrResponseInterface;
 
 use function Hyperf\Translation\trans;
 
+#[SA\HyperfServer('openapi')]
 final class AdminProjectController extends AbstractController
 {
     #[Inject]
@@ -110,11 +113,32 @@ final class AdminProjectController extends AbstractController
     #[Inject]
     protected SyncProjectTagsHandler $syncTags;
 
+    #[SA\Get(path: '/api/v1/admin/projects', summary: 'Listar projetos', description: 'Requires permission: projects.view', security: OpenApiRefs::BEARER, tags: ['Admin Projects'])]
+    #[SA\QueryParameter(name: 'page', required: false, schema: new SA\Schema(type: 'integer', default: 1))]
+    #[SA\QueryParameter(name: 'per_page', required: false, schema: new SA\Schema(type: 'integer', default: 15))]
+    #[SA\QueryParameter(name: 'search', required: false, schema: new SA\Schema(type: 'string'))]
+    #[SA\QueryParameter(name: 'status', required: false, schema: new SA\Schema(type: 'string'))]
+    #[SA\QueryParameter(name: 'featured', required: false, schema: new SA\Schema(type: 'boolean'))]
+    #[SA\QueryParameter(name: 'category', required: false, schema: new SA\Schema(type: 'string'))]
+    #[SA\QueryParameter(name: 'technology', required: false, schema: new SA\Schema(type: 'string'))]
+    #[SA\QueryParameter(name: 'tag', required: false, schema: new SA\Schema(type: 'string'))]
+    #[SA\QueryParameter(name: 'sort', required: false, schema: new SA\Schema(type: 'string', default: 'sort_order'))]
+    #[SA\QueryParameter(name: 'direction', required: false, schema: new SA\Schema(type: 'string', default: 'asc'))]
+    #[SA\QueryParameter(name: 'with_trashed', required: false, schema: new SA\Schema(type: 'boolean', default: false))]
+    #[SA\Response(response: 200, description: 'Lista', content: new SA\JsonContent(ref: '#/components/schemas/ProjectListResponse'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function index(): array
     {
         return $this->listProjects->fromQueryParams($this->request->all(), false);
     }
 
+    #[SA\Get(path: '/api/v1/admin/projects/{id}', summary: 'Obter projeto', description: 'Requires permission: projects.view', security: OpenApiRefs::BEARER, tags: ['Admin Projects'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\Response(response: 200, description: 'Projeto', content: new SA\JsonContent(ref: '#/components/schemas/ProjectDetailEnvelope'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function show(string $id): array|PsrResponseInterface
     {
         try {
@@ -124,6 +148,13 @@ final class AdminProjectController extends AbstractController
         }
     }
 
+    #[SA\Post(path: '/api/v1/admin/projects', summary: 'Criar projeto', description: 'Requires permission: projects.create', security: OpenApiRefs::BEARER, tags: ['Admin Projects'])]
+    #[SA\RequestBody(required: true, content: new SA\JsonContent(ref: '#/components/schemas/CreateProjectRequest'))]
+    #[SA\Response(response: 200, description: 'Projeto criado', content: new SA\JsonContent(ref: '#/components/schemas/ProjectDetailEnvelope'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 409, description: 'Slug já existe', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 422, description: 'Validação', content: new SA\JsonContent(ref: OpenApiRefs::VALIDATION))]
     public function store(CreateProjectRequest $request): array|PsrResponseInterface
     {
         $data = $request->validated();
@@ -148,6 +179,15 @@ final class AdminProjectController extends AbstractController
         }
     }
 
+    #[SA\Put(path: '/api/v1/admin/projects/{id}', summary: 'Actualizar projeto', description: 'Requires permission: projects.update', security: OpenApiRefs::BEARER, tags: ['Admin Projects'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\RequestBody(required: true, content: new SA\JsonContent(ref: '#/components/schemas/UpdateProjectRequest'))]
+    #[SA\Response(response: 200, description: 'Projeto actualizado', content: new SA\JsonContent(ref: '#/components/schemas/ProjectDetailEnvelope'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 409, description: 'Slug já existe', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 422, description: 'Validação', content: new SA\JsonContent(ref: OpenApiRefs::VALIDATION))]
     public function update(string $id, UpdateProjectRequest $request): array|PsrResponseInterface
     {
         $data = $request->validated();
@@ -175,6 +215,15 @@ final class AdminProjectController extends AbstractController
         }
     }
 
+    #[SA\Patch(path: '/api/v1/admin/projects/{id}', summary: 'Patch projeto', description: 'Requires permission: projects.update', security: OpenApiRefs::BEARER, tags: ['Admin Projects'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\RequestBody(required: true, content: new SA\JsonContent(ref: '#/components/schemas/PatchProjectRequest'))]
+    #[SA\Response(response: 200, description: 'Projeto actualizado', content: new SA\JsonContent(ref: '#/components/schemas/ProjectDetailEnvelope'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 409, description: 'Slug já existe', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 422, description: 'Validação', content: new SA\JsonContent(ref: OpenApiRefs::VALIDATION))]
     public function patch(string $id, PatchProjectRequest $request): array|PsrResponseInterface
     {
         try {
@@ -186,6 +235,13 @@ final class AdminProjectController extends AbstractController
         }
     }
 
+    #[SA\Patch(path: '/api/v1/admin/projects/{id}/publish', summary: 'Publicar projeto', description: 'Requires permission: projects.publish', security: OpenApiRefs::BEARER, tags: ['Admin Projects'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\RequestBody(required: false, content: new SA\JsonContent(ref: '#/components/schemas/PublishRequest'))]
+    #[SA\Response(response: 200, description: 'Publicado', content: new SA\JsonContent(ref: '#/components/schemas/ProjectDetailEnvelope'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function publish(string $id): array|PsrResponseInterface
     {
         try {
@@ -196,6 +252,12 @@ final class AdminProjectController extends AbstractController
         }
     }
 
+    #[SA\Patch(path: '/api/v1/admin/projects/{id}/archive', summary: 'Arquivar projeto', description: 'Requires permission: projects.publish', security: OpenApiRefs::BEARER, tags: ['Admin Projects'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\Response(response: 200, description: 'Arquivado', content: new SA\JsonContent(ref: '#/components/schemas/ProjectDetailEnvelope'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function archive(string $id): array|PsrResponseInterface
     {
         try {
@@ -205,6 +267,12 @@ final class AdminProjectController extends AbstractController
         }
     }
 
+    #[SA\Patch(path: '/api/v1/admin/projects/{id}/draft', summary: 'Passar projeto a rascunho', description: 'Requires permission: projects.publish', security: OpenApiRefs::BEARER, tags: ['Admin Projects'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\Response(response: 200, description: 'Rascunho', content: new SA\JsonContent(ref: '#/components/schemas/ProjectDetailEnvelope'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function draft(string $id): array|PsrResponseInterface
     {
         try {
@@ -214,6 +282,12 @@ final class AdminProjectController extends AbstractController
         }
     }
 
+    #[SA\Delete(path: '/api/v1/admin/projects/{id}', summary: 'Soft-delete projeto', description: 'Requires permission: projects.delete', security: OpenApiRefs::BEARER, tags: ['Admin Projects'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\Response(response: 200, description: 'Eliminado', content: new SA\JsonContent(ref: OpenApiRefs::MESSAGE))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function destroy(string $id): PsrResponseInterface
     {
         try {
@@ -224,6 +298,12 @@ final class AdminProjectController extends AbstractController
         }
     }
 
+    #[SA\Patch(path: '/api/v1/admin/projects/{id}/restore', summary: 'Restaurar projeto', description: 'Requires permission: projects.update', security: OpenApiRefs::BEARER, tags: ['Admin Projects'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\Response(response: 200, description: 'Restaurado', content: new SA\JsonContent(ref: '#/components/schemas/ProjectDetailEnvelope'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function restore(string $id): array|PsrResponseInterface
     {
         try {
@@ -233,6 +313,12 @@ final class AdminProjectController extends AbstractController
         }
     }
 
+    #[SA\Delete(path: '/api/v1/admin/projects/{id}/force', summary: 'Hard-delete projeto', description: 'Requires permission: projects.delete', security: OpenApiRefs::BEARER, tags: ['Admin Projects'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\Response(response: 200, description: 'Eliminado permanentemente', content: new SA\JsonContent(ref: OpenApiRefs::MESSAGE))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function forceDestroy(string $id): PsrResponseInterface
     {
         try {
@@ -243,6 +329,13 @@ final class AdminProjectController extends AbstractController
         }
     }
 
+    #[SA\Patch(path: '/api/v1/admin/projects/order', summary: 'Reordenar projetos', description: 'Requires permission: projects.update', security: OpenApiRefs::BEARER, tags: ['Admin Projects'])]
+    #[SA\RequestBody(required: true, content: new SA\JsonContent(ref: '#/components/schemas/ReorderProjectsRequest'))]
+    #[SA\Response(response: 200, description: 'Reordenados', content: new SA\JsonContent(ref: OpenApiRefs::MESSAGE))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 422, description: 'Validação', content: new SA\JsonContent(ref: OpenApiRefs::VALIDATION))]
     public function reorder(): PsrResponseInterface
     {
         $projects = $this->request->input('projects', []);
@@ -257,6 +350,12 @@ final class AdminProjectController extends AbstractController
         }
     }
 
+    #[SA\Post(path: '/api/v1/admin/projects/{id}/duplicate', summary: 'Duplicar projeto', description: 'Requires permission: projects.create', security: OpenApiRefs::BEARER, tags: ['Admin Projects'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\Response(response: 200, description: 'Duplicado', content: new SA\JsonContent(ref: '#/components/schemas/ProjectDetailEnvelope'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function duplicate(string $id): array|PsrResponseInterface
     {
         try {
@@ -266,11 +365,23 @@ final class AdminProjectController extends AbstractController
         }
     }
 
+    #[SA\Get(path: '/api/v1/admin/projects/statistics', summary: 'Estatísticas de projetos', description: 'Requires permission: projects.view', security: OpenApiRefs::BEARER, tags: ['Admin Projects'])]
+    #[SA\Response(response: 200, description: 'Estatísticas', content: new SA\JsonContent(ref: '#/components/schemas/ProjectStatistics'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function stats(): array
     {
         return $this->statistics->handle();
     }
 
+    #[SA\Post(path: '/api/v1/admin/projects/{id}/images', summary: 'Adicionar imagem ao projeto', description: 'Requires permission: projects.update', security: OpenApiRefs::BEARER, tags: ['Admin Projects'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\RequestBody(required: true, content: new SA\JsonContent(ref: '#/components/schemas/AddProjectImageRequest'))]
+    #[SA\Response(response: 200, description: 'Imagem adicionada', content: new SA\JsonContent(ref: '#/components/schemas/ProjectDetailEnvelope'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 422, description: 'Validação', content: new SA\JsonContent(ref: OpenApiRefs::VALIDATION))]
     public function addImage(string $id): array|PsrResponseInterface
     {
         try {
@@ -284,6 +395,13 @@ final class AdminProjectController extends AbstractController
         }
     }
 
+    #[SA\Delete(path: '/api/v1/admin/projects/{id}/images/{imageId}', summary: 'Remover imagem do projeto', description: 'Requires permission: projects.update', security: OpenApiRefs::BEARER, tags: ['Admin Projects'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\PathParameter(name: 'imageId', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\Response(response: 200, description: 'Imagem removida', content: new SA\JsonContent(ref: OpenApiRefs::MESSAGE))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
     public function removeImage(string $id, string $imageId): PsrResponseInterface
     {
         try {
@@ -294,6 +412,14 @@ final class AdminProjectController extends AbstractController
         }
     }
 
+    #[SA\Patch(path: '/api/v1/admin/projects/{id}/images/order', summary: 'Reordenar imagens', description: 'Requires permission: projects.update', security: OpenApiRefs::BEARER, tags: ['Admin Projects'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\RequestBody(required: true, content: new SA\JsonContent(ref: '#/components/schemas/ReorderImagesRequest'))]
+    #[SA\Response(response: 200, description: 'Reordenadas', content: new SA\JsonContent(ref: OpenApiRefs::MESSAGE))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 422, description: 'Validação', content: new SA\JsonContent(ref: OpenApiRefs::VALIDATION))]
     public function reorderImages(string $id): PsrResponseInterface
     {
         $images = $this->request->input('images', []);
@@ -308,6 +434,14 @@ final class AdminProjectController extends AbstractController
         }
     }
 
+    #[SA\Patch(path: '/api/v1/admin/projects/{id}/thumbnail', summary: 'Definir thumbnail', description: 'Requires permission: projects.update', security: OpenApiRefs::BEARER, tags: ['Admin Projects'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\RequestBody(required: true, content: new SA\JsonContent(ref: '#/components/schemas/SetImageRefRequest'))]
+    #[SA\Response(response: 200, description: 'Actualizado', content: new SA\JsonContent(ref: OpenApiRefs::MESSAGE))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 422, description: 'Validação', content: new SA\JsonContent(ref: OpenApiRefs::VALIDATION))]
     public function setThumbnail(string $id): PsrResponseInterface
     {
         try {
@@ -318,6 +452,14 @@ final class AdminProjectController extends AbstractController
         }
     }
 
+    #[SA\Patch(path: '/api/v1/admin/projects/{id}/cover', summary: 'Definir cover', description: 'Requires permission: projects.update', security: OpenApiRefs::BEARER, tags: ['Admin Projects'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\RequestBody(required: true, content: new SA\JsonContent(ref: '#/components/schemas/SetImageRefRequest'))]
+    #[SA\Response(response: 200, description: 'Actualizado', content: new SA\JsonContent(ref: OpenApiRefs::MESSAGE))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 422, description: 'Validação', content: new SA\JsonContent(ref: OpenApiRefs::VALIDATION))]
     public function setCover(string $id): PsrResponseInterface
     {
         try {
@@ -328,6 +470,14 @@ final class AdminProjectController extends AbstractController
         }
     }
 
+    #[SA\Put(path: '/api/v1/admin/projects/{id}/categories', summary: 'Sincronizar categorias', description: 'Requires permission: projects.update', security: OpenApiRefs::BEARER, tags: ['Admin Projects'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\RequestBody(required: true, content: new SA\JsonContent(ref: '#/components/schemas/SyncTaxonomyRequest'))]
+    #[SA\Response(response: 200, description: 'Categorias sincronizadas', content: new SA\JsonContent(ref: '#/components/schemas/ProjectDetailEnvelope'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 422, description: 'Validação', content: new SA\JsonContent(ref: OpenApiRefs::VALIDATION))]
     public function syncCategories(string $id): array|PsrResponseInterface
     {
         try {
@@ -337,6 +487,14 @@ final class AdminProjectController extends AbstractController
         }
     }
 
+    #[SA\Put(path: '/api/v1/admin/projects/{id}/technologies', summary: 'Sincronizar tecnologias', description: 'Requires permission: projects.update', security: OpenApiRefs::BEARER, tags: ['Admin Projects'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\RequestBody(required: true, content: new SA\JsonContent(ref: '#/components/schemas/SyncTaxonomyRequest'))]
+    #[SA\Response(response: 200, description: 'Tecnologias sincronizadas', content: new SA\JsonContent(ref: '#/components/schemas/ProjectDetailEnvelope'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 422, description: 'Validação', content: new SA\JsonContent(ref: OpenApiRefs::VALIDATION))]
     public function syncTechnologies(string $id): array|PsrResponseInterface
     {
         try {
@@ -346,6 +504,14 @@ final class AdminProjectController extends AbstractController
         }
     }
 
+    #[SA\Put(path: '/api/v1/admin/projects/{id}/tags', summary: 'Sincronizar tags', description: 'Requires permission: projects.update', security: OpenApiRefs::BEARER, tags: ['Admin Projects'])]
+    #[SA\PathParameter(name: 'id', required: true, schema: new SA\Schema(type: 'string', format: 'uuid'))]
+    #[SA\RequestBody(required: true, content: new SA\JsonContent(ref: '#/components/schemas/SyncTaxonomyRequest'))]
+    #[SA\Response(response: 200, description: 'Tags sincronizadas', content: new SA\JsonContent(ref: '#/components/schemas/ProjectDetailEnvelope'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 404, description: 'Não encontrado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 422, description: 'Validação', content: new SA\JsonContent(ref: OpenApiRefs::VALIDATION))]
     public function syncTags(string $id): array|PsrResponseInterface
     {
         try {
@@ -356,11 +522,26 @@ final class AdminProjectController extends AbstractController
     }
 }
 
+#[SA\HyperfServer('openapi')]
 final class AdminUploadController extends AbstractController
 {
     #[Inject]
     protected StoreUploadHandler $storeUpload;
 
+    #[SA\Post(path: '/api/v1/admin/uploads', summary: 'Upload de ficheiro', description: 'Requires permission: uploads.create', security: OpenApiRefs::BEARER, tags: ['Admin Uploads'])]
+    #[SA\RequestBody(content: [
+        new SA\MediaType(
+            mediaType: 'multipart/form-data',
+            schema: new SA\Schema(
+                required: ['file'],
+                properties: [new SA\Property(property: 'file', type: 'string', format: 'binary')],
+            ),
+        ),
+    ])]
+    #[SA\Response(response: 200, description: 'Upload OK', content: new SA\JsonContent(ref: '#/components/schemas/UploadResult'))]
+    #[SA\Response(response: 401, description: 'Não autenticado', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 403, description: 'Sem permissão', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    #[SA\Response(response: 422, description: 'Validação', content: new SA\JsonContent(ref: OpenApiRefs::VALIDATION))]
     public function store(): array|PsrResponseInterface
     {
         $file = $this->request->file('file');

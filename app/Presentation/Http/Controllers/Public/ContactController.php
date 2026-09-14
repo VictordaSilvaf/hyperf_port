@@ -16,16 +16,23 @@ use App\Application\Contact\SubmitContactMessage\SubmitContactMessageCommand;
 use App\Application\Contact\SubmitContactMessage\SubmitContactMessageHandler;
 use App\Domain\Contact\Exception\ContactCaptchaFailedException;
 use App\Presentation\Http\Controllers\AbstractController;
+use App\Presentation\Http\OpenApi\OpenApiRefs;
 use App\Presentation\Http\Requests\Public\SubmitContactRequest;
 use Hyperf\Di\Annotation\Inject;
+use Hyperf\Swagger\Annotation as SA;
 
 use function Hyperf\Translation\trans;
 
+#[SA\HyperfServer('openapi')]
 final class ContactController extends AbstractController
 {
     #[Inject]
     protected SubmitContactMessageHandler $submitContactMessage;
 
+    #[SA\Post(path: '/api/v1/contact', summary: 'Enviar mensagem de contacto', tags: ['Contact (Public)'])]
+    #[SA\RequestBody(required: true, content: new SA\JsonContent(ref: '#/components/schemas/SubmitContactRequest'))]
+    #[SA\Response(response: 200, description: 'Aceite (genérico)', content: new SA\JsonContent(ref: OpenApiRefs::MESSAGE))]
+    #[SA\Response(response: 422, description: 'Validação', content: new SA\JsonContent(ref: OpenApiRefs::VALIDATION))]
     public function submit(SubmitContactRequest $request): array
     {
         $data = $request->validated();
