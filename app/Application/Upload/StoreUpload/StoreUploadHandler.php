@@ -16,6 +16,9 @@ use App\Application\Storage\ObjectStorageInterface;
 use App\Application\Upload\UploadJobDispatcherInterface;
 use App\Domain\Upload\Entity\Upload;
 use App\Domain\Upload\Repository\UploadRepositoryInterface;
+use Psr\Log\LoggerInterface;
+use RuntimeException;
+use Throwable;
 
 final class StoreUploadHandler
 {
@@ -23,16 +26,34 @@ final class StoreUploadHandler
         private readonly UploadRepositoryInterface $uploads,
         private readonly ObjectStorageInterface $storage,
         private readonly UploadJobDispatcherInterface $uploadJobs,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
     public function handle(StoreUploadCommand $command): array
     {
+        if ($command->contents === '') {
+            throw new RuntimeException('Uploaded file is empty.');
+        }
+
         $extension = pathinfo($command->originalName, PATHINFO_EXTENSION);
-        $filename = bin2hex(random_bytes(16)) . ($extension !== '' ? '.' . $extension : '');
+        $filename = bin2hex(random_bytes(16)) . ($extension !== '' ? '.' . strtolower($extension) : '');
         $path = 'uploads/' . date('Y/m/') . $filename;
 
-        $this->storage->write($path, $command->contents);
+        try {
+            $this->storage->write($path, $command->contents);
+        } catch (Throwable $exception) {
+            $this->logger->error('Object storage write failed: ' . $exception->getMessage(), [
+                'path' => $path,
+                'bytes' => strlen($command->contents),
+            ]);
+            throw new RuntimeException(
+                'Object storage write failed. Check FILESYSTEM_DRIVER / R2_* credentials and endpoint.',
+                0,
+                $exception,
+            );
+        }
+
         $url = $this->storage->publicUrl($path);
 
         $upload = Upload::create(
@@ -45,7 +66,14 @@ final class StoreUploadHandler
         $this->uploads->save($upload);
 
         if ($upload->isImage()) {
-            $this->uploadJobs->dispatchProcessUpload($upload->id()->value());
+            try {
+                $this->uploadJobs->dispatchProcessUpload($upload->id()->value());
+            } catch (Throwable $exception) {
+                // File is already stored — do not fail the HTTP upload because of queue/processing.
+                $this->logger->warning('Upload processing dispatch failed: ' . $exception->getMessage(), [
+                    'upload_id' => $upload->id()->value(),
+                ]);
+            }
         }
 
         $current = $this->uploads->findById($upload->id()) ?? $upload;

@@ -16,6 +16,8 @@ use Hyperf\DbConnection\Db;
 /*
  * Seed IDs used invalid hex (`p`, `t`, `g`) and fail UUID v4 validation → HTTP 500 on admin GET.
  * Remap to valid UUID v4 strings; keep slugs/content.
+ *
+ * Inserts the new row with a temporary slug to avoid unique(slug) collisions, then restores it.
  */
 return new class extends Migration {
     public function up(): void
@@ -95,7 +97,17 @@ return new class extends Migration {
             if (! Db::table($table)->where('id', $newId)->exists()) {
                 $data = (array) $row;
                 $data['id'] = $newId;
+                $originalSlug = null;
+                if (array_key_exists('slug', $data) && is_string($data['slug']) && $data['slug'] !== '') {
+                    $originalSlug = $data['slug'];
+                    // Avoid unique(slug) while old + new rows coexist.
+                    $data['slug'] = $originalSlug . '__remap_' . substr(md5($oldId), 0, 8);
+                }
                 Db::table($table)->insert($data);
+                if ($originalSlug !== null) {
+                    // Will restore after deleting the old row.
+                    $data['_restore_slug'] = $originalSlug;
+                }
             }
 
             foreach ($foreigns as [$fkTable, $fkColumn]) {
@@ -106,6 +118,12 @@ return new class extends Migration {
             }
 
             Db::table($table)->where('id', $oldId)->delete();
+
+            $newRow = Db::table($table)->where('id', $newId)->first();
+            if ($newRow !== null && isset($newRow->slug) && is_string($newRow->slug) && str_contains($newRow->slug, '__remap_')) {
+                $restored = preg_replace('/__remap_[a-f0-9]{8}$/', '', $newRow->slug) ?? $newRow->slug;
+                Db::table($table)->where('id', $newId)->update(['slug' => $restored]);
+            }
         }
     }
 };

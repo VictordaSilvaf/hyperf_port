@@ -9,8 +9,8 @@ declare(strict_types=1);
  * @contact  victordasilvafernandes@gmail.com
  * @see      https://github.com/VictordaSilvaf/hyperf_port.git
  */
+use App\Infrastructure\Storage\CleanS3AdapterFactory;
 use Hyperf\Filesystem\Adapter\MemoryAdapterFactory;
-use Hyperf\Filesystem\Adapter\S3AdapterFactory;
 
 use function Hyperf\Support\env;
 
@@ -23,7 +23,7 @@ $s3Options = static function (
     bool $pathStyle,
 ): array {
     return [
-        'driver' => S3AdapterFactory::class,
+        'driver' => CleanS3AdapterFactory::class,
         'credentials' => [
             'key' => env($keyEnv, ''),
             'secret' => env($secretEnv, ''),
@@ -58,7 +58,7 @@ return [
             'R2_REGION',
             'R2_ENDPOINT',
             'R2_BUCKET',
-            true,
+            filter_var(env('R2_USE_PATH_STYLE', 'true'), FILTER_VALIDATE_BOOLEAN),
         ),
         'memory' => [
             'driver' => MemoryAdapterFactory::class,

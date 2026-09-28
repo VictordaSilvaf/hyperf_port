@@ -137,7 +137,7 @@ function uploadProcessingFixtures(): array
 
     $process = new ProcessUploadImageHandler($uploads, $storage, $processor, $logger, $cacheInvalidator);
     $dispatcher = new SyncUploadJobDispatcher($process);
-    $store = new StoreUploadHandler($uploads, $storage, $dispatcher);
+    $store = new StoreUploadHandler($uploads, $storage, $dispatcher, $logger);
 
     return compact('uploads', 'storage', 'process', 'store');
 }
