@@ -594,9 +594,11 @@ openssl req -x509 -nodes -days 30 -newkey rsa:2048 \
 
 docker compose --env-file .env.production -f docker-compose.prod.yml up -d --build
 docker compose --env-file .env.production -f docker-compose.prod.yml exec api php bin/hyperf.php migrate
+# ou (ENTRYPOINT já é bin/hyperf.php):
+# docker compose --env-file .env.production -f docker-compose.prod.yml exec api migrate
 ```
 
-Portas no host: **80** e **443** apenas. Postgres, Redis e a API (9501) não são publicados.
+Portas no host: **80** e **443** por omissão (`HTTP_PUBLISH_PORT` / `HTTPS_PUBLISH_PORT` no `.env.production`). Postgres, Redis e a API (9501) não são publicados. Se `Bind for 0.0.0.0:80 failed: port is already allocated`, liberta a porta (`sudo ss -tlnp | grep ':80'`) ou muda no `.env.production`, por exemplo `HTTP_PUBLISH_PORT=8080` e `HTTPS_PUBLISH_PORT=8443`.
 
 Health (via Nginx): `https://api.seudominio.com/api/v1/health/live` e `/api/v1/health/ready`.
 
