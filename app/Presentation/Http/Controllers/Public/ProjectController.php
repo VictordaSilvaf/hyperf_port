@@ -12,13 +12,10 @@ declare(strict_types=1);
 
 namespace App\Presentation\Http\Controllers\Public;
 
-use App\Application\Category\ListCategories\ListCategoriesHandler;
 use App\Application\Project\GetProjectBySlug\GetProjectBySlugHandler;
 use App\Application\Project\GetRelatedProjects\GetRelatedProjectsHandler;
 use App\Application\Project\ListProjects\ListProjectsHandler;
 use App\Application\Project\SearchProjects\SearchProjectsHandler;
-use App\Application\Tag\ListTags\ListTagsHandler;
-use App\Application\Technology\ListTechnologies\ListTechnologiesHandler;
 use App\Domain\Project\Exception\ProjectNotFoundException;
 use App\Job\FlushProjectViewsJob;
 use App\Presentation\Http\Controllers\AbstractController;
@@ -111,66 +108,5 @@ final class ProjectController extends AbstractController
             (int) $this->request->input('page', 1),
             (int) $this->request->input('per_page', 15),
         );
-    }
-}
-
-#[SA\HyperfServer('openapi')]
-final class TaxonomyController extends AbstractController
-{
-    #[Inject]
-    protected ListCategoriesHandler $categories;
-
-    #[Inject]
-    protected ListTechnologiesHandler $technologies;
-
-    #[Inject]
-    protected ListTagsHandler $tags;
-
-    #[SA\Get(path: '/api/v1/categories', summary: 'Listar categorias', tags: ['Portfolio (Public)'])]
-    #[SA\Response(
-        response: 200,
-        description: 'Categorias',
-        content: new SA\JsonContent(
-            type: 'object',
-            properties: [
-                new SA\Property(property: 'data', type: 'array', items: new SA\Items(ref: '#/components/schemas/TaxonomyItem')),
-            ],
-        ),
-    )]
-    public function categories(): array
-    {
-        return ['data' => $this->categories->handle()];
-    }
-
-    #[SA\Get(path: '/api/v1/technologies', summary: 'Listar tecnologias', tags: ['Portfolio (Public)'])]
-    #[SA\Response(
-        response: 200,
-        description: 'Tecnologias',
-        content: new SA\JsonContent(
-            type: 'object',
-            properties: [
-                new SA\Property(property: 'data', type: 'array', items: new SA\Items(ref: '#/components/schemas/TaxonomyItem')),
-            ],
-        ),
-    )]
-    public function technologies(): array
-    {
-        return ['data' => $this->technologies->handle()];
-    }
-
-    #[SA\Get(path: '/api/v1/tags', summary: 'Listar tags', tags: ['Portfolio (Public)'])]
-    #[SA\Response(
-        response: 200,
-        description: 'Tags',
-        content: new SA\JsonContent(
-            type: 'object',
-            properties: [
-                new SA\Property(property: 'data', type: 'array', items: new SA\Items(ref: '#/components/schemas/TaxonomyItem')),
-            ],
-        ),
-    )]
-    public function tags(): array
-    {
-        return ['data' => $this->tags->handle()];
     }
 }
