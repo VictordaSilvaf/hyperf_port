@@ -11,12 +11,11 @@ declare(strict_types=1);
  */
 use function Hyperf\Support\env;
 
+// Keys are mounted under `cors.*` (filename = top-level key in Hyperf autoload).
 return [
-    'cors' => [
-        'origins' => env(
-            'CORS_ORIGINS',
-            'https://victorsf.com,https://www.victorsf.com,http://localhost:5173',
-        ),
-        'allow_credentials' => filter_var(env('CORS_ALLOW_CREDENTIALS', 'false'), FILTER_VALIDATE_BOOLEAN),
-    ],
+    'origins' => env(
+        'CORS_ORIGINS',
+        'https://victorsf.com,https://www.victorsf.com,http://localhost:5173',
+    ),
+    'allow_credentials' => filter_var(env('CORS_ALLOW_CREDENTIALS', 'false'), FILTER_VALIDATE_BOOLEAN),
 ];

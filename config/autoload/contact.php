@@ -11,16 +11,15 @@ declare(strict_types=1);
  */
 use function Hyperf\Support\env;
 
+// Keys are mounted under `contact.*` (filename = top-level key in Hyperf autoload).
 return [
-    'contact' => [
-        'turnstile' => [
-            'enabled' => filter_var(env('TURNSTILE_ENABLED', 'false'), FILTER_VALIDATE_BOOLEAN),
-            'site_key' => env('TURNSTILE_SITE_KEY', ''),
-            'secret_key' => env('TURNSTILE_SECRET_KEY', ''),
-        ],
-        'rate_limit' => [
-            'max' => (int) env('CONTACT_RATE_LIMIT_MAX', 5),
-            'window_seconds' => (int) env('CONTACT_RATE_LIMIT_WINDOW_SECONDS', 300),
-        ],
+    'turnstile' => [
+        'enabled' => filter_var(env('TURNSTILE_ENABLED', 'false'), FILTER_VALIDATE_BOOLEAN),
+        'site_key' => env('TURNSTILE_SITE_KEY', ''),
+        'secret_key' => env('TURNSTILE_SECRET_KEY', ''),
+    ],
+    'rate_limit' => [
+        'max' => (int) env('CONTACT_RATE_LIMIT_MAX', 5),
+        'window_seconds' => (int) env('CONTACT_RATE_LIMIT_WINDOW_SECONDS', 300),
     ],
 ];
