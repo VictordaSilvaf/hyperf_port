@@ -63,8 +63,36 @@ final class ProcessUploadImageHandler
             $thumbnailPath = $basePath . '_thumb.webp';
 
             $this->storage->write($optimizedPath, $result->optimizedContents);
-            $this->storage->write($webpPath, $result->webpContents);
-            $this->storage->write($thumbnailPath, $result->thumbnailContents);
+
+            $storedWebpPath = null;
+            $storedWebpUrl = null;
+            try {
+                if ($result->webpContents !== '') {
+                    $this->storage->write($webpPath, $result->webpContents);
+                    $storedWebpPath = $webpPath;
+                    $storedWebpUrl = $this->storage->publicUrl($webpPath);
+                }
+            } catch (Throwable $webpException) {
+                $this->logger->warning('Upload WebP variant write failed: ' . $webpException->getMessage(), [
+                    'upload_id' => $uploadId,
+                    'path' => $webpPath,
+                ]);
+            }
+
+            $storedThumbPath = null;
+            $storedThumbUrl = null;
+            try {
+                if ($result->thumbnailContents !== '') {
+                    $this->storage->write($thumbnailPath, $result->thumbnailContents);
+                    $storedThumbPath = $thumbnailPath;
+                    $storedThumbUrl = $this->storage->publicUrl($thumbnailPath);
+                }
+            } catch (Throwable $thumbException) {
+                $this->logger->warning('Upload thumbnail write failed: ' . $thumbException->getMessage(), [
+                    'upload_id' => $uploadId,
+                    'path' => $thumbnailPath,
+                ]);
+            }
 
             if ($optimizedPath !== $upload->path()) {
                 $this->storage->delete($upload->path());
@@ -74,10 +102,10 @@ final class ProcessUploadImageHandler
                 $optimizedPath,
                 $this->storage->publicUrl($optimizedPath),
                 strlen($result->optimizedContents),
-                $webpPath,
-                $this->storage->publicUrl($webpPath),
-                $thumbnailPath,
-                $this->storage->publicUrl($thumbnailPath),
+                $storedWebpPath ?? '',
+                $storedWebpUrl,
+                $storedThumbPath ?? '',
+                $storedThumbUrl,
                 $result->width,
                 $result->height,
             );

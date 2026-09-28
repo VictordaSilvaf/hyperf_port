@@ -45,7 +45,8 @@ return [
     'default' => env('FILESYSTEM_DRIVER', 'minio'),
     // Prefixo dentro do bucket (ex.: victorsf/development, victorsf/production)
     'prefix' => env('FILESYSTEM_PREFIX', 'development'),
-    'public_url' => env('FILESYSTEM_PUBLIC_URL', env('R2_PUBLIC_URL', env('MINIO_PUBLIC_URL', ''))),
+    // Empty FILESYSTEM_PUBLIC_URL= in .env must not shadow R2_PUBLIC_URL / MINIO_PUBLIC_URL.
+    'public_url' => (string) (env('FILESYSTEM_PUBLIC_URL') ?: env('R2_PUBLIC_URL') ?: env('MINIO_PUBLIC_URL') ?: ''),
     'storage' => [
         'minio' => $s3Options(
             'MINIO_ACCESS_KEY_ID',

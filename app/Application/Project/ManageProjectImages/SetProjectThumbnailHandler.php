@@ -62,9 +62,11 @@ final class SetProjectThumbnailHandler
     private function resolveStoragePath(Upload $upload, string $field): string
     {
         if ($field === 'thumbnail') {
-            return $upload->thumbnailPath() ?? $upload->webpPath() ?? $upload->path();
+            return $upload->thumbnailPath() ?? $upload->path();
         }
 
-        return $upload->webpPath() ?? $upload->path();
+        // Prefer the optimized master file (jpg/png). Full-size .webp may be missing when
+        // encoding/write partially fails, while the original optimized path remains valid.
+        return $upload->path();
     }
 }
