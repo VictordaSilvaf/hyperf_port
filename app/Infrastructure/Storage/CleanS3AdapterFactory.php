@@ -34,6 +34,19 @@ final class CleanS3AdapterFactory implements AdapterFactoryInterface
             throw new InvalidArgumentException('S3/R2 bucket_name is required.');
         }
 
+        $key = (string) ($options['credentials']['key'] ?? '');
+        $secret = (string) ($options['credentials']['secret'] ?? '');
+        if ($key === '' || $secret === '') {
+            throw new InvalidArgumentException(
+                'S3/R2 credentials are empty. Set R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY (or MINIO_*).',
+            );
+        }
+
+        $endpoint = (string) ($options['endpoint'] ?? '');
+        if ($endpoint === '') {
+            throw new InvalidArgumentException('S3/R2 endpoint is empty. Set R2_ENDPOINT or MINIO_ENDPOINT.');
+        }
+
         unset($options['driver'], $options['bucket_name']);
         $options['http_handler'] = new GuzzleHandler(new Client([
             'handler' => HandlerStack::create(new CoroutineHandler()),

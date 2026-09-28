@@ -34,6 +34,9 @@ $s3Options = static function (
         'use_path_style_endpoint' => $pathStyle,
         'endpoint' => env($endpointEnv, ''),
         'bucket_name' => env($bucketEnv, ''),
+        // aws-sdk-php ≥ 3.337 defaults break Cloudflare R2 (x-amz-checksum-crc32 NotImplemented).
+        'request_checksum_calculation' => 'when_required',
+        'response_checksum_validation' => 'when_required',
     ];
 };
 

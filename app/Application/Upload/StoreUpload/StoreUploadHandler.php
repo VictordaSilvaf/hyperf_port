@@ -46,9 +46,22 @@ final class StoreUploadHandler
             $this->logger->error('Object storage write failed: ' . $exception->getMessage(), [
                 'path' => $path,
                 'bytes' => strlen($command->contents),
+                'previous' => $exception->getPrevious()?->getMessage(),
             ]);
+
+            $detail = trim($exception->getMessage());
+            $previous = $exception->getPrevious();
+            while ($previous instanceof Throwable) {
+                $prevMsg = trim($previous->getMessage());
+                if ($prevMsg !== '' && ! str_contains($detail, $prevMsg)) {
+                    $detail .= ($detail !== '' ? ' — ' : '') . $prevMsg;
+                }
+                $previous = $previous->getPrevious();
+            }
+
             throw new RuntimeException(
-                'Object storage write failed. Check FILESYSTEM_DRIVER / R2_* credentials and endpoint.',
+                'Object storage write failed'
+                . ($detail !== '' ? ': ' . $detail : '. Check FILESYSTEM_DRIVER / R2_* credentials and endpoint.'),
                 0,
                 $exception,
             );
