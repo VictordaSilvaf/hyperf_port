@@ -9,12 +9,14 @@ declare(strict_types=1);
  * @contact  victordasilvafernandes@gmail.com
  * @see      https://github.com/VictordaSilvaf/hyperf_port.git
  */
-use App\Presentation\Http\Middleware\CorsMiddleware;
-use Hyperf\Validation\Middleware\ValidationMiddleware;
+use function Hyperf\Support\env;
 
 return [
-    'http' => [
-        CorsMiddleware::class,
-        ValidationMiddleware::class,
+    'cors' => [
+        'origins' => env(
+            'CORS_ORIGINS',
+            'https://victorsf.com,https://www.victorsf.com,http://localhost:5173',
+        ),
+        'allow_credentials' => filter_var(env('CORS_ALLOW_CREDENTIALS', 'false'), FILTER_VALIDATE_BOOLEAN),
     ],
 ];

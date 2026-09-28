@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace App\Application\Project\ListProjects;
 
 use App\Application\Project\ProjectPublicCacheInterface;
+use App\Application\Project\Shared\ProjectMediaUrls;
 use App\Domain\Project\Repository\ProjectRepositoryInterface;
 use App\Domain\Project\ValueObject\ProjectListFilter;
 use App\Domain\Project\ValueObject\ProjectStatus;
@@ -22,6 +23,7 @@ final class ListProjectsHandler
     public function __construct(
         private readonly ProjectRepositoryInterface $projects,
         private readonly ProjectPublicCacheInterface $cache,
+        private readonly ProjectMediaUrls $mediaUrls,
     ) {
     }
 
@@ -36,7 +38,7 @@ final class ListProjectsHandler
         }
 
         $result = $this->projects->paginate($filter);
-        $payload = ['data' => $result['items'], 'meta' => [
+        $payload = ['data' => $this->mediaUrls->enrichMany($result['items']), 'meta' => [
             'total' => $result['total'],
             'page' => $filter->page,
             'per_page' => $filter->perPage,

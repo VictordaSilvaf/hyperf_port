@@ -14,6 +14,7 @@ namespace App\Application\Contact\SubmitContactMessage;
 
 use App\Application\Contact\ContactCaptchaVerifierInterface;
 use App\Application\Contact\ContactMessageNotifierInterface;
+use App\Application\Contact\ContactRateLimiterInterface;
 use App\Domain\Contact\Entity\ContactMessage;
 use App\Domain\Contact\Exception\ContactCaptchaFailedException;
 use App\Domain\Contact\Repository\ContactMessageRepositoryInterface;
@@ -28,6 +29,7 @@ final class SubmitContactMessageHandler
         private readonly SiteSettingsRepositoryInterface $settings,
         private readonly ContactMessageNotifierInterface $notifier,
         private readonly ContactCaptchaVerifierInterface $captcha,
+        private readonly ContactRateLimiterInterface $rateLimiter,
         private readonly ConfigInterface $config,
         private readonly StdoutLoggerInterface $logger,
     ) {
@@ -35,6 +37,8 @@ final class SubmitContactMessageHandler
 
     public function handle(SubmitContactMessageCommand $command): void
     {
+        $this->rateLimiter->hit($command->ipAddress);
+
         $token = trim((string) ($command->captchaToken ?? ''));
         if (! $this->captcha->verify($token, $command->ipAddress)) {
             throw ContactCaptchaFailedException::invalid();

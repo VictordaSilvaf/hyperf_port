@@ -20,6 +20,8 @@ use App\Application\Contact\UpdateContactMessageStatus\UpdateContactMessageStatu
 use App\Application\Contact\UpdateContactMessageStatus\UpdateContactMessageStatusHandler;
 use App\Domain\Contact\Exception\ContactCaptchaFailedException;
 use App\Domain\Contact\Exception\ContactMessageNotFoundException;
+use App\Domain\Contact\Exception\ContactRateLimitedException;
+use App\Infrastructure\Contact\ArrayContactRateLimiter;
 use App\Infrastructure\Mail\NoOpContactMessageNotifier;
 use App\Infrastructure\Persistence\Contact\InMemoryContactMessageRepository;
 use App\Infrastructure\Persistence\Site\InMemorySiteSettingsRepository;
@@ -29,11 +31,22 @@ use Hyperf\Contract\StdoutLoggerInterface;
 
 class ContactTestConfig implements ConfigInterface
 {
+    /** @param array<string, mixed> $overrides */
+    public function __construct(private readonly array $overrides = [])
+    {
+    }
+
     public function get(string $key, mixed $default = null): mixed
     {
+        if (array_key_exists($key, $this->overrides)) {
+            return $this->overrides[$key];
+        }
+
         return match ($key) {
             'mail.contact_to' => 'admin@example.com',
             'contact.turnstile.enabled' => false,
+            'contact.rate_limit.max' => 5,
+            'contact.rate_limit.window_seconds' => 300,
             default => $default,
         };
     }
@@ -115,13 +128,14 @@ function contactFixtures(): array
     $captcha = new NoOpContactCaptchaVerifier();
     $config = new ContactTestConfig();
     $logger = new ContactTestLogger();
+    $rateLimiter = new ArrayContactRateLimiter($config);
 
-    $submit = new SubmitContactMessageHandler($messages, $settings, $notifier, $captcha, $config, $logger);
+    $submit = new SubmitContactMessageHandler($messages, $settings, $notifier, $captcha, $rateLimiter, $config, $logger);
     $list = new ListContactMessagesHandler($messages);
     $get = new GetContactMessageHandler($messages);
     $update = new UpdateContactMessageStatusHandler($messages);
 
-    return compact('messages', 'settings', 'notifier', 'captcha', 'config', 'logger', 'submit', 'list', 'get', 'update');
+    return compact('messages', 'settings', 'notifier', 'captcha', 'config', 'logger', 'rateLimiter', 'submit', 'list', 'get', 'update');
 }
 
 test('submit contact message persists and notifies', function () {
@@ -152,6 +166,7 @@ test('submit contact message rejects failed captcha', function () {
         $fixtures['settings'],
         $fixtures['notifier'],
         new FailingContactCaptchaVerifier(),
+        $fixtures['rateLimiter'],
         $fixtures['config'],
         $fixtures['logger'],
     );
@@ -166,6 +181,52 @@ test('submit contact message rejects failed captcha', function () {
         userAgent: null,
     ));
 })->throws(ContactCaptchaFailedException::class);
+
+test('contact rate limiter blocks after max hits', function () {
+    $config = new ContactTestConfig([
+        'contact.rate_limit.max' => 2,
+        'contact.rate_limit.window_seconds' => 300,
+    ]);
+    $limiter = new ArrayContactRateLimiter($config);
+
+    $limiter->hit('10.0.0.1');
+    $limiter->hit('10.0.0.1');
+
+    expect(fn () => $limiter->hit('10.0.0.1'))->toThrow(ContactRateLimitedException::class);
+    $limiter->hit('10.0.0.2');
+});
+
+test('submit contact message respects rate limit', function () {
+    $config = new ContactTestConfig([
+        'contact.rate_limit.max' => 1,
+        'contact.rate_limit.window_seconds' => 300,
+        'mail.contact_to' => 'admin@example.com',
+        'contact.turnstile.enabled' => false,
+    ]);
+    $messages = new InMemoryContactMessageRepository();
+    $submit = new SubmitContactMessageHandler(
+        $messages,
+        new InMemorySiteSettingsRepository(),
+        new NoOpContactMessageNotifier(),
+        new NoOpContactCaptchaVerifier(),
+        new ArrayContactRateLimiter($config),
+        $config,
+        new ContactTestLogger(),
+    );
+
+    $command = new SubmitContactMessageCommand(
+        'Jane',
+        'jane@example.com',
+        null,
+        'First message body.',
+        null,
+        '192.168.1.10',
+        null,
+    );
+    $submit->handle($command);
+
+    expect(fn () => $submit->handle($command))->toThrow(ContactRateLimitedException::class);
+});
 
 test('list contact messages filters by status', function () {
     $fixtures = contactFixtures();

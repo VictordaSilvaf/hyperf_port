@@ -28,6 +28,16 @@ O código HTTP segue o definido pela excepção de validação do Hyperf (tipica
 
 A configuração `debug` em `config/config.php` reflecte `APP_DEBUG`. Quando `APP_DEBUG=true`, respostas **500** podem incluir `message` detalhada, `exception`, `file`, `line` e `trace`. Em produção, mantém-se uma mensagem genérica (`Internal Server Error.`). Ver `app/Presentation/Http/Exception/Handler/AppExceptionHandler.php`.
 
+### CORS
+
+Pedidos cross-origin do browser (ex. `https://victorsf.com` → `https://api.victorsf.com`) exigem CORS.
+
+- Origins permitidas: env `CORS_ORIGINS` (lista separada por vírgulas). Default de desenvolvimento: `https://victorsf.com,https://www.victorsf.com,http://localhost:5173`.
+- Methods: `GET, POST, PUT, PATCH, DELETE, OPTIONS`
+- Headers: `Content-Type, Authorization, Accept, Origin`
+- Preflight `OPTIONS` → **204** (sem passar ao controller), com `Access-Control-Allow-*` quando o `Origin` está na lista.
+- `CORS_ALLOW_CREDENTIALS=true` só se o front enviar cookies (default `false`).
+
 ### Autenticação Bearer
 
 Rotas marcadas como **autenticadas** exigem o cabeçalho:
@@ -368,6 +378,8 @@ Perfil público por ID (UUID).
 
 ## Projetos (público)
 
+Mídia: `thumbnail` / `cover` continuam paths relativos; respostas incluem também `thumbnail_url` / `cover_url` absolutos quando `R2_PUBLIC_URL` ou `FILESYSTEM_PUBLIC_URL` está definido.
+
 ### `GET` — `/api/v1/projects`
 
 Lista projetos **publicados**, ordenados por `sort_order`.
@@ -423,6 +435,8 @@ Configurações globais do site: `nav`, `footer`, `social`, `branding`, `seo` (d
 ### `POST` — `/api/v1/contact`
 
 Envia mensagem de contacto. Resposta **sempre genérica** (anti-enumeração), mesmo se o captcha falhar.
+
+**Rate limit:** por IP (`CONTACT_RATE_LIMIT_MAX` / `CONTACT_RATE_LIMIT_WINDOW_SECONDS`, default 5 / 300s). Store Redis quando `APP_AUTH_RESET_STORE=redis`; senão array in-process. Excede → **429** `{ "message": "..." }`.
 
 **Body**
 

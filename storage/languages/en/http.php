@@ -50,6 +50,7 @@ return [
     'invalid_block_payload' => 'Invalid block payload.',
     'site_settings_updated' => 'Site settings updated.',
     'contact_submitted' => 'Thank you for your message. We will get back to you soon.',
+    'contact_rate_limited' => 'Too many contact requests. Please try again later.',
     'contact_message_not_found' => 'Contact message not found.',
     'post_not_found' => 'Post not found.',
     'post_created' => 'Post created.',

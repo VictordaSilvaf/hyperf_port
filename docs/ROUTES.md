@@ -717,6 +717,8 @@ GET /api/v1/projects?search=react&sort=published_at&direction=desc
 
 **Resposta 200**
 
+Lista paginada. Cada item inclui `thumbnail` / `cover` (paths relativos no storage) e, quando `R2_PUBLIC_URL` ou `FILESYSTEM_PUBLIC_URL` está definido, também `thumbnail_url` / `cover_url` (URLs absolutas CDN).
+
 ```json
 {
   "data": [ "ProjectSummary..." ],
@@ -734,6 +736,8 @@ GET /api/v1/projects?search=react&sort=published_at&direction=desc
 | Auth | Não |
 
 Incrementa contador de views (Redis → flush assíncrono para PostgreSQL).
+
+Inclui `thumbnail` / `cover` (paths) e `thumbnail_url` / `cover_url` (absolutos se CDN configurado). `images[].url` já é absoluto quando o upload tem URL pública.
 
 **Resposta 200**
 

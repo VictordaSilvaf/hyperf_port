@@ -18,5 +18,9 @@ return [
             'site_key' => env('TURNSTILE_SITE_KEY', ''),
             'secret_key' => env('TURNSTILE_SECRET_KEY', ''),
         ],
+        'rate_limit' => [
+            'max' => (int) env('CONTACT_RATE_LIMIT_MAX', 5),
+            'window_seconds' => (int) env('CONTACT_RATE_LIMIT_WINDOW_SECONDS', 300),
+        ],
     ],
 ];

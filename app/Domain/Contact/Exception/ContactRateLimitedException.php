@@ -9,12 +9,15 @@ declare(strict_types=1);
  * @contact  victordasilvafernandes@gmail.com
  * @see      https://github.com/VictordaSilvaf/hyperf_port.git
  */
-use App\Presentation\Http\Middleware\CorsMiddleware;
-use Hyperf\Validation\Middleware\ValidationMiddleware;
 
-return [
-    'http' => [
-        CorsMiddleware::class,
-        ValidationMiddleware::class,
-    ],
-];
+namespace App\Domain\Contact\Exception;
+
+use App\Domain\Shared\DomainException;
+
+final class ContactRateLimitedException extends DomainException
+{
+    public static function exceeded(): self
+    {
+        return new self('Contact form rate limit exceeded.');
+    }
+}

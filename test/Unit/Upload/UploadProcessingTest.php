@@ -48,8 +48,12 @@ final class InMemoryObjectStorage implements ObjectStorageInterface
         return isset($this->files[$path]);
     }
 
-    public function publicUrl(string $path): ?string
+    public function publicUrl(?string $path): ?string
     {
+        if ($path === null || $path === '') {
+            return null;
+        }
+
         return 'https://cdn.test/' . ltrim($path, '/');
     }
 }

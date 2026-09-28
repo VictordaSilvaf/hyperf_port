@@ -45,8 +45,12 @@ final class FlysystemObjectStorage implements ObjectStorageInterface
         return $this->disk()->fileExists($this->normalizePath($path));
     }
 
-    public function publicUrl(string $path): ?string
+    public function publicUrl(?string $path): ?string
     {
+        if ($path === null || $path === '') {
+            return null;
+        }
+
         $base = (string) $this->config->get('file.public_url', '');
         if ($base === '') {
             return null;

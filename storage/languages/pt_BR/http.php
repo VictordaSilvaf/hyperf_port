@@ -50,6 +50,7 @@ return [
     'invalid_block_payload' => 'Payload de bloco inválido.',
     'site_settings_updated' => 'Configurações do site atualizadas.',
     'contact_submitted' => 'Obrigado pela sua mensagem. Entraremos em contacto em breve.',
+    'contact_rate_limited' => 'Demasiados pedidos de contacto. Tente novamente mais tarde.',
     'contact_message_not_found' => 'Mensagem de contacto não encontrada.',
     'post_not_found' => 'Post não encontrado.',
     'post_created' => 'Post criado.',

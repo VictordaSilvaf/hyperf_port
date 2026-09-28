@@ -15,11 +15,13 @@ namespace App\Presentation\Http\Controllers\Public;
 use App\Application\Contact\SubmitContactMessage\SubmitContactMessageCommand;
 use App\Application\Contact\SubmitContactMessage\SubmitContactMessageHandler;
 use App\Domain\Contact\Exception\ContactCaptchaFailedException;
+use App\Domain\Contact\Exception\ContactRateLimitedException;
 use App\Presentation\Http\Controllers\AbstractController;
 use App\Presentation\Http\OpenApi\OpenApiRefs;
 use App\Presentation\Http\Requests\Public\SubmitContactRequest;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\Swagger\Annotation as SA;
+use Psr\Http\Message\ResponseInterface as PsrResponseInterface;
 
 use function Hyperf\Translation\trans;
 
@@ -33,7 +35,8 @@ final class ContactController extends AbstractController
     #[SA\RequestBody(required: true, content: new SA\JsonContent(ref: '#/components/schemas/SubmitContactRequest'))]
     #[SA\Response(response: 200, description: 'Aceite (genérico)', content: new SA\JsonContent(ref: OpenApiRefs::MESSAGE))]
     #[SA\Response(response: 422, description: 'Validação', content: new SA\JsonContent(ref: OpenApiRefs::VALIDATION))]
-    public function submit(SubmitContactRequest $request): array
+    #[SA\Response(response: 429, description: 'Rate limit', content: new SA\JsonContent(ref: OpenApiRefs::ERR))]
+    public function submit(SubmitContactRequest $request): array|PsrResponseInterface
     {
         $data = $request->validated();
 
@@ -47,6 +50,8 @@ final class ContactController extends AbstractController
                 ipAddress: $this->request->getServerParams()['remote_addr'] ?? null,
                 userAgent: $this->request->getHeaderLine('user-agent') ?: null,
             ));
+        } catch (ContactRateLimitedException) {
+            return $this->response->json(['message' => trans('http.contact_rate_limited')])->withStatus(429);
         } catch (ContactCaptchaFailedException) {
             // Anti-enumeration: same generic response as success.
         }

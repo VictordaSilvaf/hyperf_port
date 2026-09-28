@@ -607,11 +607,18 @@ Health (via Nginx): `https://api.seudominio.com/api/v1/health/live` e `/api/v1/h
 - [ ] `APP_DEBUG=false`, `SWAGGER_ENABLE=false`, `APP_ENV=prod`
 - [ ] `APP_AUTH_SECRET` e `DB_PASSWORD` fortes e únicos
 - [ ] `APP_USER_REPOSITORY=db`, `APP_AUTH_RESET_STORE=redis`
-- [ ] `FILESYSTEM_DRIVER=r2` + credenciais R2; SMTP real (sem Mailpit)
-- [ ] `TURNSTILE_ENABLED=true` com chaves válidas
-- [ ] DNS do domínio a apontar para o VPS; certificados em `deploy/nginx/certs/`
+- [ ] `FILESYSTEM_DRIVER=r2` + credenciais R2; `R2_PUBLIC_URL` (CDN) definido
+- [ ] `CORS_ORIGINS` com o domínio do front (ex. `https://victorsf.com,https://www.victorsf.com`)
+- [ ] SMTP real (sem Mailpit); `TURNSTILE_ENABLED=true` com chaves válidas
+- [ ] DNS do domínio a apontar para o VPS; certificados / reverse proxy (Caddy/Nginx)
 - [ ] Após `migrate`: **alterar ou remover** utilizadores seed de desenvolvimento
+- [ ] Admin: preencher site settings (SEO, contact, social, `notification_email`)
+- [ ] Admin: ≥1 projeto `published` com cover/thumbnail
+- [ ] Smoke: `API_BASE=https://api.victorsf.com ADMIN_EMAIL=... ADMIN_PASSWORD=... ./scripts/smoke-frontend-api.sh`
+- [ ] Front: `VITE_API_URL=https://api.victorsf.com` (usar `thumbnail_url` / `cover_url` da API; `VITE_MEDIA_URL` opcional)
 - [ ] Backup periódico do volume `postgres_data`
+
+Checklist detalhado (contacto + front): [docs/CONTACT_FRONTEND.md](docs/CONTACT_FRONTEND.md#checklist-operacional-frontend).
 
 ---
 
@@ -622,9 +629,11 @@ Health (via Nginx): `https://api.seudominio.com/api/v1/health/live` e `/api/v1/h
 | **Swagger UI**                     | http://127.0.0.1:9500/swagger — OpenAPI interactivo (porta `SWAGGER_PORT`)     |
 | [docs/ROUTES.md](docs/ROUTES.md)   | Referência completa de rotas (auth, RBAC, **projetos**, **uploads**, taxonomias), bodies JSON e permissões |
 | [docs/postman/README.md](docs/postman/README.md) | **Postman** — collection, environments, Runner e Newman |
+| [docs/CONTACT_FRONTEND.md](docs/CONTACT_FRONTEND.md) | Integração contacto + **checklist frontend** (CORS, CDN, smoke) |
 | [docs/API.md](docs/API.md)         | Rotas `/api`, corpos, validações, códigos HTTP, exemplos `curl`, autenticação |
 | [docs/PROJECT.md](docs/PROJECT.md) | Camadas DDD/hexagonal, regras de dependência, convenções, fluxo de pedidos    |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Git Flow, commits, hooks, checklist de PR                                     |
+| [`scripts/smoke-frontend-api.sh`](scripts/smoke-frontend-api.sh) | Smoke curl: health, settings, project, contact, CORS |
 
 Após alterar atributos OpenAPI nos controllers: `hyper php bin/hyperf.php gen:swagger` (ou `SWAGGER_AUTO_GENERATE=true` no restart). Desligue em produção com `SWAGGER_ENABLE=false`.
 

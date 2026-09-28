@@ -181,7 +181,7 @@ test('public list only includes published projects', function () {
     seedPublishedProject($fixtures, projectCreateCommand('Public One', 'public-one'));
     seedProject($fixtures, projectCreateCommand('Draft Two', 'draft-two'));
 
-    $list = new ListProjectsHandler($fixtures['repo'], $fixtures['cache']);
+    $list = new ListProjectsHandler($fixtures['repo'], $fixtures['cache'], $fixtures['mediaUrls']);
     $public = $list->handle(new ProjectListFilter(publicOnly: true));
     $admin = $list->handle(new ProjectListFilter());
 

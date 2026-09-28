@@ -9,12 +9,15 @@ declare(strict_types=1);
  * @contact  victordasilvafernandes@gmail.com
  * @see      https://github.com/VictordaSilvaf/hyperf_port.git
  */
-use App\Presentation\Http\Middleware\CorsMiddleware;
-use Hyperf\Validation\Middleware\ValidationMiddleware;
 
-return [
-    'http' => [
-        CorsMiddleware::class,
-        ValidationMiddleware::class,
-    ],
-];
+namespace App\Application\Contact;
+
+use App\Domain\Contact\Exception\ContactRateLimitedException;
+
+interface ContactRateLimiterInterface
+{
+    /**
+     * @throws ContactRateLimitedException
+     */
+    public function hit(?string $ipAddress): void;
+}

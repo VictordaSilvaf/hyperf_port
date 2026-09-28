@@ -117,6 +117,8 @@ async function submitContact(form: {
 
 Se o utilizador (ou bot) preencher `website`, a API responde **422**.
 
+Após demasiados envios do mesmo IP (default 5 / 5 min), a API responde **429** `{ "message": "..." }` — trate no UI com retry.
+
 ### 2.4 Cloudflare Turnstile (recomendado em produção)
 
 1. Criar widget no [Cloudflare Dashboard](https://dash.cloudflare.com/) → Turnstile.
@@ -219,13 +221,39 @@ Também aceita `{ "status": "read" }`.
 | `TURNSTILE_ENABLED` | `true` em produção |
 | `TURNSTILE_SECRET_KEY` | Segredo server-side |
 | `TURNSTILE_SITE_KEY` | Chave pública (também no frontend) |
+| `CONTACT_RATE_LIMIT_MAX` | Máx. pedidos por IP (default `5`) |
+| `CONTACT_RATE_LIMIT_WINDOW_SECONDS` | Janela em segundos (default `300`) |
+| `CORS_ORIGINS` | Origins do front (vírgulas) |
+| `R2_PUBLIC_URL` / `FILESYSTEM_PUBLIC_URL` | Base CDN para `thumbnail_url` / `cover_url` |
 
 ### Frontend
 
 | Variável | Descrição |
 |----------|-----------|
-| `NEXT_PUBLIC_API_URL` | Base da API |
+| `VITE_API_URL` / `NEXT_PUBLIC_API_URL` | Base da API (ex. `https://api.victorsf.com`) |
+| `VITE_MEDIA_URL` | Opcional se o front montar URLs a partir de paths; preferir `*_url` da API |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Site key Turnstile |
+
+---
+
+## Checklist operacional (frontend)
+
+1. Definir `CORS_ORIGINS` e `R2_PUBLIC_URL` no VPS; restart API
+2. Admin: preencher settings (seo / contact / social / `notification_email`)
+3. Admin: upload + ≥1 projeto `published` com cover
+4. Confirmar SMTP / Turnstile se activos
+5. Correr smoke:
+
+```bash
+API_BASE=https://api.victorsf.com \
+ADMIN_EMAIL=admin@… \
+ADMIN_PASSWORD='…' \
+./scripts/smoke-frontend-api.sh
+```
+
+6. Ligar front (`VITE_API_URL=https://api.victorsf.com`)
+
+`social` na API é um **objecto** (não array) — mapeie chaves (`github`, `linkedin`, …) no front.
 
 ---
 

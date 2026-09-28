@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace App\Application\Project\GetRelatedProjects;
 
+use App\Application\Project\Shared\ProjectMediaUrls;
 use App\Domain\Project\Exception\ProjectNotFoundException;
 use App\Domain\Project\Repository\ProjectRepositoryInterface;
 use App\Domain\Project\ValueObject\ProjectId;
@@ -19,8 +20,10 @@ use App\Domain\Project\ValueObject\ProjectSlug;
 
 final class GetRelatedProjectsHandler
 {
-    public function __construct(private readonly ProjectRepositoryInterface $projects)
-    {
+    public function __construct(
+        private readonly ProjectRepositoryInterface $projects,
+        private readonly ProjectMediaUrls $mediaUrls,
+    ) {
     }
 
     public function handle(string $slug): array
@@ -30,6 +33,8 @@ final class GetRelatedProjectsHandler
             throw ProjectNotFoundException::bySlug($slug);
         }
 
-        return ['data' => $this->projects->relatedPublished(ProjectId::fromString($project->id()->value()))];
+        return ['data' => $this->mediaUrls->enrichMany(
+            $this->projects->relatedPublished(ProjectId::fromString($project->id()->value())),
+        )];
     }
 }

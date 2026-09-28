@@ -22,7 +22,9 @@ use App\Application\Page\RestorePage\RestorePageHandler;
 use App\Application\Page\Shared\PagePresenter;
 use App\Application\Page\SyncPageBlocks\SyncPageBlocksHandler;
 use App\Application\Page\UpdatePage\UpdatePageHandler;
+use App\Application\Project\Shared\ProjectMediaUrls;
 use App\Application\Project\Shared\ProjectPresenter;
+use App\Application\Storage\ObjectStorageInterface;
 use App\Domain\Page\ValueObject\PageId;
 use App\Domain\Upload\Entity\Upload;
 use App\Infrastructure\Cache\ArrayPagePublicCache;
@@ -36,6 +38,36 @@ use App\Infrastructure\Persistence\Technology\InMemoryTechnologyRepository;
 use App\Infrastructure\Persistence\Upload\InMemoryUploadRepository;
 
 const PAGE_TEST_UPLOAD_ID = 'a0000001-0000-4000-8000-000000000010';
+
+final class PageTestObjectStorage implements ObjectStorageInterface
+{
+    public function write(string $path, string $contents): void
+    {
+    }
+
+    public function read(string $path): string
+    {
+        return '';
+    }
+
+    public function delete(string $path): void
+    {
+    }
+
+    public function exists(string $path): bool
+    {
+        return false;
+    }
+
+    public function publicUrl(?string $path): ?string
+    {
+        if ($path === null || $path === '') {
+            return null;
+        }
+
+        return 'https://cdn.test/' . ltrim($path, '/');
+    }
+}
 
 /**
  * @return array{
@@ -73,6 +105,7 @@ function pageFixtures(): array
         new InMemoryTechnologyRepository(),
         new InMemoryTagRepository(),
         $uploads,
+        new ProjectMediaUrls(new PageTestObjectStorage()),
     );
 
     $presenter = new PagePresenter(

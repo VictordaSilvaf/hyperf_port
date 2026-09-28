@@ -28,6 +28,7 @@ final class ProjectPresenter
         private readonly TechnologyRepositoryInterface $technologies,
         private readonly TagRepositoryInterface $tags,
         private readonly UploadRepositoryInterface $uploads,
+        private readonly ProjectMediaUrls $mediaUrls,
     ) {
     }
 
@@ -49,6 +50,9 @@ final class ProjectPresenter
             ];
         }
 
+        $thumbnail = $project->thumbnailPath();
+        $cover = $project->coverPath();
+
         return [
             'id' => $id->value(),
             'title' => $project->title(),
@@ -57,8 +61,10 @@ final class ProjectPresenter
             'content' => $project->content(),
             'repository_url' => $project->repositoryUrl(),
             'demo_url' => $project->demoUrl(),
-            'thumbnail' => $project->thumbnailPath(),
-            'cover' => $project->coverPath(),
+            'thumbnail' => $thumbnail,
+            'cover' => $cover,
+            'thumbnail_url' => $this->mediaUrls->absolute($thumbnail),
+            'cover_url' => $this->mediaUrls->absolute($cover),
             'status' => $project->status()->value,
             'featured' => $project->featured(),
             'published_at' => $project->publishedAt()?->format(DATE_ATOM),

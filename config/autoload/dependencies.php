@@ -15,6 +15,7 @@ use App\Application\Auth\PasswordReset\PasswordResetNotifierInterface;
 use App\Application\Auth\PasswordReset\PasswordResetTokenStoreInterface;
 use App\Application\Contact\ContactCaptchaVerifierInterface;
 use App\Application\Contact\ContactMessageNotifierInterface;
+use App\Application\Contact\ContactRateLimiterInterface;
 use App\Application\Health\GetHealth\GetHealthHandler;
 use App\Application\Page\BlockRegistryInterface;
 use App\Application\Page\PagePublicCacheInterface;
@@ -53,6 +54,8 @@ use App\Infrastructure\Cache\RedisPasswordResetTokenStore;
 use App\Infrastructure\Cache\RedisProjectPublicCache;
 use App\Infrastructure\Cache\RedisProjectViewCounter;
 use App\Infrastructure\Cache\RedisSitePublicCache;
+use App\Infrastructure\Contact\ArrayContactRateLimiter;
+use App\Infrastructure\Contact\RedisContactRateLimiter;
 use App\Infrastructure\Event\NoOpDomainEventPublisher;
 use App\Infrastructure\Health\ApplicationHealthProbe;
 use App\Infrastructure\Health\DatabaseHealthProbe;
@@ -252,6 +255,10 @@ return [
 
         return $container->get(NoOpContactCaptchaVerifier::class);
     },
+
+    ContactRateLimiterInterface::class => env('APP_AUTH_RESET_STORE', 'array') === 'redis'
+        ? RedisContactRateLimiter::class
+        : ArrayContactRateLimiter::class,
 
     ObjectStorageInterface::class => FlysystemObjectStorage::class,
 

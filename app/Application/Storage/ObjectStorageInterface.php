@@ -22,5 +22,8 @@ interface ObjectStorageInterface
 
     public function exists(string $path): bool;
 
-    public function publicUrl(string $path): ?string;
+    /**
+     * Absolute public CDN/base URL for a storage path, or null if unset / empty path.
+     */
+    public function publicUrl(?string $path): ?string;
 }

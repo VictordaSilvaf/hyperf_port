@@ -12,8 +12,10 @@ declare(strict_types=1);
 use App\Application\Project\CreateProject\CreateProjectCommand;
 use App\Application\Project\CreateProject\CreateProjectHandler;
 use App\Application\Project\PublishProject\PublishProjectHandler;
+use App\Application\Project\Shared\ProjectMediaUrls;
 use App\Application\Project\Shared\ProjectPresenter;
 use App\Application\Shared\PublicContentCacheInvalidatorInterface;
+use App\Application\Storage\ObjectStorageInterface;
 use App\Domain\Project\ValueObject\ProjectId;
 use App\Domain\Upload\Entity\Upload;
 use App\Infrastructure\Cache\ArrayProjectPublicCache;
@@ -39,6 +41,36 @@ final class NoOpPublicContentCacheInvalidator implements PublicContentCacheInval
     }
 }
 
+final class TestObjectStorage implements ObjectStorageInterface
+{
+    public function write(string $path, string $contents): void
+    {
+    }
+
+    public function read(string $path): string
+    {
+        return '';
+    }
+
+    public function delete(string $path): void
+    {
+    }
+
+    public function exists(string $path): bool
+    {
+        return false;
+    }
+
+    public function publicUrl(?string $path): ?string
+    {
+        if ($path === null || $path === '') {
+            return null;
+        }
+
+        return 'https://cdn.test/' . ltrim($path, '/');
+    }
+}
+
 /**
  * @return array{
  *     repo: InMemoryProjectRepository,
@@ -47,6 +79,7 @@ final class NoOpPublicContentCacheInvalidator implements PublicContentCacheInval
  *     viewCounter: ArrayProjectViewCounter,
  *     uploads: InMemoryUploadRepository,
  *     presenter: ProjectPresenter,
+ *     mediaUrls: ProjectMediaUrls,
  *     create: CreateProjectHandler,
  *     publish: PublishProjectHandler,
  * }
@@ -58,17 +91,19 @@ function projectFixtures(): array
     $cacheInvalidator = new NoOpPublicContentCacheInvalidator();
     $viewCounter = new ArrayProjectViewCounter();
     $uploads = new InMemoryUploadRepository();
+    $mediaUrls = new ProjectMediaUrls(new TestObjectStorage());
     $presenter = new ProjectPresenter(
         $repo,
         new InMemoryCategoryRepository(),
         new InMemoryTechnologyRepository(),
         new InMemoryTagRepository(),
         $uploads,
+        $mediaUrls,
     );
     $create = new CreateProjectHandler($repo, $cache, $cacheInvalidator, $presenter);
     $publish = new PublishProjectHandler($repo, $cache, $cacheInvalidator, $presenter);
 
-    return compact('repo', 'cache', 'cacheInvalidator', 'viewCounter', 'uploads', 'presenter', 'create', 'publish');
+    return compact('repo', 'cache', 'cacheInvalidator', 'viewCounter', 'uploads', 'presenter', 'mediaUrls', 'create', 'publish');
 }
 
 function projectCreateCommand(

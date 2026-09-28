@@ -141,9 +141,12 @@ final class InMemoryProjectRepository implements ProjectRepositoryInterface
                 'id' => $p->id()->value(),
                 'title' => $p->title(),
                 'slug' => $p->slug()->value(),
+                'description' => $p->description(),
                 'status' => $p->status()->value,
                 'featured' => $p->featured(),
                 'order' => $p->sortOrder(),
+                'thumbnail' => $p->thumbnailPath(),
+                'cover' => $p->coverPath(),
             ], $list),
         ];
     }
