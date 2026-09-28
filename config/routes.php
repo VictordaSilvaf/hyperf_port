@@ -62,10 +62,11 @@ Router::addGroup('/api/v1', function () use ($auth) {
 
     Router::addGroup('/admin', function () use ($auth) {
         Router::addGroup('/users', function () use ($auth) {
-            Router::get('/', 'App\Presentation\Http\Controllers\Admin\AdminUserController@index', [
+            // '' (not '/') so /admin/users matches without trailing slash (Hyperf/FastRoute)
+            Router::get('', 'App\Presentation\Http\Controllers\Admin\AdminUserController@index', [
                 'middleware' => $auth, 'permissions' => ['users.view'],
             ]);
-            Router::post('/', 'App\Presentation\Http\Controllers\Admin\AdminUserController@store', [
+            Router::post('', 'App\Presentation\Http\Controllers\Admin\AdminUserController@store', [
                 'middleware' => $auth, 'permissions' => ['users.create'],
             ]);
             Router::get('/{id}', 'App\Presentation\Http\Controllers\Admin\AdminUserController@show', [
@@ -106,10 +107,10 @@ Router::addGroup('/api/v1', function () use ($auth) {
             Router::patch('/order', 'App\Presentation\Http\Controllers\Admin\AdminProjectController@reorder', [
                 'middleware' => $auth, 'permissions' => ['projects.update'],
             ]);
-            Router::get('/', 'App\Presentation\Http\Controllers\Admin\AdminProjectController@index', [
+            Router::get('', 'App\Presentation\Http\Controllers\Admin\AdminProjectController@index', [
                 'middleware' => $auth, 'permissions' => ['projects.view'],
             ]);
-            Router::post('/', 'App\Presentation\Http\Controllers\Admin\AdminProjectController@store', [
+            Router::post('', 'App\Presentation\Http\Controllers\Admin\AdminProjectController@store', [
                 'middleware' => $auth, 'permissions' => ['projects.create'],
             ]);
             Router::get('/{id}', 'App\Presentation\Http\Controllers\Admin\AdminProjectController@show', [
@@ -172,10 +173,10 @@ Router::addGroup('/api/v1', function () use ($auth) {
             Router::patch('/order', 'App\Presentation\Http\Controllers\Admin\AdminPageController@reorder', [
                 'middleware' => $auth, 'permissions' => ['pages.update'],
             ]);
-            Router::get('/', 'App\Presentation\Http\Controllers\Admin\AdminPageController@index', [
+            Router::get('', 'App\Presentation\Http\Controllers\Admin\AdminPageController@index', [
                 'middleware' => $auth, 'permissions' => ['pages.view'],
             ]);
-            Router::post('/', 'App\Presentation\Http\Controllers\Admin\AdminPageController@store', [
+            Router::post('', 'App\Presentation\Http\Controllers\Admin\AdminPageController@store', [
                 'middleware' => $auth, 'permissions' => ['pages.create'],
             ]);
             Router::get('/{id}', 'App\Presentation\Http\Controllers\Admin\AdminPageController@show', [
@@ -221,7 +222,7 @@ Router::addGroup('/api/v1', function () use ($auth) {
         ]);
 
         Router::addGroup('/contact/messages', function () use ($auth) {
-            Router::get('/', 'App\Presentation\Http\Controllers\Admin\AdminContactMessageController@index', [
+            Router::get('', 'App\Presentation\Http\Controllers\Admin\AdminContactMessageController@index', [
                 'middleware' => $auth, 'permissions' => ['contact.view'],
             ]);
             Router::get('/{id}', 'App\Presentation\Http\Controllers\Admin\AdminContactMessageController@show', [

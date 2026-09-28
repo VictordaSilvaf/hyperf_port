@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace App\Presentation\Http\Exception\Handler;
 
+use App\Presentation\Http\Cors\CorsHeaderApplier;
 use Hyperf\Codec\Json;
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Contract\StdoutLoggerInterface;
@@ -63,10 +64,16 @@ class AppExceptionHandler extends ExceptionHandler
 
         $body = Json::encode($payload);
 
-        return $response
+        $response = $response
             ->setStatus(500)
             ->addHeader('content-type', 'application/json; charset=utf-8')
             ->setBody(new SwooleStream($body));
+
+        return CorsHeaderApplier::apply(
+            $response,
+            CorsHeaderApplier::allowedOriginForCurrentRequest(),
+            CorsHeaderApplier::allowCredentials($this->config),
+        );
     }
 
     public function isValid(Throwable $throwable): bool
