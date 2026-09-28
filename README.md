@@ -23,6 +23,7 @@ O fluxo de desenvolvimento **recomendado** é **100% via Docker**, usando a CLI 
 - [Testes e qualidade](#testes-e-qualidade)
 - [Git Flow, commits e hooks](#git-flow-commits-e-hooks)
 - [Desenvolvimento local (sem Docker)](#desenvolvimento-local-sem-docker)
+- [Produção (VPS + Compose)](#produção-vps--compose)
 - [Documentação](#documentação)
 - [Estrutura do repositório](#estrutura-do-repositório)
 - [Licença](#licença)
@@ -564,6 +565,54 @@ Detalhes: [documentação Hyperf](https://hyperf.wiki).
 
 ---
 
+## Produção (VPS + Compose)
+
+Stack de produção: **API** ([`Dockerfile`](Dockerfile)) + **PostgreSQL** + **Redis** + **Nginx** (TLS). Storage via **Cloudflare R2**; e-mail via SMTP real. Não use o compose de desenvolvimento (`docker-compose.yml` / MinIO / Mailpit / Swagger).
+
+| Ficheiro | Função |
+|----------|--------|
+| [`.env.production.example`](.env.production.example) | Template endurecido (`APP_DEBUG=false`, Swagger off, R2, Turnstile) |
+| [`docker-compose.prod.yml`](docker-compose.prod.yml) | Serviços `api`, `postgres`, `redis`, `nginx` |
+| [`deploy/nginx/`](deploy/nginx/) | Proxy HTTPS → `api:9501` |
+
+### Arranque
+
+```bash
+cp .env.production.example .env.production
+# Editar .env.production: APP_AUTH_SECRET, DB_PASSWORD, R2_*, SMTP, Turnstile, APP_URL
+
+# Certificados TLS (Let's Encrypt no host, ou self-signed para smoke):
+# sudo certbot certonly --standalone -d api.seudominio.com
+# cp fullchain.pem privkey.pem → deploy/nginx/certs/
+# Ou smoke:
+openssl req -x509 -nodes -days 30 -newkey rsa:2048 \
+  -keyout deploy/nginx/certs/privkey.pem \
+  -out deploy/nginx/certs/fullchain.pem \
+  -subj "/CN=api.seudominio.com"
+
+# Ajustar server_name em deploy/nginx/conf.d/api.conf para o teu domínio
+
+docker compose --env-file .env.production -f docker-compose.prod.yml up -d --build
+docker compose --env-file .env.production -f docker-compose.prod.yml exec api php bin/hyperf.php migrate
+```
+
+Portas no host: **80** e **443** apenas. Postgres, Redis e a API (9501) não são publicados.
+
+Health (via Nginx): `https://api.seudominio.com/api/v1/health/live` e `/api/v1/health/ready`.
+
+### Checklist go-live
+
+- [ ] `APP_DEBUG=false`, `SWAGGER_ENABLE=false`, `APP_ENV=prod`
+- [ ] `APP_AUTH_SECRET` e `DB_PASSWORD` fortes e únicos
+- [ ] `APP_USER_REPOSITORY=db`, `APP_AUTH_RESET_STORE=redis`
+- [ ] `FILESYSTEM_DRIVER=r2` + credenciais R2; SMTP real (sem Mailpit)
+- [ ] `TURNSTILE_ENABLED=true` com chaves válidas
+- [ ] DNS do domínio a apontar para o VPS; certificados em `deploy/nginx/certs/`
+- [ ] Após `migrate`: **alterar ou remover** utilizadores seed de desenvolvimento
+- [ ] Backup periódico do volume `postgres_data`
+
+---
+
 ## Documentação
 
 | Documento                          | Conteúdo                                                                      |
@@ -592,6 +641,8 @@ config/            # Rotas, autoload, upload, async_queue, serviços
 migrations/
 test/              # Pest / PHPUnit (Unit/Project, Unit/Upload, Unit/Auth, …)
 docs/              # ROUTES.md, API.md, arquitectura
+deploy/nginx/      # Proxy produção (TLS)
+docker-compose.prod.yml
 hyper              # CLI Docker (estilo Sail)
 .envrc             # direnv: PATH_add vendor/bin
 ```

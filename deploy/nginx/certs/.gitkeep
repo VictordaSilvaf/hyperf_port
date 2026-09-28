@@ -1,0 +1,5 @@
+# Place TLS certificates here (not committed):
+#   fullchain.pem
+#   privkey.pem
+#
+# See comments in deploy/nginx/conf.d/api.conf for certbot steps.

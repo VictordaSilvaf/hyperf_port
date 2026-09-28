@@ -8,7 +8,7 @@ API REST em **Hyperf 3.x** (PHP ≥ 8.4) com camadas **Domain → Application �
 
 | Documento | Conteúdo |
 |-----------|----------|
-| [README.md](README.md) | Setup, Docker, variáveis de ambiente |
+| [README.md](README.md) | Setup, Docker, variáveis de ambiente, **produção (VPS + Compose)** |
 | [docs/PROJECT.md](docs/PROJECT.md) | Arquitetura, dependências entre camadas, convenções |
 | [docs/API.md](docs/API.md) | Rotas, payloads, códigos HTTP, exemplos |
 | Swagger UI | `http://127.0.0.1:9500/swagger` (OpenAPI; `SWAGGER_ENABLE`) |
@@ -67,5 +67,6 @@ Infrastructure implementa ports; Domain não importa Hyperf/DB/Redis.
 ## Segurança
 
 - Nunca expor `APP_AUTH_SECRET` ou credenciais de seed em produção
-- `APP_DEBUG=false` em produção
-- Tokens e reset de password: respeitar TTLs em `.env.example`
+- `APP_DEBUG=false` e `SWAGGER_ENABLE=false` em produção
+- Deploy VPS: ver secção **Produção (VPS + Compose)** no [README.md](README.md) (`.env.production`, `docker-compose.prod.yml`)
+- Tokens e reset de password: respeitar TTLs em `.env.example` / `.env.production.example`

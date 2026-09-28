@@ -9,6 +9,7 @@ vendor/
 storage/swagger/*.json
 .phpintel/
 .env
+.env.production
 .DS_Store
 .phpunit*
 *.cache
