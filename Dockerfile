@@ -43,12 +43,15 @@ RUN set -ex \
 
 WORKDIR /opt/www
 
-# Composer Cache
-# COPY ./composer.* /opt/www/
-# RUN composer install --no-dev --no-scripts
-
+# App source (see .dockerignore). No .env at build time — runtime uses env_file / compose.
 COPY . /opt/www
-RUN composer install --no-dev -o && php bin/hyperf.php
+
+# --no-scripts: avoid host-only hooks; ensure-hyper-bin is optional for the API image.
+RUN composer install --no-dev -o --no-scripts \
+    && composer dump-autoload -o --no-scripts \
+    && rm -rf runtime/container \
+    && mkdir -p runtime/container storage/swagger \
+    && php bin/hyperf.php
 
 EXPOSE 9501
 

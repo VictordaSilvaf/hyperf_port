@@ -1,5 +1,11 @@
+# Build context for production Dockerfile — keep the image lean.
 **
 !app/
 !bin/
 !config/
-!composer.*
+!migrations/
+!storage/languages/
+!scripts/ensure-hyper-bin.php
+!composer.json
+!composer.lock
+!.env.example
