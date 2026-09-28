@@ -17,26 +17,26 @@ use Hyperf\DbConnection\Db;
  * Idempotente: insertOrIgnore por id; não sobrescreve projetos já existentes.
  */
 return new class extends Migration {
-    private const PROJECT_TGARANTE = 'p1000001-0000-4000-8000-000000000001';
+    private const PROJECT_TGARANTE = 'a1000001-0000-4000-8000-000000000001';
 
-    private const PROJECT_FUI = 'p1000002-0000-4000-8000-000000000001';
+    private const PROJECT_FUI = 'a1000002-0000-4000-8000-000000000001';
 
-    private const PROJECT_CAGE = 'p1000003-0000-4000-8000-000000000001';
+    private const PROJECT_CAGE = 'a1000003-0000-4000-8000-000000000001';
 
     /** Seed taxonomy ids from 2026_07_04_000003_seed_default_taxonomies. */
     private const CATEGORY_WEB = 'c1000001-0000-4000-8000-000000000001';
 
     private const CATEGORY_MOBILE = 'c1000002-0000-4000-8000-000000000001';
 
-    private const TECH_LARAVEL = 't1000001-0000-4000-8000-000000000001';
+    private const TECH_LARAVEL = 'b1000001-0000-4000-8000-000000000001';
 
-    private const TECH_REACT = 't1000002-0000-4000-8000-000000000001';
+    private const TECH_REACT = 'b1000002-0000-4000-8000-000000000001';
 
-    private const TECH_HYPERF = 't1000003-0000-4000-8000-000000000001';
+    private const TECH_HYPERF = 'b1000003-0000-4000-8000-000000000001';
 
-    private const TECH_POSTGRES = 't1000004-0000-4000-8000-000000000001';
+    private const TECH_POSTGRES = 'b1000004-0000-4000-8000-000000000001';
 
-    private const TAG_PORTFOLIO = 'g1000002-0000-4000-8000-000000000001';
+    private const TAG_PORTFOLIO = 'd1000002-0000-4000-8000-000000000001';
 
     private const USER_ADMIN = 'c0000001-0000-4000-8000-000000000001';
 
