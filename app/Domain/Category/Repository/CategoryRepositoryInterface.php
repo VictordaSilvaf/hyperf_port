@@ -27,4 +27,6 @@ interface CategoryRepositoryInterface
 
     /** @param list<string> $ids */
     public function findByIds(array $ids): array;
+
+    public function save(Category $category): void;
 }

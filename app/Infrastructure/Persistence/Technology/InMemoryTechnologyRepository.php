@@ -47,4 +47,9 @@ final class InMemoryTechnologyRepository implements TechnologyRepositoryInterfac
     {
         return array_values(array_filter($this->items, static fn (Technology $t): bool => in_array($t->id()->value(), $ids, true)));
     }
+
+    public function save(Technology $technology): void
+    {
+        $this->items[$technology->id()->value()] = $technology;
+    }
 }

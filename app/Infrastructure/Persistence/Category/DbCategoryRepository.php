@@ -51,6 +51,27 @@ final class DbCategoryRepository implements CategoryRepositoryInterface
         );
     }
 
+    public function save(Category $category): void
+    {
+        $now = date('Y-m-d H:i:s');
+        $row = [
+            'id' => $category->id()->value(),
+            'name' => $category->name(),
+            'slug' => $category->slug()->value(),
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+
+        if (Db::table('categories')->where('id', $row['id'])->exists()) {
+            unset($row['created_at']);
+            Db::table('categories')->where('id', $row['id'])->update($row);
+
+            return;
+        }
+
+        Db::table('categories')->insert($row);
+    }
+
     /** @param array<string, mixed> $row */
     private function toDomain(array $row): Category
     {

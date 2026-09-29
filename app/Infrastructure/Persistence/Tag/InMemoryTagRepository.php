@@ -47,4 +47,9 @@ final class InMemoryTagRepository implements TagRepositoryInterface
     {
         return array_values(array_filter($this->items, static fn (Tag $t): bool => in_array($t->id()->value(), $ids, true)));
     }
+
+    public function save(Tag $tag): void
+    {
+        $this->items[$tag->id()->value()] = $tag;
+    }
 }

@@ -51,6 +51,27 @@ final class DbTagRepository implements TagRepositoryInterface
         );
     }
 
+    public function save(Tag $tag): void
+    {
+        $now = date('Y-m-d H:i:s');
+        $row = [
+            'id' => $tag->id()->value(),
+            'name' => $tag->name(),
+            'slug' => $tag->slug()->value(),
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+
+        if (Db::table('tags')->where('id', $row['id'])->exists()) {
+            unset($row['created_at']);
+            Db::table('tags')->where('id', $row['id'])->update($row);
+
+            return;
+        }
+
+        Db::table('tags')->insert($row);
+    }
+
     /** @param array<string, mixed> $row */
     private function toDomain(array $row): Tag
     {

@@ -27,4 +27,6 @@ interface TagRepositoryInterface
 
     /** @param list<string> $ids */
     public function findByIds(array $ids): array;
+
+    public function save(Tag $tag): void;
 }

@@ -51,6 +51,27 @@ final class DbTechnologyRepository implements TechnologyRepositoryInterface
         );
     }
 
+    public function save(Technology $technology): void
+    {
+        $now = date('Y-m-d H:i:s');
+        $row = [
+            'id' => $technology->id()->value(),
+            'name' => $technology->name(),
+            'slug' => $technology->slug()->value(),
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+
+        if (Db::table('technologies')->where('id', $row['id'])->exists()) {
+            unset($row['created_at']);
+            Db::table('technologies')->where('id', $row['id'])->update($row);
+
+            return;
+        }
+
+        Db::table('technologies')->insert($row);
+    }
+
     /** @param array<string, mixed> $row */
     private function toDomain(array $row): Technology
     {

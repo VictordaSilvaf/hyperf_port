@@ -100,6 +100,16 @@ Router::addGroup('/api/v1', function () use ($auth) {
             'middleware' => $auth, 'permissions' => ['uploads.create'],
         ]);
 
+        Router::post('/categories', 'App\Presentation\Http\Controllers\Admin\AdminTaxonomyController@storeCategory', [
+            'middleware' => $auth,
+        ]);
+        Router::post('/technologies', 'App\Presentation\Http\Controllers\Admin\AdminTaxonomyController@storeTechnology', [
+            'middleware' => $auth,
+        ]);
+        Router::post('/tags', 'App\Presentation\Http\Controllers\Admin\AdminTaxonomyController@storeTag', [
+            'middleware' => $auth,
+        ]);
+
         Router::addGroup('/projects', function () use ($auth) {
             Router::get('/statistics', 'App\Presentation\Http\Controllers\Admin\AdminProjectController@stats', [
                 'middleware' => $auth, 'permissions' => ['projects.view'],

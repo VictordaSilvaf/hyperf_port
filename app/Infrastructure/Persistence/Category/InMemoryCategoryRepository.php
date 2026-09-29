@@ -47,4 +47,9 @@ final class InMemoryCategoryRepository implements CategoryRepositoryInterface
     {
         return array_values(array_filter($this->items, static fn (Category $c): bool => in_array($c->id()->value(), $ids, true)));
     }
+
+    public function save(Category $category): void
+    {
+        $this->items[$category->id()->value()] = $category;
+    }
 }
